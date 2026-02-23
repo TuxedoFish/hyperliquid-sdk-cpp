@@ -3,6 +3,8 @@
 #include <iostream>
 #include <simdjson.h>
 
+#include "../../include/hyperliquid/types/ResponseTypes.h"
+
 namespace hyperliquid
 {
     struct WSMessageParser::Impl
@@ -73,6 +75,11 @@ namespace hyperliquid
                     auto data = doc["data"].get_object().value();
                     crackActiveAssetCtx(data, listener);
                 }
+                else if (channel == "subscriptionResponse")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackSubscriptionResponse(data, listener);
+                }
                 else if (channel == "error")
                 {
                     std::cerr << "Error: " << message << std::endl;
@@ -87,6 +94,23 @@ namespace hyperliquid
                 std::cerr << "parse error: " << e.what() << std::endl;
             }
         }
+
+        void crackSubscriptionResponse(simdjson::ondemand::object& data, WSMessageHandler& listener)
+        {
+            SubscriptionResponse response;
+            if (data["type"].get_string().value() == "subscribe")
+            {
+                response.method = SubscriptionMethod::Subscribe;
+            } else
+            {
+                response.method = SubscriptionMethod::Unsubscribe;
+            }
+            Subscription subscription;
+            subscription.type = stringToSubscriptionType(data["subscription"].get_object()["type"].get_string().value());
+            response.subscription = subscription;
+            listener.onSubscriptionResponse(response);
+        }
+
 
         void crackL2Book(simdjson::ondemand::object& data, WSMessageHandler& listener)
         {

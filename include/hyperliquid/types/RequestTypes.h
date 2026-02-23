@@ -64,6 +64,7 @@ namespace hyperliquid
         ActiveAssetData,
         UserTwapSliceFills,
         UserTwapHistory,
+        Unknown,
     };
 
     inline std::string toString(SubscriptionType type)
@@ -91,6 +92,30 @@ namespace hyperliquid
         case SubscriptionType::UserTwapHistory: return "userTwapHistory";
         default: throw std::invalid_argument("Unknown SubscriptionType");
         }
+    }
+
+    inline SubscriptionType stringToSubscriptionType(std::string type)
+    {
+        if (type == "l2Book") return SubscriptionType::L2Book;
+        if (type == "bbo") return SubscriptionType::Bbo;
+        if (type == "trades") return SubscriptionType::Trades;
+        if (type == "candle") return SubscriptionType::Candle;
+        if (type == "allMids") return SubscriptionType::AllMids;
+        if (type == "notification") return SubscriptionType::Notification;
+        if (type == "webData3") return SubscriptionType::WebData3;
+        if (type == "twapStates") return SubscriptionType::TwapStates;
+        if (type == "clearingHouseState") return SubscriptionType::ClearingHouseState;
+        if (type == "openOrders") return SubscriptionType::OpenOrders;
+        if (type == "orderUpdates") return SubscriptionType::OrderUpdates;
+        if (type == "userEvents") return SubscriptionType::UserEvents;
+        if (type == "userFills") return SubscriptionType::UserFills;
+        if (type == "userFundings") return SubscriptionType::UserFundings;
+        if (type == "userNonFundingLedgerUpdates") return SubscriptionType::UserNonFundingLedgerUpdates;
+        if (type == "activeAssetCtx") return SubscriptionType::ActiveAssetCtx;
+        if (type == "activeAssetData") return SubscriptionType::ActiveAssetData;
+        if (type == "userTwapSliceFills") return SubscriptionType::UserTwapSliceFills;
+        if (type == "userTwapHistory") return SubscriptionType::UserTwapHistory;
+        return SubscriptionType::Unknown;
     }
 
     // --- REST info endpoint types ---

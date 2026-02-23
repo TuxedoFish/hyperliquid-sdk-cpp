@@ -3,8 +3,28 @@
 #include <cstdint>
 #include <string>
 
+#include "RequestTypes.h"
+
 namespace hyperliquid
 {
+
+    // --- Subscription types ---
+
+    enum class SubscriptionMethod { Subscribe, Unsubscribe };
+
+
+    struct Subscription
+    {
+        SubscriptionType type;
+    };
+
+    struct SubscriptionResponse
+    {
+        SubscriptionMethod method;
+        Subscription subscription;
+    };
+
+
     // --- Market Data types (no auth required) ---
 
     enum class Side { Bid, Ask };
