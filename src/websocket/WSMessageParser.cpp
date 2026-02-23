@@ -98,7 +98,7 @@ namespace hyperliquid
         void crackSubscriptionResponse(simdjson::ondemand::object& data, WSMessageHandler& listener)
         {
             SubscriptionResponse response;
-            if (data["type"].get_string().value() == "subscribe")
+            if (data["method"].get_string().value() == "subscribe")
             {
                 response.method = SubscriptionMethod::Subscribe;
             } else
@@ -106,7 +106,7 @@ namespace hyperliquid
                 response.method = SubscriptionMethod::Unsubscribe;
             }
             Subscription subscription;
-            subscription.type = stringToSubscriptionType(data["subscription"].get_object()["type"].get_string().value());
+            subscription.type = stringToSubscriptionType(std::string(data["subscription"].get_object().value()["type"].get_string().value()));
             response.subscription = subscription;
             listener.onSubscriptionResponse(response);
         }

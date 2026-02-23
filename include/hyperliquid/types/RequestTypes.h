@@ -94,7 +94,7 @@ namespace hyperliquid
         }
     }
 
-    inline SubscriptionType stringToSubscriptionType(std::string type)
+    inline SubscriptionType stringToSubscriptionType(const std::string& type)
     {
         if (type == "l2Book") return SubscriptionType::L2Book;
         if (type == "bbo") return SubscriptionType::Bbo;
