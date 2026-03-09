@@ -16,14 +16,184 @@ namespace hyperliquid
         {
             switch (type)
             {
+            case RestEndpointType::SpotMeta:
+                listener.onSpotMeta(parseSpotMeta(message));
+                break;
             case RestEndpointType::Meta:
                 listener.onMeta(parseMeta(message));
                 break;
+            case RestEndpointType::PerpDexs:
+                listener.onPerpDexs(parsePerpDexs(message));
+                break;
+            case RestEndpointType::PlaceOrder:
+                listener.onPlaceOrder(parsePlaceOrder(message));
+                break;
             default:
-                std::cerr << "RestMessageParser: unhandled InfoEndpointType: "
+                std::cerr << "RestMessageParser: unhandled RestEndpointType: "
                           << toString(type) << std::endl;
                 break;
             }
+        }
+
+        PlaceOrderResponse parsePlaceOrder(const std::string& message)
+        {
+            PlaceOrderResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.status = std::string(doc["status"].get_string().value());
+
+                if (response.status != "ok") return response;
+
+                auto resp = doc["response"].get_object().value();
+                response.type = std::string(resp["type"].get_string().value());
+
+                auto statuses = resp["data"]["statuses"].get_array().value();
+                for (auto entry : statuses)
+                {
+                    auto obj = entry.get_object().value();
+                    OrderStatusResult result;
+
+                    simdjson::ondemand::value resting;
+                    if (obj["resting"].get(resting) == simdjson::SUCCESS)
+                    {
+                        auto restingObj = resting.get_object().value();
+                        OrderStatusResting rest;
+                        rest.oid = restingObj["oid"].get_uint64().value();
+                        result.resting = std::move(rest);
+                    }
+
+                    simdjson::ondemand::value filled;
+                    if (obj["filled"].get(filled) == simdjson::SUCCESS)
+                    {
+                        auto filledObj = filled.get_object().value();
+                        OrderStatusFilled fill;
+                        fill.totalSz = std::string(filledObj["totalSz"].get_string().value());
+                        fill.avgPx = std::string(filledObj["avgPx"].get_string().value());
+                        fill.oid = filledObj["oid"].get_uint64().value();
+                        result.filled = std::move(fill);
+                    }
+
+                    simdjson::ondemand::value error;
+                    if (obj["error"].get(error) == simdjson::SUCCESS)
+                    {
+                        result.error = std::string(error.get_string().value());
+                    }
+
+                    response.statuses.push_back(std::move(result));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                std::cerr << "RestMessageParser: parse error in placeOrder: " << err.what()
+                          << "\n  raw: " << message << std::endl;
+            }
+
+            return response;
+        }
+
+        PerpDexsResponse parsePerpDexs(const std::string& message)
+        {
+            PerpDexsResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                bool firstElement = true;
+                for (auto entry : arr)
+                {
+                    if (firstElement) {
+                        firstElement = false; // Always null
+                        continue;
+                    }
+                    auto obj = entry.get_object().value();
+                    PerpDex dex;
+                    dex.name = std::string(obj["name"].get_string().value());
+                    dex.fullName = std::string(obj["fullName"].get_string().value());
+                    dex.deployer = std::string(obj["deployer"].get_string().value());
+                    simdjson::ondemand::value oracleUpdater;
+                    if (obj["oracleUpdater"].get(oracleUpdater) == simdjson::SUCCESS && !oracleUpdater.is_null())
+                        dex.oracleUpdater = std::string(oracleUpdater.get_string().value());
+
+                    simdjson::ondemand::value feeRecipient;
+                    if (obj["feeRecipient"].get(feeRecipient) == simdjson::SUCCESS && !feeRecipient.is_null())
+                        dex.feeRecipient = std::string(feeRecipient.get_string().value());
+
+                    auto oiCaps = obj["assetToStreamingOiCap"].get_array().value();
+                    for (auto pair : oiCaps)
+                    {
+                        auto pairArr = pair.get_array().value();
+                        auto iter = pairArr.begin();
+                        std::string asset = std::string((*iter).get_string().value());
+                        ++iter;
+                        std::string cap = std::string((*iter).get_string().value());
+                        dex.assetToStreamingOiCap.emplace_back(asset, cap);
+                    }
+
+                    auto fundingMults = obj["assetToFundingMultiplier"].get_array().value();
+                    for (auto pair : fundingMults)
+                    {
+                        auto pairArr = pair.get_array().value();
+                        auto iter = pairArr.begin();
+                        std::string asset = std::string((*iter).get_string().value());
+                        ++iter;
+                        std::string multiplier = std::string((*iter).get_string().value());
+                        dex.assetToFundingMultiplier.emplace_back(asset, multiplier);
+                    }
+
+                    response.dexes.push_back(std::move(dex));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                std::cerr << "RestMessageParser: parse error in perpDexs: " << err.what()
+                          << "\n  raw: " << message << std::endl;
+            }
+
+            return response;
+        }
+
+        SpotMetaResponse parseSpotMeta(const std::string& message)
+        {
+            SpotMetaResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto tokens = doc["tokens"].get_array().value();
+                for (auto entry : tokens)
+                {
+                    auto obj = entry.get_object().value();
+                    SpotAssetMeta token;
+                    token.name = std::string(obj["name"].get_string().value());
+                    token.szDecimals = static_cast<int>(obj["szDecimals"].get_int64().value());
+                    token.weiDecimals = static_cast<int>(obj["weiDecimals"].get_int64().value());
+                    token.index = static_cast<int>(obj["index"].get_int64().value());
+                    token.tokenId = std::string(obj["tokenId"].get_string().value());
+                    simdjson::ondemand::value evmContract;
+                    if (obj["evmContract"].get(evmContract) == simdjson::SUCCESS && !evmContract.is_null()) {
+                        auto address = std::string(evmContract["address"].get_string().value());
+                        auto evmExtraWeiDecimals = static_cast<int>(evmContract["evm_extra_wei_decimals"].get_int64().value());
+                        token.evmContract = EvmContract{address, evmExtraWeiDecimals};
+                    }
+                    simdjson::ondemand::value fullName;
+                    if (obj["fullName"].get(fullName) == simdjson::SUCCESS && !fullName.is_null())
+                        token.fullName = std::string(fullName.get_string().value());
+                    response.tokens.push_back(token);
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                std::cerr << "RestMessageParser: parse error in spotMeta: " << e.what()
+                          << "\n  raw: " << message << std::endl;
+            }
+
+            return response;
         }
 
         MetaResponse parseMeta(const std::string& message)
@@ -47,12 +217,18 @@ namespace hyperliquid
             }
             catch (const simdjson::simdjson_error& e)
             {
-                std::cerr << "RestMessageParser: parse error in meta: " << e.what() << std::endl;
+                std::cerr << "RestMessageParser: parse error in meta: " << e.what()
+                          << "\n  raw: " << message << std::endl;
             }
 
             return response;
         }
     };
+
+    static RestEndpointListener defaultEndpointListener;
+
+    RestApiMessageParser::RestApiMessageParser()
+        : impl_(std::make_unique<Impl>(defaultEndpointListener)) {}
 
     RestApiMessageParser::RestApiMessageParser(RestEndpointListener& listener)
         : impl_(std::make_unique<Impl>(listener)) {}
@@ -64,5 +240,25 @@ namespace hyperliquid
     void RestApiMessageParser::parse(const std::string& message, RestEndpointType type)
     {
         impl_->parse(message, type);
+    }
+
+    SpotMetaResponse RestApiMessageParser::parseSpotMeta(const std::string& message)
+    {
+        return impl_->parseSpotMeta(message);
+    }
+
+    MetaResponse RestApiMessageParser::parseMeta(const std::string& message)
+    {
+        return impl_->parseMeta(message);
+    }
+
+    PerpDexsResponse RestApiMessageParser::parsePerpDexs(const std::string& message)
+    {
+        return impl_->parsePerpDexs(message);
+    }
+
+    PlaceOrderResponse RestApiMessageParser::parsePlaceOrder(const std::string& message)
+    {
+        return impl_->parsePlaceOrder(message);
     }
 } // namespace hyperliquid

@@ -1,6 +1,9 @@
 #pragma once
+#include <cstdint>
+#include <optional>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace hyperliquid
 {
@@ -122,7 +125,7 @@ namespace hyperliquid
 
     enum class RestEndpointType
     {
-        // Info endpoints
+        // Info endpoints (Perpetuals)
         Meta,
         MetaAndAssetCtxs,
         AllMids,
@@ -133,6 +136,14 @@ namespace hyperliquid
         UserFillsByTime,
         OrderStatus,
         UserRateLimit,
+        PerpDexs,
+        // Info endpoints (Spot)
+        SpotMeta,
+        SpotMetaAndAssetCtxs,
+        SpotClearinghouseState,
+        SpotDeployState,
+        SpotPairDeployAuctionStatus,
+        TokenDetails,
 
         // Exchange endpoints (signed)
         PlaceOrder,
@@ -157,6 +168,15 @@ namespace hyperliquid
         case RestEndpointType::UserFillsByTime: return "userFillsByTime";
         case RestEndpointType::OrderStatus: return "orderStatus";
         case RestEndpointType::UserRateLimit: return "userRateLimit";
+        case RestEndpointType::PerpDexs: return "perpDexs";
+
+        case RestEndpointType::SpotMeta: return "spotMeta";
+        case RestEndpointType::SpotMetaAndAssetCtxs: return "spotMetaAndAssetCtxs";
+        case RestEndpointType::SpotClearinghouseState: return "spotClearinghouseState";
+        case RestEndpointType::SpotDeployState: return "spotDeployState";
+        case RestEndpointType::SpotPairDeployAuctionStatus: return "spotPairDeployAuctionStatus";
+        case RestEndpointType::TokenDetails: return "tokenDetails";
+
         case RestEndpointType::PlaceOrder: return "order";
         case RestEndpointType::CancelOrder: return "cancel";
         case RestEndpointType::CancelOrderByCloid: return "cancelByCloid";
@@ -181,6 +201,15 @@ namespace hyperliquid
         case RestEndpointType::UserFillsByTime: return false;
         case RestEndpointType::OrderStatus: return false;
         case RestEndpointType::UserRateLimit: return false;
+        case RestEndpointType::PerpDexs: return false;
+
+        case RestEndpointType::SpotMeta: return false;
+        case RestEndpointType::SpotMetaAndAssetCtxs: return false;
+        case RestEndpointType::SpotClearinghouseState: return false;
+        case RestEndpointType::SpotDeployState: return false;
+        case RestEndpointType::SpotPairDeployAuctionStatus: return false;
+        case RestEndpointType::TokenDetails: return false;
+
         case RestEndpointType::PlaceOrder: return true;
         case RestEndpointType::CancelOrder: return true;
         case RestEndpointType::CancelOrderByCloid: return true;
@@ -190,4 +219,77 @@ namespace hyperliquid
         default: throw std::invalid_argument("Unknown RestEndpointType");
         }
     }
+
+    inline std::string toPath(RestEndpointType type)
+    {
+        return isAuthenticated(type) ? "/exchange" : "/info";
+    }
+
+    enum class Tif { Alo, Ioc, Gtc };
+
+    inline std::string toString(Tif tif)
+    {
+        switch (tif)
+        {
+        case Tif::Alo: return "Alo";
+        case Tif::Ioc: return "Ioc";
+        case Tif::Gtc: return "Gtc";
+        default: throw std::invalid_argument("Unknown Tif");
+        }
+    }
+
+    enum class TpSl { Tp, Sl };
+
+    inline std::string toString(TpSl tpsl)
+    {
+        switch (tpsl)
+        {
+        case TpSl::Tp: return "tp";
+        case TpSl::Sl: return "sl";
+        default: throw std::invalid_argument("Unknown TpSl");
+        }
+    }
+
+    struct LimitOrderType
+    {
+        Tif tif;
+    };
+
+    struct TriggerOrderType
+    {
+        bool isMarket;
+        std::string triggerPx;
+        TpSl tpsl;
+    };
+
+    struct OrderRequest
+    {
+        std::string asset;
+        bool isBuy;
+        std::string price;
+        std::string size;
+        bool reduceOnly;
+        std::optional<LimitOrderType> limit;
+        std::optional<TriggerOrderType> trigger;
+        std::optional<std::string> cloid;
+    };
+
+    enum class Grouping { Na, NormalTpsl, PositionTpsl };
+
+    inline std::string toString(Grouping grouping)
+    {
+        switch (grouping)
+        {
+        case Grouping::Na: return "na";
+        case Grouping::NormalTpsl: return "normalTpsl";
+        case Grouping::PositionTpsl: return "positionTpsl";
+        default: throw std::invalid_argument("Unknown Grouping");
+        }
+    }
+
+    struct Builder
+    {
+        std::string address;
+        int fee;
+    };
 }

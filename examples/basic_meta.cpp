@@ -1,48 +1,54 @@
 #include <hyperliquid/rest/RestApi.h>
-#include <hyperliquid/rest/RestApiListener.h>
 #include <hyperliquid/rest/RestApiMessageParser.h>
-#include <hyperliquid/rest/RestEndpointListener.h>
 #include <iostream>
-#include <thread>
-#include <chrono>
-#include <atomic>
 
-#include "hyperliquid/types/ResponseTypes.h"
+int main() {
+    hyperliquid::RestApi api(hyperliquid::Environment::Mainnet);
+    hyperliquid::RestApiMessageParser parser;
 
-class MetaPrinter : public hyperliquid::RestApiListener, public hyperliquid::RestEndpointListener {
-public:
-    std::atomic<bool> done{false};
+    std::cout << "=== Spot ===" << std::endl;
+    auto spotMeta = parser.parseSpotMeta(api.spotMeta());
 
-    // hyperliquid::RestListener — raw message arrives here
-    void onMessage(const std::string& message, hyperliquid::RestEndpointType type) override {
-        hyperliquid::RestApiMessageParser parser(*this);
-        parser.parse(message, type);
+    std::cout << spotMeta.tokens.size() << " assets:" << std::endl;
+    for (const auto& asset : spotMeta.tokens) {
+        std::cout << "  " << asset.name
+                  << "  szDecimals=" << asset.szDecimals
+                  << std::endl;
     }
 
-    // hyperliquid::InfoEndpointListener — parsed response arrives here
-    void onMeta(const hyperliquid::MetaResponse& response) override {
-        std::cout << "Universe: " << response.universe.size() << " assets" << std::endl;
-        std::cout << std::endl;
-        for (const auto& asset : response.universe) {
-            std::cout << asset.name
+    auto dexes = parser.parsePerpDexs(api.perpDexs());
+
+    std::cout << "=== Perps ===" << std::endl;
+    auto defaultMeta = parser.parseMeta(api.meta());
+
+    std::cout << defaultMeta.universe.size() << " assets:" << std::endl;
+    for (const auto& asset : defaultMeta.universe) {
+        std::cout << "  " << asset.name
+                  << "  szDecimals=" << asset.szDecimals
+                  << "  maxLeverage=" << asset.maxLeverage
+                  << std::endl;
+    }
+    std::cout << std::endl;
+
+    std::cout << "Found " << dexes.dexes.size() << " HIP-3 perp dexes:" << std::endl;
+    for (const auto& dex : dexes.dexes) {
+        std::cout << "  " << dex.name << " (" << dex.fullName << ")"
+                  << "  deployer=" << dex.deployer << std::endl;
+    }
+    std::cout << std::endl;
+
+    for (const auto& dex : dexes.dexes) {
+        std::cout << "=== " << dex.name << " ===" << std::endl;
+        auto meta = parser.parseMeta(api.meta(dex.name));
+
+        std::cout << meta.universe.size() << " assets:" << std::endl;
+        for (const auto& asset : meta.universe) {
+            std::cout << "  " << asset.name
                       << "  szDecimals=" << asset.szDecimals
                       << "  maxLeverage=" << asset.maxLeverage
                       << std::endl;
         }
-        done = true;
-    }
-};
-
-int main() {
-    MetaPrinter printer;
-    hyperliquid::RestApi api(hyperliquid::Environment::Mainnet, printer);
-
-    std::cout << "Fetching meta from Hyperliquid... (dex=xyz)" << std::endl;
-    api.sendRequest(hyperliquid::RestEndpointType::Meta, {{"dex", "xyz"}});
-
-    // Wait for the async response
-    while (!printer.done) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::cout << std::endl;
     }
 
     return 0;

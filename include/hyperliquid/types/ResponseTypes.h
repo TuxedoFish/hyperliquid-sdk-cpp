@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -305,5 +306,70 @@ namespace hyperliquid
         std::vector<AssetMeta> universe;
     };
 
+    struct EvmContract
+    {
+        std::string address;
+        int evm_extra_wei_decimals;
+    };
+
+    struct SpotAssetMeta
+    {
+        std::string name;
+        int szDecimals;
+        int weiDecimals;
+        int index;
+        std::string tokenId;
+        bool isCanonical;
+        std::optional<EvmContract> evmContract;
+        std::optional<std::string> fullName;
+    };
+
+    struct SpotMetaResponse
+    {
+        std::vector<SpotAssetMeta> tokens;
+    };
+
+    struct PerpDex
+    {
+        std::string name;
+        std::string fullName;
+        std::string deployer;
+        std::optional<std::string> oracleUpdater;
+        std::optional<std::string> feeRecipient;
+        std::vector<std::pair<std::string, std::string>> assetToStreamingOiCap;
+        std::vector<std::pair<std::string, std::string>> assetToFundingMultiplier;
+    };
+
+    struct PerpDexsResponse
+    {
+        std::vector<PerpDex> dexes;
+    };
+
     // --- Rest endpoint types (authenticated) ---
+
+    struct OrderStatusResting
+    {
+        uint64_t oid;
+    };
+
+    struct OrderStatusFilled
+    {
+        std::string totalSz;
+        std::string avgPx;
+        uint64_t oid;
+    };
+
+    struct OrderStatusResult
+    {
+        std::optional<OrderStatusResting> resting;
+        std::optional<OrderStatusFilled> filled;
+        std::optional<std::string> error;
+    };
+
+    struct PlaceOrderResponse
+    {
+        std::string status;
+        std::string type;
+        std::vector<OrderStatusResult> statuses;
+    };
 }

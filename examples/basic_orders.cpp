@@ -1,3 +1,5 @@
+#include "test_config.h"
+
 #include <hyperliquid/rest/RestApi.h>
 #include <hyperliquid/rest/RestApiListener.h>
 #include <hyperliquid/rest/RestApiMessageParser.h>
@@ -11,21 +13,23 @@ class OrderSender : public hyperliquid::RestApiListener, public hyperliquid::Res
 public:
     std::atomic<bool> done{false};
 
-    // hyperliquid::RestListener — raw message arrives here
     void onMessage(const std::string& message, hyperliquid::RestEndpointType type) override {
         hyperliquid::RestApiMessageParser parser(*this);
         parser.parse(message, type);
     }
 
-    // hyperliquid::InfoEndpointListener — parsed response arrives here
-    void onMeta(const hyperliquid::MetaResponse& response) override {
-        std::cout << "Universe: " << response.universe.size() << " assets" << std::endl;
-        std::cout << std::endl;
-        for (const auto& asset : response.universe) {
-            std::cout << asset.name
-                      << "  szDecimals=" << asset.szDecimals
-                      << "  maxLeverage=" << asset.maxLeverage
-                      << std::endl;
+    void onPlaceOrder(const hyperliquid::PlaceOrderResponse& response) override {
+        std::cout << "Order response status: " << response.status << std::endl;
+        for (const auto& status : response.statuses) {
+            if (status.resting) {
+                std::cout << "  Resting oid=" << status.resting->oid << std::endl;
+            } else if (status.filled) {
+                std::cout << "  Filled oid=" << status.filled->oid
+                          << " avgPx=" << status.filled->avgPx
+                          << " totalSz=" << status.filled->totalSz << std::endl;
+            } else if (status.error) {
+                std::cout << "  Error: " << *status.error << std::endl;
+            }
         }
         done = true;
     }
@@ -33,19 +37,22 @@ public:
 
 int main()
 {
-    OrderSender printer;
-    hyperliquid::Wallet wallet{"", ""};
-    hyperliquid::RestApi api(hyperliquid::Environment::Mainnet, printer, wallet);
+    OrderSender sender;
+    auto wallet = loadWalletFromConfig();
+    hyperliquid::RestApi api(hyperliquid::Environment::Testnet, sender, wallet);
 
-    std::cout << "Sending order to Hyperliquid..." << std::endl;
-    api.sendRequest(hyperliquid::RestEndpointType::PlaceOrder, {
-        {"orders", [
+    hyperliquid::OrderRequest order;
+    order.asset = "BTC";
+    order.isBuy = true;
+    order.price = "1800.0";
+    order.size = "0.01";
+    order.reduceOnly = false;
+    order.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Gtc};
 
-        ]}
-    });
+    std::cout << "Placing order on Hyperliquid testnet..." << std::endl;
+    api.placeOrderAsync({order}, hyperliquid::Grouping::Na);
 
-    // Wait for the async response
-    while (!printer.done) {
+    while (!sender.done) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
