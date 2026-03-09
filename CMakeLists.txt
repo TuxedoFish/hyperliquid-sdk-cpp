@@ -12,6 +12,10 @@ find_package(nlohmann_json CONFIG REQUIRED)
 set(SDK_SOURCES
         src/rest/RestApiMessageParser.cpp
         src/rest/RestApi.cpp
+        src/rest/HttpSession.cpp
+        src/rest/InfoRequestBuilder.cpp
+        src/rest/ExchangeRequestBuilder.cpp
+        src/rest/SymbolMap.cpp
 
         src/websocket/WebsocketRunner.cpp
         src/websocket/WebsocketApi.cpp
