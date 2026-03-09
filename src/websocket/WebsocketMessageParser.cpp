@@ -1,4 +1,4 @@
-#include "hyperliquid/websocket/WSMessageParser.h"
+#include "hyperliquid/websocket/WebsocketMessageParser.h"
 #include <charconv>
 #include <iostream>
 #include <simdjson.h>
@@ -7,7 +7,7 @@
 
 namespace hyperliquid
 {
-    struct WSMessageParser::Impl
+    struct WebsocketMessageParser::Impl
     {
         simdjson::ondemand::parser parser;
         simdjson::padded_string padded;
@@ -19,7 +19,7 @@ namespace hyperliquid
             return val;
         }
 
-        void crack(const std::string& message, WSMessageHandler& listener)
+        void crack(const std::string& message, WebsocketMessageHandler& listener)
         {
             padded = simdjson::padded_string(message.data(), message.size());
             auto doc = parser.iterate(padded);
@@ -95,7 +95,7 @@ namespace hyperliquid
             }
         }
 
-        void crackSubscriptionResponse(simdjson::ondemand::object& data, WSMessageHandler& listener)
+        void crackSubscriptionResponse(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             SubscriptionResponse response;
             if (data["method"].get_string().value() == "subscribe")
@@ -112,7 +112,7 @@ namespace hyperliquid
         }
 
 
-        void crackL2Book(simdjson::ondemand::object& data, WSMessageHandler& listener)
+        void crackL2Book(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             L2BookUpdate book;
             book.coin = std::string(data["coin"].get_string().value());
@@ -149,7 +149,7 @@ namespace hyperliquid
             }
         }
 
-        void crackBbo(simdjson::ondemand::object& data, WSMessageHandler& listener)
+        void crackBbo(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             BboUpdate update;
             update.coin = std::string(data["coin"].get_string().value());
@@ -190,7 +190,7 @@ namespace hyperliquid
             listener.onBbo(update);
         }
 
-        void crackTrades(simdjson::ondemand::array& data, WSMessageHandler& listener)
+        void crackTrades(simdjson::ondemand::array& data, WebsocketMessageHandler& listener)
         {
             Trade trade;
             for (auto entry : data)
@@ -230,7 +230,7 @@ namespace hyperliquid
             }
         }
 
-        void crackCandles(simdjson::ondemand::array& data, WSMessageHandler& listener)
+        void crackCandles(simdjson::ondemand::array& data, WebsocketMessageHandler& listener)
         {
             Candle candle;
             for (auto entry : data)
@@ -257,7 +257,7 @@ namespace hyperliquid
             }
         }
 
-        void crackAllMids(simdjson::ondemand::object& data, WSMessageHandler& listener)
+        void crackAllMids(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             auto mids = data["mids"].get_object().value();
             AllMidsEntry entry;
@@ -276,7 +276,7 @@ namespace hyperliquid
             }
         }
 
-        void crackActiveAssetCtx(simdjson::ondemand::object& data, WSMessageHandler& listener)
+        void crackActiveAssetCtx(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             std::string coin(data["coin"].get_string().value());
             auto ctx = data["ctx"].get_object().value();
@@ -315,13 +315,13 @@ namespace hyperliquid
         }
     };
 
-    WSMessageParser::WSMessageParser() : impl_(std::make_unique<Impl>()) {}
+    WebsocketMessageParser::WebsocketMessageParser() : impl_(std::make_unique<Impl>()) {}
 
-    WSMessageParser::~WSMessageParser() = default;
-    WSMessageParser::WSMessageParser(WSMessageParser&&) noexcept = default;
-    WSMessageParser& WSMessageParser::operator=(WSMessageParser&&) noexcept = default;
+    WebsocketMessageParser::~WebsocketMessageParser() = default;
+    WebsocketMessageParser::WebsocketMessageParser(WebsocketMessageParser&&) noexcept = default;
+    WebsocketMessageParser& WebsocketMessageParser::operator=(WebsocketMessageParser&&) noexcept = default;
 
-    void WSMessageParser::crack(const std::string& message, WSMessageHandler& listener)
+    void WebsocketMessageParser::crack(const std::string& message, WebsocketMessageHandler& listener)
     {
         impl_->crack(message, listener);
     }

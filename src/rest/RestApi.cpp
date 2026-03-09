@@ -1,5 +1,5 @@
-#include "hyperliquid/rest/InfoApi.h"
-#include "hyperliquid/rest/RestListener.h"
+#include "hyperliquid/rest/RestApi.h"
+#include "hyperliquid/rest/RestApiListener.h"
 
 #include <iostream>
 #include <memory>
@@ -28,7 +28,7 @@ class HttpSession : public std::enable_shared_from_this<HttpSession> {
 public:
     HttpSession(net::io_context& ioc, ssl::context& sslCtx,
                 const std::string& host, const std::string& port,
-                RestListener& listener, InfoEndpointType type)
+                RestApiListener& listener, RestEndpointType type)
         : resolver_(net::make_strand(ioc))
         , stream_(net::make_strand(ioc), sslCtx)
         , host_(host)
@@ -143,21 +143,37 @@ private:
     http::response<http::string_body> res_;
     std::string host_;
     std::string port_;
-    RestListener& listener_;
-    InfoEndpointType type_;
+    RestApiListener& listener_;
+    RestEndpointType type_;
 };
 
 // InfoApi pimpl
-struct InfoApi::Impl {
+struct RestApi::Impl {
     net::io_context ioc;
     net::executor_work_guard<net::io_context::executor_type> work;
     ssl::context sslCtx;
     std::thread thread;
     std::string host;
     std::string port;
-    RestListener& listener;
+    RestApiListener& listener;
+    Wallet wallet;
+    bool authenticated = false;
 
-    Impl(Environment env, RestListener& listener)
+    Impl(Environment env, RestApiListener& listener, Wallet wallet)
+        : work(net::make_work_guard(ioc))
+        , sslCtx(ssl::context::tlsv12_client)
+        , host(toInfoEndpoint(env).host)
+        , port(toInfoEndpoint(env).port)
+        , listener(listener)
+        , wallet(wallet)
+    {
+        sslCtx.set_default_verify_paths();
+        sslCtx.set_verify_mode(ssl::verify_peer);
+        thread = std::thread([this]() { ioc.run(); });
+        authenticated = true;
+    }
+
+    Impl(Environment env, RestApiListener& listener)
         : work(net::make_work_guard(ioc))
         , sslCtx(ssl::context::tlsv12_client)
         , host(toInfoEndpoint(env).host)
@@ -177,19 +193,35 @@ struct InfoApi::Impl {
     }
 };
 
-InfoApi::InfoApi(Environment env, RestListener& listener)
+RestApi::RestApi(Environment env, RestApiListener& listener, Wallet wallet)
     : impl_(std::make_unique<Impl>(env, listener))
 {
 }
 
-InfoApi::~InfoApi() = default;
+RestApi::RestApi(Environment env, RestApiListener& listener)
+    : impl_(std::make_unique<Impl>(env, listener))
+{
+}
 
-void InfoApi::sendRequest(InfoEndpointType type, const std::map<std::string, std::string>& params)
+RestApi::~RestApi() = default;
+
+void RestApi::sendRequest(RestEndpointType type, const std::map<std::string, std::string>& params)
 {
     nlohmann::json body;
     body["type"] = toString(type);
     for (const auto& [key, value] : params) {
         body[key] = value;
+    }
+
+    if (isAuthenticated(type))
+    {
+       if (!impl_->authenticated)
+       {
+           std::cerr << "RestApi: Not authenticated - rejecting " << toString(type) << std::endl;
+           return;
+       }
+
+        // TODO: Add the signature in order to send the request
     }
 
     auto session = std::make_shared<HttpSession>(
@@ -200,4 +232,4 @@ void InfoApi::sendRequest(InfoEndpointType type, const std::map<std::string, std
     session->run(body.dump());
 }
 
-} // namespace hyperliquid
+}

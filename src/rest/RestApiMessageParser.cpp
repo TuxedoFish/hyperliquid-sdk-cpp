@@ -1,22 +1,22 @@
-#include "hyperliquid/rest/RestMessageParser.h"
+#include "hyperliquid/rest/RestApiMessageParser.h"
 #include <iostream>
 #include <simdjson.h>
 
 namespace hyperliquid
 {
-    struct RestMessageParser::Impl
+    struct RestApiMessageParser::Impl
     {
-        InfoEndpointListener& listener;
+        RestEndpointListener& listener;
         simdjson::ondemand::parser parser;
         simdjson::padded_string padded;
 
-        explicit Impl(InfoEndpointListener& listener) : listener(listener) {}
+        explicit Impl(RestEndpointListener& listener) : listener(listener) {}
 
-        void parse(const std::string& message, InfoEndpointType type)
+        void parse(const std::string& message, RestEndpointType type)
         {
             switch (type)
             {
-            case InfoEndpointType::Meta:
+            case RestEndpointType::Meta:
                 listener.onMeta(parseMeta(message));
                 break;
             default:
@@ -54,14 +54,14 @@ namespace hyperliquid
         }
     };
 
-    RestMessageParser::RestMessageParser(InfoEndpointListener& listener)
+    RestApiMessageParser::RestApiMessageParser(RestEndpointListener& listener)
         : impl_(std::make_unique<Impl>(listener)) {}
 
-    RestMessageParser::~RestMessageParser() = default;
-    RestMessageParser::RestMessageParser(RestMessageParser&&) noexcept = default;
-    RestMessageParser& RestMessageParser::operator=(RestMessageParser&&) noexcept = default;
+    RestApiMessageParser::~RestApiMessageParser() = default;
+    RestApiMessageParser::RestApiMessageParser(RestApiMessageParser&&) noexcept = default;
+    RestApiMessageParser& RestApiMessageParser::operator=(RestApiMessageParser&&) noexcept = default;
 
-    void RestMessageParser::parse(const std::string& message, InfoEndpointType type)
+    void RestApiMessageParser::parse(const std::string& message, RestEndpointType type)
     {
         impl_->parse(message, type);
     }

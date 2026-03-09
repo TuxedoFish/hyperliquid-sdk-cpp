@@ -4,9 +4,9 @@
 
 namespace hyperliquid {
 
-class WebsocketListener {
+class WebsocketApiListener {
 public:
-    virtual ~WebsocketListener() = default;
+    virtual ~WebsocketApiListener() = default;
 
     virtual void onMessage(const std::string& message) {}
     virtual void onConnected() {}

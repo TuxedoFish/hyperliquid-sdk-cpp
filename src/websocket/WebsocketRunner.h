@@ -35,10 +35,10 @@ public:
     virtual void onWsDisconnected(bool hasError, const std::string& errMsg) = 0;
 };
 
-class WSRunner {
+class WebsocketRunner {
 public:
-    WSRunner(const std::string& host, const std::string& port, const std::string& path, WSListener& listener);
-    ~WSRunner();
+    WebsocketRunner(const std::string& host, const std::string& port, const std::string& path, WSListener& listener);
+    ~WebsocketRunner();
 
     void send(const std::string& message);
 

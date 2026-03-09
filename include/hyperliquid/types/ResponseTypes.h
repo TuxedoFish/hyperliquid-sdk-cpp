@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "RequestTypes.h"
 
@@ -11,7 +12,6 @@ namespace hyperliquid
     // --- Subscription types ---
 
     enum class SubscriptionMethod { Subscribe, Unsubscribe };
-
 
     struct Subscription
     {
@@ -24,8 +24,7 @@ namespace hyperliquid
         Subscription subscription;
     };
 
-
-    // --- Market Data types (no auth required) ---
+    // --- Websocket data types (unauthenticated) ---
 
     enum class Side { Bid, Ask };
 
@@ -110,7 +109,7 @@ namespace hyperliquid
         double circulatingSupply;
     };
 
-    // --- User / Trading types (require user address) ---
+    // --- Websocket data types (authenticated) ---
 
     struct Fill
     {
@@ -291,4 +290,20 @@ namespace hyperliquid
     {
         std::string notification;
     };
+
+    // --- Rest endpoint types (unauthenticated) ---
+
+    struct AssetMeta
+    {
+        std::string name;
+        int szDecimals;
+        int maxLeverage;
+    };
+
+    struct MetaResponse
+    {
+        std::vector<AssetMeta> universe;
+    };
+
+    // --- Rest endpoint types (authenticated) ---
 }

@@ -4,9 +4,9 @@
 
 namespace hyperliquid {
 
-class WSMessageHandler {
+class WebsocketMessageHandler {
 public:
-    virtual ~WSMessageHandler() = default;
+    virtual ~WebsocketMessageHandler() = default;
 
     virtual void onSubscriptionResponse(const SubscriptionResponse& response) {}
     virtual void onL2BookLevel(const L2BookUpdate& book, const PriceLevel& level) {}

@@ -118,10 +118,11 @@ namespace hyperliquid
         return SubscriptionType::Unknown;
     }
 
-    // --- REST info endpoint types ---
+    // --- Rest endpoint types ---
 
-    enum class InfoEndpointType
+    enum class RestEndpointType
     {
+        // Info endpoints
         Meta,
         MetaAndAssetCtxs,
         AllMids,
@@ -132,23 +133,61 @@ namespace hyperliquid
         UserFillsByTime,
         OrderStatus,
         UserRateLimit,
+
+        // Exchange endpoints (signed)
+        PlaceOrder,
+        CancelOrder,
+        CancelOrderByCloid,
+        ScheduleCancel,
+        ModifyOrder,
+        BatchModifyOrder,
     };
 
-    inline std::string toString(InfoEndpointType type)
+    inline std::string toString(RestEndpointType type)
     {
         switch (type)
         {
-        case InfoEndpointType::Meta: return "meta";
-        case InfoEndpointType::MetaAndAssetCtxs: return "metaAndAssetCtxs";
-        case InfoEndpointType::AllMids: return "allMids";
-        case InfoEndpointType::L2Book: return "l2Book";
-        case InfoEndpointType::CandleSnapshot: return "candleSnapshot";
-        case InfoEndpointType::OpenOrders: return "openOrders";
-        case InfoEndpointType::UserFills: return "userFills";
-        case InfoEndpointType::UserFillsByTime: return "userFillsByTime";
-        case InfoEndpointType::OrderStatus: return "orderStatus";
-        case InfoEndpointType::UserRateLimit: return "userRateLimit";
+        case RestEndpointType::Meta: return "meta";
+        case RestEndpointType::MetaAndAssetCtxs: return "metaAndAssetCtxs";
+        case RestEndpointType::AllMids: return "allMids";
+        case RestEndpointType::L2Book: return "l2Book";
+        case RestEndpointType::CandleSnapshot: return "candleSnapshot";
+        case RestEndpointType::OpenOrders: return "openOrders";
+        case RestEndpointType::UserFills: return "userFills";
+        case RestEndpointType::UserFillsByTime: return "userFillsByTime";
+        case RestEndpointType::OrderStatus: return "orderStatus";
+        case RestEndpointType::UserRateLimit: return "userRateLimit";
+        case RestEndpointType::PlaceOrder: return "order";
+        case RestEndpointType::CancelOrder: return "cancel";
+        case RestEndpointType::CancelOrderByCloid: return "cancelByCloid";
+        case RestEndpointType::ScheduleCancel: return "scheduleCancel";
+        case RestEndpointType::ModifyOrder: return "modify";
+        case RestEndpointType::BatchModifyOrder: return "batchModify";
         default: throw std::invalid_argument("Unknown InfoEndpointType");
+        }
+    }
+
+    inline bool isAuthenticated(RestEndpointType type)
+    {
+        switch (type)
+        {
+        case RestEndpointType::Meta: return false;
+        case RestEndpointType::MetaAndAssetCtxs: return false;
+        case RestEndpointType::AllMids: return false;
+        case RestEndpointType::L2Book: return false;
+        case RestEndpointType::CandleSnapshot: return false;
+        case RestEndpointType::OpenOrders: return false;
+        case RestEndpointType::UserFills: return false;
+        case RestEndpointType::UserFillsByTime: return false;
+        case RestEndpointType::OrderStatus: return false;
+        case RestEndpointType::UserRateLimit: return false;
+        case RestEndpointType::PlaceOrder: return true;
+        case RestEndpointType::CancelOrder: return true;
+        case RestEndpointType::CancelOrderByCloid: return true;
+        case RestEndpointType::ScheduleCancel: return true;
+        case RestEndpointType::ModifyOrder: return true;
+        case RestEndpointType::BatchModifyOrder: return true;
+        default: throw std::invalid_argument("Unknown RestEndpointType");
         }
     }
 }

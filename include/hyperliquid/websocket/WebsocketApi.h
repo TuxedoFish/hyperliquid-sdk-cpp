@@ -4,22 +4,26 @@
 #include <memory>
 #include <string>
 
-#include "WebsocketListener.h"
+#include "WebsocketApiListener.h"
 #include "../types/RequestTypes.h"
 
 namespace hyperliquid
 {
-    class MarketData
+    class WebsocketApi
     {
     public:
-        explicit MarketData(Environment env, WebsocketListener& listener);
-        ~MarketData();
+        explicit WebsocketApi(Environment env, WebsocketApiListener& listener);
+        ~WebsocketApi();
 
-        MarketData(const MarketData&) = delete;
-        MarketData& operator=(const MarketData&) = delete;
+        WebsocketApi(const WebsocketApi&) = delete;
+        WebsocketApi& operator=(const WebsocketApi&) = delete;
 
+        //
         void subscribe(SubscriptionType type, const std::map<std::string, std::string>& filters = {});
         void unsubscribe(SubscriptionType type, const std::map<std::string, std::string>& filters = {});
+
+        // Post requests over websocket
+        void sendRequest(RestEndpointType type, const std::map<std::string, std::string>& params = {});
 
         void start();
         void stop();

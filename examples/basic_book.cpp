@@ -1,13 +1,14 @@
-#include <hyperliquid/websocket/MarketData.h>
-#include <hyperliquid/websocket/WSMessageHandler.h>
-#include <hyperliquid/websocket/WSMessageParser.h>
-#include <hyperliquid/websocket/WebsocketListener.h>
 #include <hyperliquid/types/ResponseTypes.h>
 #include <iostream>
 #include <thread>
 #include <chrono>
 
-class BookPrinter : public hyperliquid::WSMessageHandler, public hyperliquid::WebsocketListener {
+#include "hyperliquid/websocket/WebsocketApi.h"
+#include "hyperliquid/websocket/WebsocketApiListener.h"
+#include "hyperliquid/websocket/WebsocketMessageHandler.h"
+#include "hyperliquid/websocket/WebsocketMessageParser.h"
+
+class BookPrinter : public hyperliquid::WebsocketMessageHandler, public hyperliquid::WebsocketApiListener {
 public:
     // hyperliquid::WebsocketListener
     void onMessage(const std::string& message) override {
@@ -46,22 +47,22 @@ public:
     }
 
 private:
-    hyperliquid::WSMessageParser messageParser;
+    hyperliquid::WebsocketMessageParser messageParser;
 };
 
 int main() {
     BookPrinter printer;
-    hyperliquid::MarketData md(hyperliquid::Environment::Mainnet, printer);
+    hyperliquid::WebsocketApi websocket(hyperliquid::Environment::Mainnet, printer);
 
     std::cout << "Subscribing to BTC l2Book + bbo + trades for 5 seconds..." << std::endl;
-    md.start();
+    websocket.start();
 
-    md.subscribe(hyperliquid::SubscriptionType::L2Book, {{"coin", "BTC"}});
-    md.subscribe(hyperliquid::SubscriptionType::Bbo, {{"coin", "BTC"}});
-    md.subscribe(hyperliquid::SubscriptionType::Trades, {{"coin", "BTC"}});
+    websocket.subscribe(hyperliquid::SubscriptionType::L2Book, {{"coin", "BTC"}});
+    websocket.subscribe(hyperliquid::SubscriptionType::Bbo, {{"coin", "BTC"}});
+    websocket.subscribe(hyperliquid::SubscriptionType::Trades, {{"coin", "BTC"}});
 
     std::this_thread::sleep_for(std::chrono::seconds(5));
-    md.stop();
+    websocket.stop();
 
     return 0;
 }

@@ -1,20 +1,21 @@
-#include <hyperliquid/rest/InfoApi.h>
-#include <hyperliquid/rest/RestListener.h>
-#include <hyperliquid/rest/RestMessageParser.h>
-#include <hyperliquid/rest/InfoEndpointListener.h>
-#include <hyperliquid/types/InfoEndpointTypes.h>
+#include <hyperliquid/rest/RestApi.h>
+#include <hyperliquid/rest/RestApiListener.h>
+#include <hyperliquid/rest/RestApiMessageParser.h>
+#include <hyperliquid/rest/RestEndpointListener.h>
 #include <iostream>
 #include <thread>
 #include <chrono>
 #include <atomic>
 
-class MetaPrinter : public hyperliquid::RestListener, public hyperliquid::InfoEndpointListener {
+#include "hyperliquid/types/ResponseTypes.h"
+
+class MetaPrinter : public hyperliquid::RestApiListener, public hyperliquid::RestEndpointListener {
 public:
     std::atomic<bool> done{false};
 
     // hyperliquid::RestListener — raw message arrives here
-    void onMessage(const std::string& message, hyperliquid::InfoEndpointType type) override {
-        hyperliquid::RestMessageParser parser(*this);
+    void onMessage(const std::string& message, hyperliquid::RestEndpointType type) override {
+        hyperliquid::RestApiMessageParser parser(*this);
         parser.parse(message, type);
     }
 
@@ -34,10 +35,10 @@ public:
 
 int main() {
     MetaPrinter printer;
-    hyperliquid::InfoApi api(hyperliquid::Environment::Mainnet, printer);
+    hyperliquid::RestApi api(hyperliquid::Environment::Mainnet, printer);
 
     std::cout << "Fetching meta from Hyperliquid... (dex=xyz)" << std::endl;
-    api.sendRequest(hyperliquid::InfoEndpointType::Meta, {{"dex", "xyz"}});
+    api.sendRequest(hyperliquid::RestEndpointType::Meta, {{"dex", "xyz"}});
 
     // Wait for the async response
     while (!printer.done) {

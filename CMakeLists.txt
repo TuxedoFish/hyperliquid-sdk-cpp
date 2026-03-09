@@ -10,12 +10,18 @@ find_package(simdjson CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
 set(SDK_SOURCES
-        src/websocket/WSRunner.cpp
-        src/websocket/MarketData.cpp
-        src/websocket/WSMessageParser.cpp
-        src/rest/RestMessageParser.cpp
-        src/rest/InfoApi.cpp
+        src/rest/RestApiMessageParser.cpp
+        src/rest/RestApi.cpp
+
+        src/websocket/WebsocketRunner.cpp
+        src/websocket/WebsocketApi.cpp
+        src/websocket/WebsocketMessageParser.cpp
+
+        src/signing/Signing.cpp
+        src/signing/Signing.h
+
         include/hyperliquid/types/RequestTypes.h
+        include/hyperliquid/signing/Wallet.h
 )
 
 add_library(hyperliquid-sdk STATIC ${SDK_SOURCES})
@@ -25,7 +31,6 @@ target_include_directories(hyperliquid-sdk
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/websocket
 )
 
 target_link_libraries(hyperliquid-sdk
@@ -50,9 +55,10 @@ set_target_properties(hyperliquid-sdk PROPERTIES
 option(HYPERLIQUID_BUILD_EXAMPLES "Build example programs" OFF)
 
 if(HYPERLIQUID_BUILD_EXAMPLES)
-    add_executable(print_book examples/print_book.cpp)
-    target_link_libraries(print_book PRIVATE hyperliquid-sdk)
-
-    add_executable(fetch_meta examples/fetch_meta.cpp)
-    target_link_libraries(fetch_meta PRIVATE hyperliquid-sdk)
+    add_executable(basic_book examples/basic_book.cpp)
+    target_link_libraries(basic_book PRIVATE hyperliquid-sdk)
+    add_executable(basic_orders examples/basic_orders.cpp)
+    target_link_libraries(basic_orders PRIVATE hyperliquid-sdk)
+    add_executable(basic_meta examples/basic_meta.cpp)
+    target_link_libraries(basic_meta PRIVATE hyperliquid-sdk)
 endif()
