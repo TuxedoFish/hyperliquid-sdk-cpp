@@ -2,24 +2,24 @@
 
 namespace hyperliquid {
 
-nlohmann::json InfoRequestBuilder::spotMeta()
+nlohmann::ordered_json InfoRequestBuilder::spotMeta()
 {
-    nlohmann::json body;
+    nlohmann::ordered_json body;
     body["type"] = toString(RestEndpointType::SpotMeta);
     return body;
 }
 
-nlohmann::json InfoRequestBuilder::meta(const std::optional<std::string>& dex)
+nlohmann::ordered_json InfoRequestBuilder::meta(const std::optional<std::string>& dex)
 {
-    nlohmann::json body;
+    nlohmann::ordered_json body;
     body["type"] = toString(RestEndpointType::Meta);
     if (dex) body["dex"] = *dex;
     return body;
 }
 
-nlohmann::json InfoRequestBuilder::perpDexs()
+nlohmann::ordered_json InfoRequestBuilder::perpDexs()
 {
-    nlohmann::json body;
+    nlohmann::ordered_json body;
     body["type"] = toString(RestEndpointType::PerpDexs);
     return body;
 }

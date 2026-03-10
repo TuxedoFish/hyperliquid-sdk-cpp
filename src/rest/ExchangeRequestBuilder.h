@@ -14,7 +14,7 @@ class ExchangeRequestBuilder {
 public:
     explicit ExchangeRequestBuilder(const SymbolMap& symbolMap);
 
-    nlohmann::json placeOrder(const std::vector<OrderRequest>& orders,
+    nlohmann::ordered_json placeOrder(const std::vector<OrderRequest>& orders,
                               Grouping grouping,
                               const std::optional<Builder>& builder = std::nullopt) const;
 
@@ -22,4 +22,4 @@ private:
     const SymbolMap& symbolMap_;
 };
 
-} // namespace hyperliquid
+}

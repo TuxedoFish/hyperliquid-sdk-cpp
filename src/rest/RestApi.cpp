@@ -5,11 +5,13 @@
 #include "InfoRequestBuilder.h"
 #include "ExchangeRequestBuilder.h"
 #include "SymbolMap.h"
+#include "signing/Signing.h"
 
 #include <chrono>
 #include <future>
 #include <iostream>
 #include <memory>
+#include <set>
 #include <thread>
 
 #include <boost/asio/executor_work_guard.hpp>
@@ -34,16 +36,21 @@ struct RestApi::Impl {
     RestApiListener& listener;
     Wallet wallet;
     bool authenticated = false;
+    Environment env;
+    std::set<std::string> enabledDexes;
     SymbolMap symbolMap;
     ExchangeRequestBuilder exchangeRequestBuilder;
 
-    Impl(Environment env, RestApiListener& listener, Wallet wallet)
+    Impl(Environment env, RestApiListener& listener, Wallet wallet,
+         const std::set<std::string>& dexes)
         : work(net::make_work_guard(ioc))
         , sslCtx(ssl::context::tlsv12_client)
         , host(toInfoEndpoint(env).host)
         , port(toInfoEndpoint(env).port)
         , listener(listener)
         , wallet(wallet)
+        , env(env)
+        , enabledDexes(dexes)
         , exchangeRequestBuilder(symbolMap)
     {
         sslCtx.set_default_verify_paths();
@@ -53,12 +60,34 @@ struct RestApi::Impl {
         buildSymbolMap();
     }
 
-    Impl(Environment env, RestApiListener& listener)
+    Impl(Environment env, Wallet wallet,
+         const std::set<std::string>& dexes)
+        : work(net::make_work_guard(ioc))
+        , sslCtx(ssl::context::tlsv12_client)
+        , host(toInfoEndpoint(env).host)
+        , port(toInfoEndpoint(env).port)
+        , listener(defaultListener)
+        , wallet(wallet)
+        , env(env)
+        , enabledDexes(dexes)
+        , exchangeRequestBuilder(symbolMap)
+    {
+        sslCtx.set_default_verify_paths();
+        sslCtx.set_verify_mode(ssl::verify_peer);
+        thread = std::thread([this]() { ioc.run(); });
+        authenticated = true;
+        buildSymbolMap();
+    }
+
+    Impl(Environment env, RestApiListener& listener,
+         const std::set<std::string>& dexes)
         : work(net::make_work_guard(ioc))
         , sslCtx(ssl::context::tlsv12_client)
         , host(toInfoEndpoint(env).host)
         , port(toInfoEndpoint(env).port)
         , listener(listener)
+        , env(env)
+        , enabledDexes(dexes)
         , exchangeRequestBuilder(symbolMap)
     {
         sslCtx.set_default_verify_paths();
@@ -67,12 +96,14 @@ struct RestApi::Impl {
         buildSymbolMap();
     }
 
-    Impl(Environment env)
+    Impl(Environment env, const std::set<std::string>& dexes)
         : work(net::make_work_guard(ioc))
         , sslCtx(ssl::context::tlsv12_client)
         , host(toInfoEndpoint(env).host)
         , port(toInfoEndpoint(env).port)
         , listener(defaultListener)
+        , env(env)
+        , enabledDexes(dexes)
         , exchangeRequestBuilder(symbolMap)
     {
         sslCtx.set_default_verify_paths();
@@ -92,16 +123,6 @@ struct RestApi::Impl {
     {
         RestApiMessageParser parser;
 
-        auto spotMetaResponse = parser.parseSpotMeta(
-            signAndSendSync(RestEndpointType::SpotMeta, InfoRequestBuilder::spotMeta()));
-        for (const auto& token : spotMetaResponse.tokens)
-        {
-            symbolMap.add(token.name, token.index + 10000);
-        }
-
-        auto dexesResponse = parser.parsePerpDexs(
-            signAndSendSync(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs()));
-
         auto defaultMetaResponse = parser.parseMeta(
             signAndSendSync(RestEndpointType::Meta, InfoRequestBuilder::meta()));
         int index = 0;
@@ -111,9 +132,27 @@ struct RestApi::Impl {
             index++;
         }
 
+        auto spotMetaResponse = parser.parseSpotMeta(
+            signAndSendSync(RestEndpointType::SpotMeta, InfoRequestBuilder::spotMeta()));
+        for (const auto& token : spotMetaResponse.tokens)
+        {
+            symbolMap.add(token.name, token.index + 10000);
+        }
+
+        if (enabledDexes.empty()) return;
+
+        auto dexesResponse = parser.parsePerpDexs(
+            signAndSendSync(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs()));
+
         int perpIdx = 0;
         for (const auto& dex : dexesResponse.dexes)
         {
+            if (enabledDexes.count(dex.name) == 0)
+            {
+                perpIdx++;
+                continue;
+            }
+
             auto dexMetaResponse = parser.parseMeta(
                 signAndSendSync(RestEndpointType::Meta, InfoRequestBuilder::meta(dex.name)));
             index = 0;
@@ -126,7 +165,7 @@ struct RestApi::Impl {
         }
     }
 
-    nlohmann::json prepareBody(RestEndpointType type, nlohmann::json body,
+    nlohmann::ordered_json prepareBody(RestEndpointType type, nlohmann::ordered_json body,
                                const std::optional<std::string>& vaultAddress = std::nullopt,
                                const std::optional<uint64_t>& expiresAfter = std::nullopt)
     {
@@ -135,16 +174,27 @@ struct RestApi::Impl {
 
         if (isAuthenticated(type))
         {
-            body["nonce"] = static_cast<uint64_t>(
+            uint64_t nonce = static_cast<uint64_t>(
                 std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::system_clock::now().time_since_epoch()).count());
-            body["signature"] = "xyz";
+            body["nonce"] = nonce;
+
+            bool isMainnet = (env == Environment::Mainnet);
+            auto action = body["action"];
+            auto signature = Signing::signL1Action(
+                wallet, action, vaultAddress, nonce, expiresAfter, isMainnet);
+
+            nlohmann::ordered_json signatureJson;
+            signatureJson["r"] = signature.r;
+            signatureJson["s"] = signature.s;
+            signatureJson["v"] = signature.v;
+            body["signature"] = signatureJson;
         }
 
         return body;
     }
 
-    void signAndSend(RestEndpointType type, nlohmann::json body,
+    void signAndSend(RestEndpointType type, nlohmann::ordered_json body,
                      const std::optional<std::string>& vaultAddress = std::nullopt,
                      const std::optional<uint64_t>& expiresAfter = std::nullopt)
     {
@@ -164,7 +214,7 @@ struct RestApi::Impl {
         session->run(serialized);
     }
 
-    std::string signAndSendSync(RestEndpointType type, nlohmann::json body,
+    std::string signAndSendSync(RestEndpointType type, nlohmann::ordered_json body,
                                 const std::optional<std::string>& vaultAddress = std::nullopt,
                                 const std::optional<uint64_t>& expiresAfter = std::nullopt)
     {
@@ -190,18 +240,26 @@ struct RestApi::Impl {
     }
 };
 
-RestApi::RestApi(Environment env, RestApiListener& listener, Wallet wallet)
-    : impl_(std::make_unique<Impl>(env, listener, wallet))
+RestApi::RestApi(Environment env, RestApiListener& listener, Wallet wallet,
+                 const std::set<std::string>& dexes)
+    : impl_(std::make_unique<Impl>(env, listener, wallet, dexes))
 {
 }
 
-RestApi::RestApi(Environment env, RestApiListener& listener)
-    : impl_(std::make_unique<Impl>(env, listener))
+RestApi::RestApi(Environment env, Wallet wallet,
+                 const std::set<std::string>& dexes)
+    : impl_(std::make_unique<Impl>(env, wallet, dexes))
 {
 }
 
-RestApi::RestApi(Environment env)
-    : impl_(std::make_unique<Impl>(env))
+RestApi::RestApi(Environment env, RestApiListener& listener,
+                 const std::set<std::string>& dexes)
+    : impl_(std::make_unique<Impl>(env, listener, dexes))
+{
+}
+
+RestApi::RestApi(Environment env, const std::set<std::string>& dexes)
+    : impl_(std::make_unique<Impl>(env, dexes))
 {
 }
 
@@ -249,8 +307,7 @@ void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,
                                Grouping grouping,
                                const std::optional<Builder>& builder)
 {
-    impl_->signAndSend(RestEndpointType::PlaceOrder,
-                       impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder));
+    impl_->signAndSend(RestEndpointType::PlaceOrder, impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder));
 }
 
 }

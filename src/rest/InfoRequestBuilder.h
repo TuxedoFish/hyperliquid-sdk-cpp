@@ -11,9 +11,9 @@ namespace hyperliquid {
 
 class InfoRequestBuilder {
 public:
-    static nlohmann::json spotMeta();
-    static nlohmann::json meta(const std::optional<std::string>& dex = std::nullopt);
-    static nlohmann::json perpDexs();
+    static nlohmann::ordered_json spotMeta();
+    static nlohmann::ordered_json meta(const std::optional<std::string>& dex = std::nullopt);
+    static nlohmann::ordered_json perpDexs();
 };
 
 } // namespace hyperliquid

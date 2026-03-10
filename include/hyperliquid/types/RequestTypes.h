@@ -258,7 +258,7 @@ namespace hyperliquid
     struct TriggerOrderType
     {
         bool isMarket;
-        std::string triggerPx;
+        double triggerPx;
         TpSl tpsl;
     };
 
@@ -266,8 +266,8 @@ namespace hyperliquid
     {
         std::string asset;
         bool isBuy;
-        std::string price;
-        std::string size;
+        double price;
+        double size;
         bool reduceOnly;
         std::optional<LimitOrderType> limit;
         std::optional<TriggerOrderType> trigger;
