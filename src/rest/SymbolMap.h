@@ -15,4 +15,4 @@ private:
     std::unordered_map<std::string, int> symbolToId_;
 };
 
-} // namespace hyperliquid
+}

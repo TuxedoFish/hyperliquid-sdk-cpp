@@ -27,20 +27,20 @@ set(SDK_SOURCES
         src/rest/RestApiMessageParser.cpp
         src/rest/RestApi.cpp
         src/rest/HttpSession.cpp
-        src/rest/InfoRequestBuilder.cpp
-        src/rest/ExchangeRequestBuilder.cpp
+        src/messages/InfoRequestBuilder.cpp
+        src/messages/ExchangeRequestBuilder.cpp
         src/rest/SymbolMap.cpp
-        src/Logger.cpp
+        src/config/Config.cpp
 
         src/websocket/WebsocketRunner.cpp
         src/websocket/WebsocketApi.cpp
         src/websocket/WebsocketMessageParser.cpp
 
         src/signing/Signing.cpp
+        src/signing/SigningHelpers.cpp
         src/signing/sha3.c
 
         include/hyperliquid/types/RequestTypes.h
-        include/hyperliquid/signing/Wallet.h
 )
 
 add_library(hyperliquid-sdk STATIC ${SDK_SOURCES})

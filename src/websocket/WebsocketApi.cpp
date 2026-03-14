@@ -1,8 +1,17 @@
 #include "hyperliquid/websocket/WebsocketApi.h"
+
+#include <simdjson.h>
+
 #include "hyperliquid/websocket/WebsocketApiListener.h"
 #include "WebsocketRunner.h"
 #include <nlohmann/json.hpp>
 #include <thread>
+
+#include "config/Logger.h"
+#include "hyperliquid/rest/RestApi.h"
+#include "messages/ExchangeRequestBuilder.h"
+#include "messages/InfoRequestBuilder.h"
+#include "signing/Signing.h"
 
 namespace hyperliquid
 {
@@ -12,10 +21,19 @@ namespace hyperliquid
         WebsocketApiListener& listener;
         bool stopping = false;
         std::thread thread;
+        ExchangeRequestBuilder exchangeRequestBuilder;
+        const ApiConfig& config;
+        std::atomic<int> postRequestCounter;
+        std::unordered_map<uint64_t, RestEndpointType> postRequestIdToType;
+        simdjson::ondemand::parser sjParser;
+        simdjson::padded_string sjPadded;
 
-        Impl(Environment env, WebsocketApiListener& listener)
-            : ws(toWsEndpoint(env).host, toWsEndpoint(env).port, toWsEndpoint(env).path, *this), listener(listener)
+        Impl(ApiConfig& config, WebsocketApiListener& listener)
+            : ws(config, *this), listener(listener), config(config), postRequestCounter(0)
         {
+            config.skipBuildingSymbolMap = true;
+            RestApi restApi(config);
+            exchangeRequestBuilder.initializeMapping(config, &restApi);
         }
 
         ~Impl()
@@ -27,6 +45,40 @@ namespace hyperliquid
         void onWsMessage(std::string& message) override
         {
             if (stopping) return;
+            getLogger()->debug("ws recv: {}", message);
+
+            try
+            {
+                sjPadded = simdjson::padded_string(message.data(), message.size());
+                auto doc = sjParser.iterate(sjPadded);
+                std::string_view channel = doc["channel"].get_string().value();
+
+                if (channel == "post")
+                {
+                    auto data = doc["data"].get_object().value();
+                    uint64_t id = data["id"].get_uint64().value();
+                    auto payload = simdjson::to_json_string(data["response"]["payload"]);
+                    auto it = postRequestIdToType.find(id);
+                    if (it != postRequestIdToType.end())
+                    {
+                        auto type = it->second;
+                        postRequestIdToType.erase(it);
+                        std::string payloadStr(payload.value());
+                        listener.onPostResponse(payloadStr, type);
+                    }
+                    else
+                    {
+                        getLogger()->error("post response with unknown id: {}", id);
+                        listener.onMessage(message);
+                    }
+                    return;
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("failed to parse ws message: {}", e.what());
+            }
+
             listener.onMessage(message);
         }
 
@@ -39,10 +91,29 @@ namespace hyperliquid
         {
             listener.onDisconnected(hasError, errMsg);
         }
+
+        void signAndSend(RestEndpointType type, nlohmann::ordered_json body,
+                         const std::optional<std::string>& vaultAddress = std::nullopt,
+                         const std::optional<uint64_t>& expiresAfter = std::nullopt)
+        {
+            auto payload= Signing::prepareBody(config, type, std::move(body), vaultAddress, expiresAfter);
+            auto payloadType = isAuthenticated(type) ? "action" : "info";
+            int postRequestId = postRequestCounter.fetch_add(1);
+            postRequestIdToType[postRequestId] = type;
+            nlohmann::ordered_json wrapped = {
+                {"method", "post"},
+                {"id", postRequestId},
+                {"request", {
+                    {"type", payloadType},
+                    {"payload", payload}
+                }}
+            };
+            ws.send(wrapped.dump());
+        }
     };
 
-    WebsocketApi::WebsocketApi(Environment env, WebsocketApiListener& listener) : impl_(
-        std::make_unique<Impl>(env, listener))
+    WebsocketApi::WebsocketApi(ApiConfig& config, WebsocketApiListener& listener) : impl_(
+        std::make_unique<Impl>(config, listener))
     {
     }
 
@@ -95,5 +166,52 @@ namespace hyperliquid
         impl_->stopping = true;
         impl_->ws.stop();
         if (impl_->thread.joinable()) impl_->thread.join();
+    }
+
+    void WebsocketApi::spotMeta()
+    {
+        return impl_->signAndSend(RestEndpointType::SpotMeta, InfoRequestBuilder::spotMeta());
+    }
+
+    void WebsocketApi::meta(const std::optional<std::string>& dex)
+    {
+        return impl_->signAndSend(RestEndpointType::Meta, InfoRequestBuilder::meta(dex));
+    }
+
+    void WebsocketApi::perpDexs()
+    {
+        return impl_->signAndSend(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs());
+    }
+
+    void WebsocketApi::placeOrder(const std::vector<OrderRequest>& orders,
+                                  Grouping grouping,
+                                  const std::optional<Builder>& builder)
+    {
+        return impl_->signAndSend(RestEndpointType::PlaceOrder,
+                                  impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder));
+    }
+
+    void WebsocketApi::cancelOrder(const std::vector<CancelRequest>& cancels)
+    {
+        return impl_->signAndSend(RestEndpointType::CancelOrder,
+                                  impl_->exchangeRequestBuilder.cancelOrder(cancels));
+    }
+
+    void WebsocketApi::cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels)
+    {
+        return impl_->signAndSend(RestEndpointType::CancelOrderByCloid,
+                                  impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels));
+    }
+
+    void WebsocketApi::modifyOrder(const ModifyRequest& modify)
+    {
+        return impl_->signAndSend(RestEndpointType::ModifyOrder,
+                                  impl_->exchangeRequestBuilder.modifyOrder(modify));
+    }
+
+    void WebsocketApi::batchModifyOrder(const std::vector<ModifyRequest>& modifies)
+    {
+        return impl_->signAndSend(RestEndpointType::BatchModifyOrder,
+                                  impl_->exchangeRequestBuilder.batchModifyOrder(modifies));
     }
 }

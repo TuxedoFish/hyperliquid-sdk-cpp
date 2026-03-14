@@ -11,7 +11,6 @@
 
 class BookPrinter : public hyperliquid::WebsocketMessageHandler, public hyperliquid::WebsocketApiListener {
 public:
-    // hyperliquid::WebsocketListener
     void onMessage(const std::string& message) override {
         messageParser.crack(message, *this);
     }
@@ -50,7 +49,9 @@ private:
 
 int main() {
     BookPrinter printer;
-    hyperliquid::WebsocketApi websocket(hyperliquid::Environment::Mainnet, printer);
+    hyperliquid::ApiConfig config;
+    config.env = hyperliquid::Environment::Mainnet;
+    hyperliquid::WebsocketApi websocket(config, printer);
 
     spdlog::info("Subscribing to BTC l2Book + bbo + trades for 5 seconds...");
     websocket.start();

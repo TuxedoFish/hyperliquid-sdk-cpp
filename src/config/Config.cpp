@@ -1,4 +1,5 @@
-#include "hyperliquid/Logger.h"
+#include "../../include/hyperliquid/config/Config.h"
+
 #include "Logger.h"
 
 namespace hyperliquid {
@@ -23,4 +24,4 @@ void setLogLevel(LogLevel level)
     getLogger()->set_level(toSpdlogLevel(level));
 }
 
-} // namespace hyperliquid
+}

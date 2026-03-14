@@ -5,7 +5,7 @@
 #include <string>
 
 #include <nlohmann/json.hpp>
-#include <hyperliquid/signing/Wallet.h>
+#include "hyperliquid/config/Config.h"
 
 inline hyperliquid::Wallet loadWalletFromConfig(const std::string& path = EXAMPLES_DIR "test.json")
 {

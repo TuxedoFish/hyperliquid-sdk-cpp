@@ -1,12 +1,12 @@
 #include <hyperliquid/rest/RestApi.h>
 #include <hyperliquid/rest/RestApiMessageParser.h>
-#include <hyperliquid/Logger.h>
+#include <../include/hyperliquid/config/Config.h>
 #include <spdlog/spdlog.h>
 
 int main() {
     hyperliquid::setLogLevel(hyperliquid::LogLevel::Debug);
 
-    hyperliquid::RestApiConfig config;
+    hyperliquid::ApiConfig config;
     config.env = hyperliquid::Environment::Mainnet;
 
     hyperliquid::RestApi api(config);

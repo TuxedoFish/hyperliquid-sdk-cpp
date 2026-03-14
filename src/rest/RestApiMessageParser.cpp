@@ -1,6 +1,6 @@
 #include "hyperliquid/rest/RestApiMessageParser.h"
 #include <simdjson.h>
-#include "Logger.h"
+#include "../config/Logger.h"
 
 namespace hyperliquid
 {

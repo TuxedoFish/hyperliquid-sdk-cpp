@@ -1,7 +1,7 @@
 #include "HttpSession.h"
 
 #include <chrono>
-#include "Logger.h"
+#include "../config/Logger.h"
 
 namespace hyperliquid {
 

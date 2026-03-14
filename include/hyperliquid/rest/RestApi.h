@@ -2,27 +2,19 @@
 
 #include <memory>
 #include <optional>
-#include <set>
 #include <string>
 #include <vector>
 
 #include "../types/RequestTypes.h"
 #include "RestApiListener.h"
-#include "hyperliquid/signing/Wallet.h"
+#include "hyperliquid/config/Config.h"
 
 namespace hyperliquid {
 
-struct RestApiConfig
-{
-    Environment env;
-    std::optional<Wallet> wallet;
-    std::set<std::string> dexes;
-};
-
 class RestApi {
 public:
-    explicit RestApi(const RestApiConfig& config);
-    RestApi(const RestApiConfig& config, RestApiListener& listener);
+    explicit RestApi(const ApiConfig& config);
+    RestApi(const ApiConfig& config, RestApiListener& listener);
     ~RestApi();
 
     RestApi(const RestApi&) = delete;
@@ -55,4 +47,4 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
-} // namespace hyperliquid
+}

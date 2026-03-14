@@ -1,7 +1,7 @@
 #include "hyperliquid/websocket/WebsocketMessageParser.h"
 #include <charconv>
 #include <simdjson.h>
-#include "Logger.h"
+#include "../config/Logger.h"
 
 #include "../../include/hyperliquid/types/ResponseTypes.h"
 

@@ -1,18 +1,19 @@
 #include "WebsocketRunner.h"
 #include <algorithm>
-#include "Logger.h"
+#include "../config/Logger.h"
 
 namespace hyperliquid {
 namespace internal {
 
-WebsocketRunner::WebsocketRunner(const std::string& host, const std::string& port, const std::string& path, WSListener& listener)
+WebsocketRunner::WebsocketRunner(ApiConfig& config, WSListener& listener)
     : listener_(listener)
     , sslCtx_(ssl::context::tlsv12_client)
     , resolver_(net::make_strand(ioc_))
-    , ws_(std::make_unique<websocket::stream<beast::ssl_stream<beast::tcp_stream>>>(net::make_strand(ioc_), sslCtx_))
-    , host_(host)
-    , port_(port)
-    , path_(path) {
+    , ws_(std::make_unique<websocket::stream<beast::ssl_stream<beast::tcp_stream>>>(net::make_strand(ioc_), sslCtx_)) {
+    auto endpoint = toWsEndpoint(config.env);
+    host_ = endpoint.host;
+    port_ = endpoint.port;
+    path_ = endpoint.path;
 
     sslCtx_.set_default_verify_paths();
     sslCtx_.set_verify_mode(ssl::verify_peer);

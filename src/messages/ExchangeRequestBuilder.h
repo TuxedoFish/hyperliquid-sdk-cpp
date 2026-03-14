@@ -5,14 +5,17 @@
 
 #include <nlohmann/json.hpp>
 
-#include "SymbolMap.h"
+#include "../rest/SymbolMap.h"
+#include "hyperliquid/rest/RestApi.h"
 #include "hyperliquid/types/RequestTypes.h"
 
 namespace hyperliquid {
 
 class ExchangeRequestBuilder {
 public:
-    explicit ExchangeRequestBuilder(const SymbolMap& symbolMap);
+    ExchangeRequestBuilder() = default;
+
+    void initializeMapping(const ApiConfig& config, RestApi* api);
 
     nlohmann::ordered_json placeOrder(const std::vector<OrderRequest>& orders,
                               Grouping grouping,
@@ -28,7 +31,7 @@ public:
 
 private:
     nlohmann::ordered_json buildOrderWire(const OrderRequest& order) const;
-    const SymbolMap& symbolMap_;
+    SymbolMap symbolMap_;
 };
 
 }

@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "signing/Signing.h"
+#include "signing/SigningHelpers.h"
 
 #include <nlohmann/json.hpp>
 
@@ -75,10 +76,10 @@ TEST(SigningTest, PhantomAgentCreationMatchesProduction)
     auto action = orderWireToAction(orderWire);
 
     // action_hash(action, None, timestamp, None)
-    auto hash = Signing::actionHash(action, std::nullopt, timestamp, std::nullopt);
+    auto hash = SigningHelpers::actionHash(action, std::nullopt, timestamp, std::nullopt);
 
     // construct_phantom_agent connectionId check
-    std::string connectionIdHex = Signing::toHexPadded(hash.data(), 32);
+    std::string connectionIdHex = SigningHelpers::toHexPadded(hash.data(), 32);
     EXPECT_EQ(connectionIdHex, "0x0fcbeda5ae3c4950a548021552a4fea2226858c4453571bf3f24ba017eac2908");
 }
 
