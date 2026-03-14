@@ -8,8 +8,20 @@ find_package(OpenSSL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(simdjson CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(unofficial-secp256k1 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+
+include(FetchContent)
+FetchContent_Declare(
+    secp256k1
+    GIT_REPOSITORY https://github.com/bitcoin-core/secp256k1.git
+    GIT_TAG        v0.7.1
+)
+set(SECP256K1_ENABLE_MODULE_RECOVERY ON CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_EXHAUSTIVE_TESTS OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_BENCHMARK OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(secp256k1)
 
 set(SDK_SOURCES
         src/rest/RestApiMessageParser.cpp
@@ -47,8 +59,7 @@ target_link_libraries(hyperliquid-sdk
         OpenSSL::Crypto
         nlohmann_json::nlohmann_json
         simdjson::simdjson
-        unofficial::secp256k1
-        unofficial::secp256k1_precomputed
+        secp256k1
         spdlog::spdlog
 )
 

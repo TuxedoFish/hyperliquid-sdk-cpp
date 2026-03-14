@@ -1,0 +1,13 @@
+{
+  "name": "hyperliquid-sdk-cpp",
+  "version": "0.1.0",
+  "dependencies": [
+    "openssl",
+    "boost-asio",
+    "boost-beast",
+    "boost-system",
+    "simdjson",
+    "nlohmann-json",
+    "spdlog"
+  ]
+}
