@@ -372,4 +372,23 @@ namespace hyperliquid
         std::string type;
         std::vector<OrderStatusResult> statuses;
     };
+
+    struct CancelStatusResult
+    {
+        std::optional<std::string> success;
+        std::optional<std::string> error;
+    };
+
+    struct CancelOrderResponse
+    {
+        std::string status;
+        std::string type;
+        std::vector<CancelStatusResult> statuses;
+    };
+
+    struct ModifyOrderResponse
+    {
+        std::string status;
+        std::string type;
+    };
 }

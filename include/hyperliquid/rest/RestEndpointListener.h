@@ -12,6 +12,8 @@ public:
     virtual void onMeta(const MetaResponse& response) {}
     virtual void onPerpDexs(const PerpDexsResponse& response) {}
     virtual void onPlaceOrder(const PlaceOrderResponse& response) {}
+    virtual void onCancelOrder(const CancelOrderResponse& response) {}
+    virtual void onModifyOrder(const ModifyOrderResponse& response) {}
 };
 
 }

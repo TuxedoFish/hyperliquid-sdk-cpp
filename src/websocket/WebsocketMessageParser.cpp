@@ -1,7 +1,7 @@
 #include "hyperliquid/websocket/WebsocketMessageParser.h"
 #include <charconv>
-#include <iostream>
 #include <simdjson.h>
+#include "Logger.h"
 
 #include "../../include/hyperliquid/types/ResponseTypes.h"
 
@@ -82,16 +82,16 @@ namespace hyperliquid
                 }
                 else if (channel == "error")
                 {
-                    std::cerr << "Error: " << message << std::endl;
+                    getLogger()->error("Websocket error: {}", message);
                 }
                 else
                 {
-                    std::cerr << "Unhandled message: " << message << std::endl;
+                    getLogger()->warn("Unhandled message: {}", message);
                 }
             }
             catch (const simdjson::simdjson_error& e)
             {
-                std::cerr << "parse error: " << e.what() << std::endl;
+                getLogger()->error("parse error: {}", e.what());
             }
         }
 
@@ -124,7 +124,7 @@ namespace hyperliquid
             {
                 if (sideIdx > 1)
                 {
-                    std::cerr << "unexpected l2Book side index: " << sideIdx << std::endl;
+                    getLogger()->error("unexpected l2Book side index: {}", sideIdx);
                     break;
                 }
                 Side s = (sideIdx == 0) ? Side::Bid : Side::Ask;
@@ -142,7 +142,7 @@ namespace hyperliquid
                     }
                     catch (const simdjson::simdjson_error& e)
                     {
-                        std::cerr << "parse error in l2Book level: " << e.what() << std::endl;
+                        getLogger()->error("parse error in l2Book level: {}", e.what());
                     }
                 }
                 sideIdx++;
@@ -225,7 +225,7 @@ namespace hyperliquid
                 }
                 catch (const simdjson::simdjson_error& e)
                 {
-                    std::cerr << "parse error in trade: " << e.what() << std::endl;
+                    getLogger()->error("parse error in trade: {}", e.what());
                 }
             }
         }
@@ -252,7 +252,7 @@ namespace hyperliquid
                 }
                 catch (const simdjson::simdjson_error& e)
                 {
-                    std::cerr << "parse error in candle: " << e.what() << std::endl;
+                    getLogger()->error("parse error in candle: {}", e.what());
                 }
             }
         }
@@ -271,7 +271,7 @@ namespace hyperliquid
                 }
                 catch (const simdjson::simdjson_error& e)
                 {
-                    std::cerr << "parse error in allMids entry: " << e.what() << std::endl;
+                    getLogger()->error("parse error in allMids entry: {}", e.what());
                 }
             }
         }

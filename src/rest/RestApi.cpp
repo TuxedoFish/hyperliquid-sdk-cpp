@@ -9,7 +9,6 @@
 
 #include <chrono>
 #include <future>
-#include <iostream>
 #include <memory>
 #include <set>
 #include <thread>
@@ -17,6 +16,8 @@
 #include <boost/asio/executor_work_guard.hpp>
 
 #include <nlohmann/json.hpp>
+
+#include "Logger.h"
 
 namespace hyperliquid {
 
@@ -41,74 +42,26 @@ struct RestApi::Impl {
     SymbolMap symbolMap;
     ExchangeRequestBuilder exchangeRequestBuilder;
 
-    Impl(Environment env, RestApiListener& listener, Wallet wallet,
-         const std::set<std::string>& dexes)
+    Impl(const RestApiConfig& config, RestApiListener& listener)
         : work(net::make_work_guard(ioc))
         , sslCtx(ssl::context::tlsv12_client)
-        , host(toInfoEndpoint(env).host)
-        , port(toInfoEndpoint(env).port)
+        , host(toInfoEndpoint(config.env).host)
+        , port(toInfoEndpoint(config.env).port)
         , listener(listener)
-        , wallet(wallet)
-        , env(env)
-        , enabledDexes(dexes)
+        , env(config.env)
+        , enabledDexes(config.dexes)
         , exchangeRequestBuilder(symbolMap)
     {
         sslCtx.set_default_verify_paths();
         sslCtx.set_verify_mode(ssl::verify_peer);
         thread = std::thread([this]() { ioc.run(); });
-        authenticated = true;
-        buildSymbolMap();
-    }
 
-    Impl(Environment env, Wallet wallet,
-         const std::set<std::string>& dexes)
-        : work(net::make_work_guard(ioc))
-        , sslCtx(ssl::context::tlsv12_client)
-        , host(toInfoEndpoint(env).host)
-        , port(toInfoEndpoint(env).port)
-        , listener(defaultListener)
-        , wallet(wallet)
-        , env(env)
-        , enabledDexes(dexes)
-        , exchangeRequestBuilder(symbolMap)
-    {
-        sslCtx.set_default_verify_paths();
-        sslCtx.set_verify_mode(ssl::verify_peer);
-        thread = std::thread([this]() { ioc.run(); });
-        authenticated = true;
-        buildSymbolMap();
-    }
+        if (config.wallet)
+        {
+            wallet = *config.wallet;
+            authenticated = true;
+        }
 
-    Impl(Environment env, RestApiListener& listener,
-         const std::set<std::string>& dexes)
-        : work(net::make_work_guard(ioc))
-        , sslCtx(ssl::context::tlsv12_client)
-        , host(toInfoEndpoint(env).host)
-        , port(toInfoEndpoint(env).port)
-        , listener(listener)
-        , env(env)
-        , enabledDexes(dexes)
-        , exchangeRequestBuilder(symbolMap)
-    {
-        sslCtx.set_default_verify_paths();
-        sslCtx.set_verify_mode(ssl::verify_peer);
-        thread = std::thread([this]() { ioc.run(); });
-        buildSymbolMap();
-    }
-
-    Impl(Environment env, const std::set<std::string>& dexes)
-        : work(net::make_work_guard(ioc))
-        , sslCtx(ssl::context::tlsv12_client)
-        , host(toInfoEndpoint(env).host)
-        , port(toInfoEndpoint(env).port)
-        , listener(defaultListener)
-        , env(env)
-        , enabledDexes(dexes)
-        , exchangeRequestBuilder(symbolMap)
-    {
-        sslCtx.set_default_verify_paths();
-        sslCtx.set_verify_mode(ssl::verify_peer);
-        thread = std::thread([this]() { ioc.run(); });
         buildSymbolMap();
     }
 
@@ -205,7 +158,7 @@ struct RestApi::Impl {
             ioc, sslCtx, host, port, toPath(type),
             [this, type](const std::string& responseBody, beast::error_code ec) {
                 if (ec) {
-                    std::cerr << "RestApi: error for " << toString(type) << ": " << ec.message() << std::endl;
+                    getLogger()->error("RestApi: error for {}: {}", toString(type), ec.message());
                     return;
                 }
                 listener.onMessage(responseBody, type);
@@ -220,6 +173,7 @@ struct RestApi::Impl {
     {
         auto prepared = prepareBody(type, body, vaultAddress, expiresAfter);
         std::string serialized = prepared.dump();
+        getLogger()->debug("{}", serialized);
 
         auto promise = std::make_shared<std::promise<std::string>>();
         auto future = promise->get_future();
@@ -240,26 +194,13 @@ struct RestApi::Impl {
     }
 };
 
-RestApi::RestApi(Environment env, RestApiListener& listener, Wallet wallet,
-                 const std::set<std::string>& dexes)
-    : impl_(std::make_unique<Impl>(env, listener, wallet, dexes))
+RestApi::RestApi(const RestApiConfig& config)
+    : impl_(std::make_unique<Impl>(config, defaultListener))
 {
 }
 
-RestApi::RestApi(Environment env, Wallet wallet,
-                 const std::set<std::string>& dexes)
-    : impl_(std::make_unique<Impl>(env, wallet, dexes))
-{
-}
-
-RestApi::RestApi(Environment env, RestApiListener& listener,
-                 const std::set<std::string>& dexes)
-    : impl_(std::make_unique<Impl>(env, listener, dexes))
-{
-}
-
-RestApi::RestApi(Environment env, const std::set<std::string>& dexes)
-    : impl_(std::make_unique<Impl>(env, dexes))
+RestApi::RestApi(const RestApiConfig& config, RestApiListener& listener)
+    : impl_(std::make_unique<Impl>(config, listener))
 {
 }
 
@@ -308,6 +249,50 @@ void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,
                                const std::optional<Builder>& builder)
 {
     impl_->signAndSend(RestEndpointType::PlaceOrder, impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder));
+}
+
+std::string RestApi::cancelOrder(const std::vector<CancelRequest>& cancels)
+{
+    return impl_->signAndSendSync(RestEndpointType::CancelOrder,
+                                   impl_->exchangeRequestBuilder.cancelOrder(cancels));
+}
+
+std::string RestApi::cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels)
+{
+    return impl_->signAndSendSync(RestEndpointType::CancelOrderByCloid,
+                                   impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels));
+}
+
+std::string RestApi::modifyOrder(const ModifyRequest& modify)
+{
+    return impl_->signAndSendSync(RestEndpointType::ModifyOrder,
+                                   impl_->exchangeRequestBuilder.modifyOrder(modify));
+}
+
+std::string RestApi::batchModifyOrder(const std::vector<ModifyRequest>& modifies)
+{
+    return impl_->signAndSendSync(RestEndpointType::BatchModifyOrder,
+                                   impl_->exchangeRequestBuilder.batchModifyOrder(modifies));
+}
+
+void RestApi::cancelOrderAsync(const std::vector<CancelRequest>& cancels)
+{
+    impl_->signAndSend(RestEndpointType::CancelOrder, impl_->exchangeRequestBuilder.cancelOrder(cancels));
+}
+
+void RestApi::cancelOrderByCloidAsync(const std::vector<CancelByCloidRequest>& cancels)
+{
+    impl_->signAndSend(RestEndpointType::CancelOrderByCloid, impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels));
+}
+
+void RestApi::modifyOrderAsync(const ModifyRequest& modify)
+{
+    impl_->signAndSend(RestEndpointType::ModifyOrder, impl_->exchangeRequestBuilder.modifyOrder(modify));
+}
+
+void RestApi::batchModifyOrderAsync(const std::vector<ModifyRequest>& modifies)
+{
+    impl_->signAndSend(RestEndpointType::BatchModifyOrder, impl_->exchangeRequestBuilder.batchModifyOrder(modifies));
 }
 
 }

@@ -12,16 +12,17 @@
 
 namespace hyperliquid {
 
+struct RestApiConfig
+{
+    Environment env;
+    std::optional<Wallet> wallet;
+    std::set<std::string> dexes;
+};
+
 class RestApi {
 public:
-    RestApi(Environment env, RestApiListener& listener, Wallet wallet,
-           const std::set<std::string>& dexes = {});
-    RestApi(Environment env, Wallet wallet,
-           const std::set<std::string>& dexes = {});
-    RestApi(Environment env, RestApiListener& listener,
-           const std::set<std::string>& dexes = {});
-    RestApi(Environment env,
-           const std::set<std::string>& dexes = {});
+    explicit RestApi(const RestApiConfig& config);
+    RestApi(const RestApiConfig& config, RestApiListener& listener);
     ~RestApi();
 
     RestApi(const RestApi&) = delete;
@@ -33,6 +34,10 @@ public:
     std::string placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
                            const std::optional<Builder>& builder = std::nullopt);
+    std::string cancelOrder(const std::vector<CancelRequest>& cancels);
+    std::string cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels);
+    std::string modifyOrder(const ModifyRequest& modify);
+    std::string batchModifyOrder(const std::vector<ModifyRequest>& modifies);
 
     void spotMetaAsync();
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
@@ -40,6 +45,10 @@ public:
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
                          const std::optional<Builder>& builder = std::nullopt);
+    void cancelOrderAsync(const std::vector<CancelRequest>& cancels);
+    void cancelOrderByCloidAsync(const std::vector<CancelByCloidRequest>& cancels);
+    void modifyOrderAsync(const ModifyRequest& modify);
+    void batchModifyOrderAsync(const std::vector<ModifyRequest>& modifies);
 
 private:
     struct Impl;

@@ -1,7 +1,8 @@
 #include <hyperliquid/types/ResponseTypes.h>
-#include <iostream>
 #include <thread>
 #include <chrono>
+
+#include <spdlog/spdlog.h>
 
 #include "hyperliquid/websocket/WebsocketApi.h"
 #include "hyperliquid/websocket/WebsocketApiListener.h"
@@ -16,34 +17,31 @@ public:
     }
 
     void onConnected() override {
-        std::cout << "Connected" << std::endl;
+        spdlog::info("Connected");
     }
 
     void onDisconnected(bool hasError, const std::string& errMsg) override {
-        std::cout << "Disconnected" << std::endl;
+        spdlog::info("Disconnected");
     }
 
     // hyperliquid::WSMessageHandler
     void onL2BookLevel(const hyperliquid::L2BookUpdate& book, const hyperliquid::PriceLevel& level) override {
-        std::cout << book.time << " [L2Book] " << book.coin
-                  << (level.side == hyperliquid::Side::Bid ? " BID " : " ASK ")
-                  << level.sz << " @ " << level.px
-                  << " (" << level.n << ")" << std::endl;
+        spdlog::info("{} [L2Book] {} {} {} @ {} ({})", book.time, book.coin,
+                     level.side == hyperliquid::Side::Bid ? "BID" : "ASK",
+                     level.sz, level.px, level.n);
     }
 
     void onBbo(const hyperliquid::BboUpdate& bbo) override {
-        std::cout << bbo.time << " [BBO] " << bbo.coin;
+        std::string msg = fmt::format("{} [BBO] {}", bbo.time, bbo.coin);
         if (bbo.hasBid)
-            std::cout << " BID " << bbo.bid.sz << " @ " << bbo.bid.px;
+            msg += fmt::format(" BID {} @ {}", bbo.bid.sz, bbo.bid.px);
         if (bbo.hasAsk)
-            std::cout << " ASK " << bbo.ask.sz << " @ " << bbo.ask.px;
-        std::cout << std::endl;
+            msg += fmt::format(" ASK {} @ {}", bbo.ask.sz, bbo.ask.px);
+        spdlog::info(msg);
     }
 
     void onTrade(const hyperliquid::Trade& trade) override {
-        std::cout << trade.time << " [TRADE] " << trade.coin
-                  << " " << trade.side
-                  << " " << trade.sz << " @ " << trade.px << std::endl;
+        spdlog::info("{} [TRADE] {} {} {} @ {}", trade.time, trade.coin, trade.side, trade.sz, trade.px);
     }
 
 private:
@@ -54,7 +52,7 @@ int main() {
     BookPrinter printer;
     hyperliquid::WebsocketApi websocket(hyperliquid::Environment::Mainnet, printer);
 
-    std::cout << "Subscribing to BTC l2Book + bbo + trades for 5 seconds..." << std::endl;
+    spdlog::info("Subscribing to BTC l2Book + bbo + trades for 5 seconds...");
     websocket.start();
 
     websocket.subscribe(hyperliquid::SubscriptionType::L2Book, {{"coin", "BTC"}});

@@ -1,6 +1,6 @@
 #include "hyperliquid/rest/RestApiMessageParser.h"
-#include <iostream>
 #include <simdjson.h>
+#include "Logger.h"
 
 namespace hyperliquid
 {
@@ -28,9 +28,16 @@ namespace hyperliquid
             case RestEndpointType::PlaceOrder:
                 listener.onPlaceOrder(parsePlaceOrder(message));
                 break;
+            case RestEndpointType::CancelOrder:
+            case RestEndpointType::CancelOrderByCloid:
+                listener.onCancelOrder(parseCancelOrder(message));
+                break;
+            case RestEndpointType::ModifyOrder:
+            case RestEndpointType::BatchModifyOrder:
+                listener.onModifyOrder(parseModifyOrder(message));
+                break;
             default:
-                std::cerr << "RestMessageParser: unhandled RestEndpointType: "
-                          << toString(type) << std::endl;
+                getLogger()->error("RestMessageParser: unhandled RestEndpointType: {}", toString(type));
                 break;
             }
         }
@@ -87,8 +94,77 @@ namespace hyperliquid
             }
             catch (const simdjson::simdjson_error& err)
             {
-                std::cerr << "RestMessageParser: parse error in placeOrder: " << err.what()
-                          << "\n  raw: " << message << std::endl;
+                getLogger()->error("RestMessageParser: parse error in placeOrder: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        CancelOrderResponse parseCancelOrder(const std::string& message)
+        {
+            CancelOrderResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.status = std::string(doc["status"].get_string().value());
+
+                if (response.status != "ok") return response;
+
+                auto resp = doc["response"].get_object().value();
+                response.type = std::string(resp["type"].get_string().value());
+
+                auto statuses = resp["data"]["statuses"].get_array().value();
+                for (auto entry : statuses)
+                {
+                    CancelStatusResult result;
+
+                    // statuses can be either a string "success" or an object with "error"
+                    simdjson::ondemand::json_type entryType = entry.type().value();
+                    if (entryType == simdjson::ondemand::json_type::string)
+                    {
+                        result.success = std::string(entry.get_string().value());
+                    }
+                    else if (entryType == simdjson::ondemand::json_type::object)
+                    {
+                        auto obj = entry.get_object().value();
+                        simdjson::ondemand::value error;
+                        if (obj["error"].get(error) == simdjson::SUCCESS)
+                        {
+                            result.error = std::string(error.get_string().value());
+                        }
+                    }
+
+                    response.statuses.push_back(std::move(result));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in cancelOrder: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        ModifyOrderResponse parseModifyOrder(const std::string& message)
+        {
+            ModifyOrderResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.status = std::string(doc["status"].get_string().value());
+
+                if (response.status != "ok") return response;
+
+                auto resp = doc["response"].get_object().value();
+                response.type = std::string(resp["type"].get_string().value());
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in modifyOrder: {}\n  raw: {}", err.what(), message);
             }
 
             return response;
@@ -150,8 +226,7 @@ namespace hyperliquid
             }
             catch (const simdjson::simdjson_error& err)
             {
-                std::cerr << "RestMessageParser: parse error in perpDexs: " << err.what()
-                          << "\n  raw: " << message << std::endl;
+                getLogger()->error("RestMessageParser: parse error in perpDexs: {}\n  raw: {}", err.what(), message);
             }
 
             return response;
@@ -189,8 +264,7 @@ namespace hyperliquid
             }
             catch (const simdjson::simdjson_error& e)
             {
-                std::cerr << "RestMessageParser: parse error in spotMeta: " << e.what()
-                          << "\n  raw: " << message << std::endl;
+                getLogger()->error("RestMessageParser: parse error in spotMeta: {}\n  raw: {}", e.what(), message);
             }
 
             return response;
@@ -217,8 +291,7 @@ namespace hyperliquid
             }
             catch (const simdjson::simdjson_error& e)
             {
-                std::cerr << "RestMessageParser: parse error in meta: " << e.what()
-                          << "\n  raw: " << message << std::endl;
+                getLogger()->error("RestMessageParser: parse error in meta: {}\n  raw: {}", e.what(), message);
             }
 
             return response;
@@ -260,5 +333,15 @@ namespace hyperliquid
     PlaceOrderResponse RestApiMessageParser::parsePlaceOrder(const std::string& message)
     {
         return impl_->parsePlaceOrder(message);
+    }
+
+    CancelOrderResponse RestApiMessageParser::parseCancelOrder(const std::string& message)
+    {
+        return impl_->parseCancelOrder(message);
+    }
+
+    ModifyOrderResponse RestApiMessageParser::parseModifyOrder(const std::string& message)
+    {
+        return impl_->parseModifyOrder(message);
     }
 } // namespace hyperliquid

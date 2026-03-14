@@ -9,6 +9,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(simdjson CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(unofficial-secp256k1 CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 set(SDK_SOURCES
         src/rest/RestApiMessageParser.cpp
@@ -17,6 +18,7 @@ set(SDK_SOURCES
         src/rest/InfoRequestBuilder.cpp
         src/rest/ExchangeRequestBuilder.cpp
         src/rest/SymbolMap.cpp
+        src/Logger.cpp
 
         src/websocket/WebsocketRunner.cpp
         src/websocket/WebsocketApi.cpp
@@ -47,6 +49,7 @@ target_link_libraries(hyperliquid-sdk
         simdjson::simdjson
         unofficial::secp256k1
         unofficial::secp256k1_precomputed
+        spdlog::spdlog
 )
 
 if(NOT MSVC)
@@ -77,7 +80,7 @@ if(HYPERLIQUID_BUILD_EXAMPLES)
     foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
         get_filename_component(EXAMPLE_NAME ${EXAMPLE_SOURCE} NAME_WE)
         add_executable(${EXAMPLE_NAME} ${EXAMPLE_SOURCE})
-        target_link_libraries(${EXAMPLE_NAME} PRIVATE hyperliquid-sdk nlohmann_json::nlohmann_json)
+        target_link_libraries(${EXAMPLE_NAME} PRIVATE hyperliquid-sdk nlohmann_json::nlohmann_json spdlog::spdlog)
         target_compile_definitions(${EXAMPLE_NAME} PRIVATE EXAMPLES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples/")
     endforeach()
 endif()

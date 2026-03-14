@@ -1,54 +1,48 @@
 #include <hyperliquid/rest/RestApi.h>
 #include <hyperliquid/rest/RestApiMessageParser.h>
-#include <iostream>
+#include <hyperliquid/Logger.h>
+#include <spdlog/spdlog.h>
 
 int main() {
-    hyperliquid::RestApi api(hyperliquid::Environment::Mainnet);
+    hyperliquid::setLogLevel(hyperliquid::LogLevel::Debug);
+
+    hyperliquid::RestApiConfig config;
+    config.env = hyperliquid::Environment::Mainnet;
+
+    hyperliquid::RestApi api(config);
     hyperliquid::RestApiMessageParser parser;
 
-    std::cout << "=== Spot ===" << std::endl;
+    spdlog::info("=== Spot ===");
     auto spotMeta = parser.parseSpotMeta(api.spotMeta());
 
-    std::cout << spotMeta.tokens.size() << " assets:" << std::endl;
+    spdlog::info("{} assets:", spotMeta.tokens.size());
     for (const auto& asset : spotMeta.tokens) {
-        std::cout << "  " << asset.name
-                  << "  szDecimals=" << asset.szDecimals
-                  << std::endl;
+        spdlog::info("  {}  szDecimals={}", asset.name, asset.szDecimals);
     }
 
     auto dexes = parser.parsePerpDexs(api.perpDexs());
 
-    std::cout << "=== Perps ===" << std::endl;
+    spdlog::info("=== Perps ===");
     auto defaultMeta = parser.parseMeta(api.meta());
 
-    std::cout << defaultMeta.universe.size() << " assets:" << std::endl;
+    spdlog::info("{} assets:", defaultMeta.universe.size());
     for (const auto& asset : defaultMeta.universe) {
-        std::cout << "  " << asset.name
-                  << "  szDecimals=" << asset.szDecimals
-                  << "  maxLeverage=" << asset.maxLeverage
-                  << std::endl;
+        spdlog::info("  {}  szDecimals={}  maxLeverage={}", asset.name, asset.szDecimals, asset.maxLeverage);
     }
-    std::cout << std::endl;
 
-    std::cout << "Found " << dexes.dexes.size() << " HIP-3 perp dexes:" << std::endl;
+    spdlog::info("Found {} HIP-3 perp dexes:", dexes.dexes.size());
     for (const auto& dex : dexes.dexes) {
-        std::cout << "  " << dex.name << " (" << dex.fullName << ")"
-                  << "  deployer=" << dex.deployer << std::endl;
+        spdlog::info("  {} ({})  deployer={}", dex.name, dex.fullName, dex.deployer);
     }
-    std::cout << std::endl;
 
     for (const auto& dex : dexes.dexes) {
-        std::cout << "=== " << dex.name << " ===" << std::endl;
+        spdlog::info("=== {} ===", dex.name);
         auto meta = parser.parseMeta(api.meta(dex.name));
 
-        std::cout << meta.universe.size() << " assets:" << std::endl;
+        spdlog::info("{} assets:", meta.universe.size());
         for (const auto& asset : meta.universe) {
-            std::cout << "  " << asset.name
-                      << "  szDecimals=" << asset.szDecimals
-                      << "  maxLeverage=" << asset.maxLeverage
-                      << std::endl;
+            spdlog::info("  {}  szDecimals={}  maxLeverage={}", asset.name, asset.szDecimals, asset.maxLeverage);
         }
-        std::cout << std::endl;
     }
 
     return 0;

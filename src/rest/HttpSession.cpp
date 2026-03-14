@@ -1,7 +1,7 @@
 #include "HttpSession.h"
 
 #include <chrono>
-#include <iostream>
+#include "Logger.h"
 
 namespace hyperliquid {
 
@@ -110,7 +110,7 @@ void HttpSession::onRead(beast::error_code ec)
         [self = shared_from_this()](beast::error_code ec) {
             if (ec && ec != net::error::eof && ec != beast::errc::not_connected
                 && ec != net::ssl::error::stream_truncated) {
-                std::cerr << "HttpSession shutdown error: " << ec.message() << std::endl;
+                getLogger()->error("HttpSession shutdown error: {}", ec.message());
             }
         });
 }

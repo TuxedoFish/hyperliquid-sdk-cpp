@@ -1,6 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <iomanip>
 #include <optional>
+#include <random>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -19,6 +22,8 @@ namespace hyperliquid
         Mainnet,
         Testnet
     };
+
+
 
     inline const Endpoint& toWsEndpoint(Environment env)
     {
@@ -287,9 +292,45 @@ namespace hyperliquid
         }
     }
 
+    struct CancelRequest
+    {
+        std::string asset;
+        uint64_t oid;
+    };
+
+    struct CancelByCloidRequest
+    {
+        std::string asset;
+        std::string cloid;
+    };
+
+    struct ModifyRequest
+    {
+        std::optional<uint64_t> oid;
+        std::optional<std::string> cloid;
+        OrderRequest order;
+    };
+
     struct Builder
     {
         std::string address;
         int fee;
     };
+
+    inline std::string generateCloid()
+    {
+        std::random_device rd;
+        std::mt19937_64 gen(rd());
+        std::uniform_int_distribution<uint64_t> dist;
+
+        uint64_t hi = dist(gen);
+        uint64_t lo = dist(gen);
+
+        std::ostringstream oss;
+        oss << "0x"
+            << std::hex << std::setfill('0')
+            << std::setw(16) << hi
+            << std::setw(16) << lo;
+        return oss.str();
+    }
 }
