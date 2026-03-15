@@ -32,6 +32,7 @@ void WebsocketRunner::onPongReceived() {
 }
 
 void WebsocketRunner::send(const std::string& message) {
+    getLogger()->debug("ws send: {}", message);
     net::post(ws_->get_executor(), [this, msg = message]() {
         writeQueue_.push(msg);
         if (connected_ && !writing_) {
