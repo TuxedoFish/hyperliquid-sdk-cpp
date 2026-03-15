@@ -93,14 +93,14 @@ public:
         ws_->unsubscribe(hyperliquid::SubscriptionType::ActiveAssetCtx, {{"coin", "ETH"}});
     }
 
-    void onOrderUpdate(const hyperliquid::OrderUpdate& update) override {
-        spdlog::info("Order update: coin={} side={} status={} oid={} sz={} limitPx={}",
-                      update.coin, update.side, hyperliquid::toString(update.status), update.oid, update.sz, update.limitPx);
+    void onOrderUpdate(const hyperliquid::OrderUpdate& update, bool isSnapshot) override {
+        spdlog::info("Order update: coin={} side={} status={} oid={} sz={} limitPx={} snapshot={}",
+                      update.coin, update.side, hyperliquid::toString(update.status), update.oid, update.sz, update.limitPx, isSnapshot);
     }
 
-    void onUserFill(const hyperliquid::Fill& fill) override {
-        spdlog::info("Fill: coin={} side={} px={} sz={} oid={} fee={}",
-                      fill.coin, fill.side, fill.px, fill.sz, fill.oid, fill.fee);
+    void onUserFill(const hyperliquid::Fill& fill, bool isSnapshot) override {
+        spdlog::info("Fill: coin={} side={} px={} sz={} oid={} fee={} snapshot={}",
+                      fill.coin, fill.side, fill.px, fill.sz, fill.oid, fill.fee, isSnapshot);
     }
 
     void onConnected() override {

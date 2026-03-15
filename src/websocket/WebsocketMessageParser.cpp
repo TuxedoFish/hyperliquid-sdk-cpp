@@ -11,6 +11,7 @@ namespace hyperliquid
     {
         simdjson::ondemand::parser parser;
         simdjson::padded_string padded;
+        bool orderUpdatesSnapshotReceived = false;
 
         static double toDouble(std::string_view sv)
         {
@@ -77,8 +78,10 @@ namespace hyperliquid
                 }
                 else if (channel == "orderUpdates")
                 {
+                    bool isSnapshot = !orderUpdatesSnapshotReceived;
+                    orderUpdatesSnapshotReceived = true;
                     auto data = doc["data"].get_array().value();
-                    crackOrderUpdates(data, listener);
+                    crackOrderUpdates(data, listener, isSnapshot);
                 }
                 else if (channel == "userFills")
                 {
@@ -339,7 +342,7 @@ namespace hyperliquid
             }
         }
 
-        void crackFill(simdjson::ondemand::object& obj, WebsocketMessageHandler& listener)
+        void crackFill(simdjson::ondemand::object& obj, WebsocketMessageHandler& listener, bool isSnapshot = false)
         {
             Fill fill;
             fill.coin = std::string(obj["coin"].get_string().value());
@@ -386,10 +389,10 @@ namespace hyperliquid
                 fill.liquidationMethod = LiquidationMethod::Unknown;
             }
 
-            listener.onUserFill(fill);
+            listener.onUserFill(fill, isSnapshot);
         }
 
-        void crackOrderUpdates(simdjson::ondemand::array& data, WebsocketMessageHandler& listener)
+        void crackOrderUpdates(simdjson::ondemand::array& data, WebsocketMessageHandler& listener, bool isSnapshot)
         {
             for (auto entry : data)
             {
@@ -415,7 +418,7 @@ namespace hyperliquid
                     update.status = stringToOrderStatus(obj["status"].get_string().value());
                     update.statusTimestamp = obj["statusTimestamp"].get_uint64().value();
 
-                    listener.onOrderUpdate(update);
+                    listener.onOrderUpdate(update, isSnapshot);
                 }
                 catch (const simdjson::simdjson_error& e)
                 {
@@ -426,13 +429,18 @@ namespace hyperliquid
 
         void crackUserFills(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
+            bool isSnapshot = false;
+            auto snapshotVal = data["isSnapshot"];
+            if (!snapshotVal.error())
+                isSnapshot = snapshotVal.get_bool().value();
+
             auto fills = data["fills"].get_array().value();
             for (auto entry : fills)
             {
                 try
                 {
                     auto obj = entry.get_object().value();
-                    crackFill(obj, listener);
+                    crackFill(obj, listener, isSnapshot);
                 }
                 catch (const simdjson::simdjson_error& e)
                 {
@@ -520,5 +528,10 @@ namespace hyperliquid
     void WebsocketMessageParser::crack(const std::string& message, WebsocketMessageHandler& listener)
     {
         impl_->crack(message, listener);
+    }
+
+    void WebsocketMessageParser::reset()
+    {
+        impl_->orderUpdatesSnapshotReceived = false;
     }
 } // namespace hyperliquid

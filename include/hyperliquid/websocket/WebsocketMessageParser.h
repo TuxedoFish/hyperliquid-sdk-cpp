@@ -18,6 +18,7 @@ namespace hyperliquid
         WebsocketMessageParser& operator=(const WebsocketMessageParser&) = delete;
 
         void crack(const std::string& message, WebsocketMessageHandler& listener);
+        void reset();
 
     private:
         struct Impl;
