@@ -53,6 +53,12 @@ namespace hyperliquid
                 auto doc = sjParser.iterate(sjPadded);
                 std::string_view channel = doc["channel"].get_string().value();
 
+                if (channel == "pong")
+                {
+                    ws.onPongReceived();
+                    return;
+                }
+
                 if (channel == "post")
                 {
                     auto data = doc["data"].get_object().value();

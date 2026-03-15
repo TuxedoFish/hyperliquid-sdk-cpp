@@ -40,6 +40,7 @@ public:
     ~WebsocketRunner();
 
     void send(const std::string& message);
+    void onPongReceived();
 
     net::io_context& getIoContext();
 
