@@ -16,6 +16,11 @@ public:
     virtual void onAllMidsEntry(const AllMidsEntry& entry) {}
     virtual void onPerpAssetCtx(const PerpAssetCtx& ctx) {}
     virtual void onSpotAssetCtx(const SpotAssetCtx& ctx) {}
+    virtual void onOrderUpdate(const OrderUpdate& update) {}
+    virtual void onUserFill(const Fill& fill) {}
+    virtual void onUserFunding(const UserFunding& funding) {}
+    virtual void onLiquidation(const Liquidation& liquidation) {}
+    virtual void onNonUserCancel(const NonUserCancel& cancel) {}
 };
 
 }

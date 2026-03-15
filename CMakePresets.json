@@ -6,7 +6,8 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "HYPERLIQUID_BUILD_EXAMPLES": "ON"
+        "HYPERLIQUID_BUILD_EXAMPLES": "ON",
+        "HYPERLIQUID_BUILD_TESTS": "ON"
       }
     }
   ]

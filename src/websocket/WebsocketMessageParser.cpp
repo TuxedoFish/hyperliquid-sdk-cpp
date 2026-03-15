@@ -75,6 +75,21 @@ namespace hyperliquid
                     auto data = doc["data"].get_object().value();
                     crackActiveAssetCtx(data, listener);
                 }
+                else if (channel == "orderUpdates")
+                {
+                    auto data = doc["data"].get_array().value();
+                    crackOrderUpdates(data, listener);
+                }
+                else if (channel == "userFills")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackUserFills(data, listener);
+                }
+                else if (channel == "userEvents")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackUserEvents(data, listener);
+                }
                 else if (channel == "subscriptionResponse")
                 {
                     auto data = doc["data"].get_object().value();
@@ -276,41 +291,222 @@ namespace hyperliquid
             }
         }
 
+        // Helper: parse a field that may be a string or a double
+        double toDoubleField(simdjson::ondemand::object& obj, std::string_view key)
+        {
+            auto val = obj[key];
+            std::string_view sv;
+            if (!val.get_string().get(sv))
+                return toDouble(sv);
+            return val.get_double().value();
+        }
+
         void crackActiveAssetCtx(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             std::string coin(data["coin"].get_string().value());
             auto ctx = data["ctx"].get_object().value();
 
-            simdjson::ondemand::value fundingVal;
-            bool isPerp = !ctx["funding"].get(fundingVal);
+            std::string_view fundingStr;
+            bool isPerp = !ctx["funding"].get_string().get(fundingStr);
 
             if (isPerp)
             {
                 PerpAssetCtx perp;
                 perp.coin = coin;
-                perp.dayNtlVlm = ctx["dayNtlVlm"].get_double().value();
-                perp.prevDayPx = ctx["prevDayPx"].get_double().value();
-                perp.markPx = ctx["markPx"].get_double().value();
-                double midPx;
-                perp.hasMidPx = !ctx["midPx"].get_double().get(midPx);
-                perp.midPx = perp.hasMidPx ? midPx : 0.0;
-                perp.funding = fundingVal.get_double().value();
-                perp.openInterest = ctx["openInterest"].get_double().value();
-                perp.oraclePx = ctx["oraclePx"].get_double().value();
+                perp.funding = toDouble(fundingStr);
+                perp.dayNtlVlm = toDoubleField(ctx, "dayNtlVlm");
+                perp.prevDayPx = toDoubleField(ctx, "prevDayPx");
+                perp.markPx = toDoubleField(ctx, "markPx");
+                std::string_view midStr;
+                perp.hasMidPx = !ctx["midPx"].get_string().get(midStr);
+                perp.midPx = perp.hasMidPx ? toDouble(midStr) : 0.0;
+                perp.openInterest = toDoubleField(ctx, "openInterest");
+                perp.oraclePx = toDoubleField(ctx, "oraclePx");
                 listener.onPerpAssetCtx(perp);
             }
             else
             {
                 SpotAssetCtx spot;
                 spot.coin = coin;
-                spot.dayNtlVlm = ctx["dayNtlVlm"].get_double().value();
-                spot.prevDayPx = ctx["prevDayPx"].get_double().value();
-                spot.markPx = ctx["markPx"].get_double().value();
-                double midPx;
-                spot.hasMidPx = !ctx["midPx"].get_double().get(midPx);
-                spot.midPx = spot.hasMidPx ? midPx : 0.0;
-                spot.circulatingSupply = ctx["circulatingSupply"].get_double().value();
+                spot.dayNtlVlm = toDoubleField(ctx, "dayNtlVlm");
+                spot.prevDayPx = toDoubleField(ctx, "prevDayPx");
+                spot.markPx = toDoubleField(ctx, "markPx");
+                std::string_view midStr;
+                spot.hasMidPx = !ctx["midPx"].get_string().get(midStr);
+                spot.midPx = spot.hasMidPx ? toDouble(midStr) : 0.0;
+                spot.circulatingSupply = toDoubleField(ctx, "circulatingSupply");
                 listener.onSpotAssetCtx(spot);
+            }
+        }
+
+        void crackFill(simdjson::ondemand::object& obj, WebsocketMessageHandler& listener)
+        {
+            Fill fill;
+            fill.coin = std::string(obj["coin"].get_string().value());
+            fill.px = toDouble(obj["px"].get_string().value());
+            fill.sz = toDouble(obj["sz"].get_string().value());
+            auto sideStr = obj["side"].get_string().value();
+            fill.side = sideStr.size() > 0 ? sideStr[0] : '?';
+            fill.time = obj["time"].get_uint64().value();
+            fill.startPosition = toDouble(obj["startPosition"].get_string().value());
+            fill.dir = std::string(obj["dir"].get_string().value());
+            fill.closedPnl = toDouble(obj["closedPnl"].get_string().value());
+            fill.hash = std::string(obj["hash"].get_string().value());
+            fill.oid = obj["oid"].get_uint64().value();
+            fill.crossed = obj["crossed"].get_bool().value();
+            fill.fee = toDouble(obj["fee"].get_string().value());
+            fill.tid = obj["tid"].get_uint64().value();
+            fill.feeToken = std::string(obj["feeToken"].get_string().value());
+
+            // Optional builderFee
+            double builderFee;
+            fill.hasBuilderFee = !obj["builderFee"].get_double().get(builderFee);
+            if (!fill.hasBuilderFee)
+            {
+                // Try string form
+                std::string_view bfStr;
+                fill.hasBuilderFee = !obj["builderFee"].get_string().get(bfStr);
+                if (fill.hasBuilderFee) builderFee = toDouble(bfStr);
+            }
+            fill.builderFee = fill.hasBuilderFee ? builderFee : 0.0;
+
+            // Optional liquidation
+            simdjson::ondemand::object liqObj;
+            fill.isLiquidation = !obj["liquidation"].get_object().get(liqObj);
+            if (fill.isLiquidation)
+            {
+                fill.liquidatedUser = std::string(liqObj["liquidatedUser"].get_string().value());
+                fill.liquidationMarkPx = toDouble(liqObj["markPx"].get_string().value());
+                fill.liquidationMethod = stringToLiquidationMethod(liqObj["method"].get_string().value());
+            }
+            else
+            {
+                fill.liquidatedUser.clear();
+                fill.liquidationMarkPx = 0.0;
+                fill.liquidationMethod = LiquidationMethod::Unknown;
+            }
+
+            listener.onUserFill(fill);
+        }
+
+        void crackOrderUpdates(simdjson::ondemand::array& data, WebsocketMessageHandler& listener)
+        {
+            for (auto entry : data)
+            {
+                try
+                {
+                    auto obj = entry.get_object().value();
+                    auto order = obj["order"].get_object().value();
+
+                    OrderUpdate update;
+                    update.coin = std::string(order["coin"].get_string().value());
+                    auto sideStr = order["side"].get_string().value();
+                    update.side = sideStr.size() > 0 ? sideStr[0] : '?';
+                    update.limitPx = toDouble(order["limitPx"].get_string().value());
+                    update.sz = toDouble(order["sz"].get_string().value());
+                    update.oid = order["oid"].get_uint64().value();
+                    update.timestamp = order["timestamp"].get_uint64().value();
+                    update.origSz = toDouble(order["origSz"].get_string().value());
+
+                    std::string_view cloidStr;
+                    if (!order["cloid"].get_string().get(cloidStr))
+                        update.cloid = std::string(cloidStr);
+
+                    update.status = stringToOrderStatus(obj["status"].get_string().value());
+                    update.statusTimestamp = obj["statusTimestamp"].get_uint64().value();
+
+                    listener.onOrderUpdate(update);
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in orderUpdate: {}", e.what());
+                }
+            }
+        }
+
+        void crackUserFills(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            auto fills = data["fills"].get_array().value();
+            for (auto entry : fills)
+            {
+                try
+                {
+                    auto obj = entry.get_object().value();
+                    crackFill(obj, listener);
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in userFill: {}", e.what());
+                }
+            }
+        }
+
+        void crackUserEvents(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            // Discriminated union — check which key exists
+            simdjson::ondemand::array fillsArr;
+            if (!data["fills"].get_array().get(fillsArr))
+            {
+                for (auto entry : fillsArr)
+                {
+                    try
+                    {
+                        auto obj = entry.get_object().value();
+                        crackFill(obj, listener);
+                    }
+                    catch (const simdjson::simdjson_error& e)
+                    {
+                        getLogger()->error("parse error in userEvents fill: {}", e.what());
+                    }
+                }
+                return;
+            }
+
+            simdjson::ondemand::object fundingObj;
+            if (!data["funding"].get_object().get(fundingObj))
+            {
+                UserFunding funding;
+                funding.time = fundingObj["time"].get_uint64().value();
+                funding.coin = std::string(fundingObj["coin"].get_string().value());
+                funding.usdc = toDouble(fundingObj["usdc"].get_string().value());
+                funding.szi = toDouble(fundingObj["szi"].get_string().value());
+                funding.fundingRate = toDouble(fundingObj["fundingRate"].get_string().value());
+                listener.onUserFunding(funding);
+                return;
+            }
+
+            simdjson::ondemand::object liqObj;
+            if (!data["liquidation"].get_object().get(liqObj))
+            {
+                Liquidation liq;
+                liq.lid = liqObj["lid"].get_uint64().value();
+                liq.liquidator = std::string(liqObj["liquidator"].get_string().value());
+                liq.liquidatedUser = std::string(liqObj["liquidatedUser"].get_string().value());
+                liq.liquidatedNtlPos = toDouble(liqObj["liquidatedNtlPos"].get_string().value());
+                liq.liquidatedAccountValue = toDouble(liqObj["liquidatedAccountValue"].get_string().value());
+                listener.onLiquidation(liq);
+                return;
+            }
+
+            simdjson::ondemand::array cancelArr;
+            if (!data["nonUserCancel"].get_array().get(cancelArr))
+            {
+                for (auto entry : cancelArr)
+                {
+                    try
+                    {
+                        auto obj = entry.get_object().value();
+                        NonUserCancel cancel;
+                        cancel.coin = std::string(obj["coin"].get_string().value());
+                        cancel.oid = obj["oid"].get_uint64().value();
+                        listener.onNonUserCancel(cancel);
+                    }
+                    catch (const simdjson::simdjson_error& e)
+                    {
+                        getLogger()->error("parse error in userEvents nonUserCancel: {}", e.what());
+                    }
+                }
+                return;
             }
         }
     };

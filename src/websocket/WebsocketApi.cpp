@@ -119,6 +119,29 @@ namespace hyperliquid
 
     WebsocketApi::~WebsocketApi() = default;
 
+    static bool isUserSubscription(SubscriptionType type)
+    {
+        switch (type)
+        {
+        case SubscriptionType::OrderUpdates:
+        case SubscriptionType::UserEvents:
+        case SubscriptionType::UserFills:
+        case SubscriptionType::UserFundings:
+        case SubscriptionType::UserNonFundingLedgerUpdates:
+        case SubscriptionType::Notification:
+        case SubscriptionType::WebData3:
+        case SubscriptionType::TwapStates:
+        case SubscriptionType::ClearingHouseState:
+        case SubscriptionType::OpenOrders:
+        case SubscriptionType::ActiveAssetData:
+        case SubscriptionType::UserTwapSliceFills:
+        case SubscriptionType::UserTwapHistory:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     void WebsocketApi::subscribe(const SubscriptionType type, const std::map<std::string, std::string>& filters)
     {
         nlohmann::json subscribeMsg = {
@@ -129,6 +152,11 @@ namespace hyperliquid
                 }
             }
         };
+        if (isUserSubscription(type) && impl_->config.wallet.has_value()
+            && filters.find("user") == filters.end())
+        {
+            subscribeMsg["subscription"]["user"] = impl_->config.wallet->accountAddress;
+        }
         for (const auto& [key, value] : filters)
         {
             subscribeMsg["subscription"][key] = value;
@@ -146,6 +174,11 @@ namespace hyperliquid
                 }
             }
         };
+        if (isUserSubscription(type) && impl_->config.wallet.has_value()
+            && filters.find("user") == filters.end())
+        {
+            unsubscribeMsg["subscription"]["user"] = impl_->config.wallet->accountAddress;
+        }
         for (const auto& [key, value] : filters)
         {
             unsubscribeMsg["subscription"][key] = value;

@@ -12,11 +12,11 @@
 #include "hyperliquid/rest/RestApiMessageParser.h"
 #include "hyperliquid/rest/RestEndpointListener.h"
 
-class OrderListener : public hyperliquid::WebsocketMessageHandler,
-                      public hyperliquid::WebsocketApiListener,
-                      public hyperliquid::RestEndpointListener {
+class FillListener : public hyperliquid::WebsocketMessageHandler,
+                     public hyperliquid::WebsocketApiListener,
+                     public hyperliquid::RestEndpointListener {
 public:
-    OrderListener() : restParser(*this), ws_(nullptr), cloid_(hyperliquid::generateCloid()) {}
+    FillListener() : restParser(*this), ws_(nullptr) {}
     void setWebsocket(hyperliquid::WebsocketApi& ws) { ws_ = &ws; }
 
     void onMessage(const std::string& message) override {
@@ -31,66 +31,32 @@ public:
         if (ctx.coin != "ETH" || orderPlaced_ || !ctx.hasMidPx) return;
         orderPlaced_ = true;
 
-        midPx_ = ctx.midPx;
-        spdlog::info("ETH mid={}, placing order 5% below...", midPx_);
-
-        double orderPx = std::floor(midPx_ * 0.95 * 10.0) / 10.0;
+        // IOC sell at bid- to cross the spread immediately
+        double crossPx = std::floor(ctx.midPx * 0.99 * 10.0) / 10.0;
+        spdlog::info("ETH mid={}, sending IOC sell at {} to cross...", ctx.midPx, crossPx);
 
         hyperliquid::OrderRequest order;
         order.asset = "ETH";
-        order.isBuy = true;
-        order.price = orderPx;
+        order.isBuy = false;
+        order.price = crossPx;
         order.size = 0.01;
         order.reduceOnly = false;
-        order.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Alo};
-        order.cloid = cloid_;
+        order.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Ioc};
 
         ws_->placeOrder({order}, hyperliquid::Grouping::Na);
     }
 
     void onPlaceOrder(const hyperliquid::PlaceOrderResponse& response) override {
         spdlog::info("Place order: status={}", response.status);
-        if (response.status != "ok" || response.statuses.empty()) return;
-
-        auto& first = response.statuses[0];
-        if (first.resting)
+        for (const auto& s : response.statuses)
         {
-            double modifyPx = std::floor(midPx_ * 0.94 * 10.0) / 10.0;
-            spdlog::info("Order resting oid={}, modifying to {}...", first.resting->oid, modifyPx);
-
-            hyperliquid::OrderRequest modified;
-            modified.asset = "ETH";
-            modified.isBuy = true;
-            modified.price = modifyPx;
-            modified.size = 0.01;
-            modified.reduceOnly = false;
-            modified.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Alo};
-            modified.cloid = cloid_;
-
-            hyperliquid::ModifyRequest modify;
-            modify.oid = first.resting->oid;
-            modify.order = modified;
-            ws_->modifyOrder(modify);
+            if (s.filled)
+                spdlog::info("  Filled oid={} avgPx={} totalSz={}", s.filled->oid, s.filled->avgPx, s.filled->totalSz);
+            else if (s.resting)
+                spdlog::info("  Resting oid={}", s.resting->oid);
+            else if (s.error)
+                spdlog::info("  Error: {}", *s.error);
         }
-    }
-
-    void onModifyOrder(const hyperliquid::ModifyOrderResponse& response) override {
-        spdlog::info("Modify order: status={}", response.status);
-        if (response.status != "ok") return;
-
-        spdlog::info("Modified, cancelling by cloid...");
-        hyperliquid::CancelByCloidRequest cancel;
-        cancel.asset = "ETH";
-        cancel.cloid = cloid_;
-        ws_->cancelOrderByCloid({cancel});
-    }
-
-    void onCancelOrder(const hyperliquid::CancelOrderResponse& response) override {
-        spdlog::info("Cancel order: status={}", response.status);
-        spdlog::info("Unsubscribing...");
-        ws_->unsubscribe(hyperliquid::SubscriptionType::OrderUpdates);
-        ws_->unsubscribe(hyperliquid::SubscriptionType::UserFills);
-        ws_->unsubscribe(hyperliquid::SubscriptionType::ActiveAssetCtx, {{"coin", "ETH"}});
     }
 
     void onOrderUpdate(const hyperliquid::OrderUpdate& update) override {
@@ -99,8 +65,26 @@ public:
     }
 
     void onUserFill(const hyperliquid::Fill& fill) override {
-        spdlog::info("Fill: coin={} side={} px={} sz={} oid={} fee={}",
-                      fill.coin, fill.side, fill.px, fill.sz, fill.oid, fill.fee);
+        spdlog::info("Fill: coin={} side={} px={} sz={} dir={} closedPnl={} fee={} oid={}",
+                      fill.coin, fill.side, fill.px, fill.sz, fill.dir, fill.closedPnl, fill.fee, fill.oid);
+
+        // Close the position with an IOC buy
+        if (!closeSent_)
+        {
+            closeSent_ = true;
+            double closePx = std::ceil(fill.px * 1.01 * 10.0) / 10.0;
+            spdlog::info("Closing position with IOC buy at {}...", closePx);
+
+            hyperliquid::OrderRequest close;
+            close.asset = "ETH";
+            close.isBuy = true;
+            close.price = closePx;
+            close.size = fill.sz;
+            close.reduceOnly = true;
+            close.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Ioc};
+
+            ws_->placeOrder({close}, hyperliquid::Grouping::Na);
+        }
     }
 
     void onConnected() override {
@@ -118,9 +102,8 @@ private:
     hyperliquid::WebsocketMessageParser messageParser;
     hyperliquid::RestApiMessageParser restParser;
     hyperliquid::WebsocketApi* ws_;
-    std::string cloid_;
-    double midPx_ = 0.0;
     bool orderPlaced_ = false;
+    bool closeSent_ = false;
 };
 
 int main() {
@@ -131,7 +114,7 @@ int main() {
     config.env = hyperliquid::Environment::Testnet;
     config.wallet = wallet;
 
-    OrderListener listener;
+    FillListener listener;
     hyperliquid::WebsocketApi websocket(config, listener);
     listener.setWebsocket(websocket);
 

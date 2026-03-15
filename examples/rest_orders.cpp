@@ -2,13 +2,38 @@
 
 #include <hyperliquid/rest/RestApi.h>
 #include <hyperliquid/rest/RestApiMessageParser.h>
-#include <../include/hyperliquid/config/Config.h>
+#include <hyperliquid/config/Config.h>
 #include <spdlog/spdlog.h>
+
+void logPlaceOrder(const hyperliquid::PlaceOrderResponse& resp)
+{
+    spdlog::info("Place order: status={}", resp.status);
+    for (const auto& s : resp.statuses)
+    {
+        if (s.resting)
+            spdlog::info("  Resting oid={}", s.resting->oid);
+        else if (s.filled)
+            spdlog::info("  Filled oid={} avgPx={} totalSz={}", s.filled->oid, s.filled->avgPx, s.filled->totalSz);
+        else if (s.error)
+            spdlog::info("  Error: {}", *s.error);
+    }
+}
+
+void logCancelOrder(const hyperliquid::CancelOrderResponse& resp)
+{
+    spdlog::info("Cancel order: status={}", resp.status);
+    for (const auto& s : resp.statuses)
+    {
+        if (s.success)
+            spdlog::info("  Success: {}", *s.success);
+        else if (s.error)
+            spdlog::info("  Error: {}", *s.error);
+    }
+}
 
 int main()
 {
     auto wallet = loadWalletFromConfig();
-
     hyperliquid::setLogLevel(hyperliquid::LogLevel::Debug);
 
     hyperliquid::ApiConfig config;
@@ -18,11 +43,8 @@ int main()
     hyperliquid::RestApi api(config);
     hyperliquid::RestApiMessageParser parser;
 
-    // =========================================================
-    // Approach 1: Place and cancel by oid
-    // =========================================================
-
-    spdlog::info("=== Approach 1: Place and cancel by oid ===");
+    // Place and cancel by oid
+    spdlog::info("=== Place and cancel by oid ===");
 
     hyperliquid::OrderRequest order1;
     order1.asset = "ETH";
@@ -33,56 +55,27 @@ int main()
     order1.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Gtc};
 
     spdlog::info("Placing order...");
-    auto placeRaw1 = api.placeOrder({order1}, hyperliquid::Grouping::Na);
-    spdlog::info("Place response: {}", placeRaw1);
-    auto placeResp1 = parser.parsePlaceOrder(placeRaw1);
-    spdlog::info("Place order status: {}", placeResp1.status);
+    auto placeResp1 = parser.parsePlaceOrder(api.placeOrder({order1}, hyperliquid::Grouping::Na));
+    logPlaceOrder(placeResp1);
 
     uint64_t oid = 0;
-    for (const auto& status : placeResp1.statuses)
+    for (const auto& s : placeResp1.statuses)
     {
-        if (status.resting)
-        {
-            oid = status.resting->oid;
-            spdlog::info("  Resting oid={}", oid);
-        }
-        else if (status.filled)
-        {
-            oid = status.filled->oid;
-            spdlog::info("  Filled oid={} avgPx={} totalSz={}", status.filled->oid, status.filled->avgPx, status.filled->totalSz);
-        }
-        else if (status.error)
-        {
-            spdlog::info("  Error: {}", *status.error);
-        }
+        if (s.resting) oid = s.resting->oid;
+        else if (s.filled) oid = s.filled->oid;
     }
 
     if (oid != 0)
     {
-        spdlog::info("Cancelling order oid={}...", oid);
-
+        spdlog::info("Cancelling oid={}...", oid);
         hyperliquid::CancelRequest cancel1;
         cancel1.asset = "ETH";
         cancel1.oid = oid;
-
-        auto cancelRaw1 = api.cancelOrder({cancel1});
-        spdlog::info("Cancel response: {}", cancelRaw1);
-        auto cancelResp1 = parser.parseCancelOrder(cancelRaw1);
-        spdlog::info("Cancel order status: {}", cancelResp1.status);
-        for (const auto& status : cancelResp1.statuses)
-        {
-            if (status.success)
-                spdlog::info("  Success: {}", *status.success);
-            else if (status.error)
-                spdlog::info("  Error: {}", *status.error);
-        }
+        logCancelOrder(parser.parseCancelOrder(api.cancelOrder({cancel1})));
     }
 
-    // =========================================================
-    // Approach 2: Place with cloid, modify, cancel by cloid
-    // =========================================================
-
-    spdlog::info("=== Approach 2: Place with cloid, modify, cancel by cloid ===");
+    // Place with cloid, modify, cancel by cloid
+    spdlog::info("=== Place with cloid, modify, cancel by cloid ===");
 
     std::string cloid = hyperliquid::generateCloid();
     spdlog::info("Generated cloid: {}", cloid);
@@ -97,22 +90,9 @@ int main()
     order2.cloid = cloid;
 
     spdlog::info("Placing order with cloid...");
-    auto placeRaw2 = api.placeOrder({order2}, hyperliquid::Grouping::Na);
-    spdlog::info("Place response: {}", placeRaw2);
-    auto placeResp2 = parser.parsePlaceOrder(placeRaw2);
-    spdlog::info("Place order status: {}", placeResp2.status);
-    for (const auto& status : placeResp2.statuses)
-    {
-        if (status.resting)
-            spdlog::info("  Resting oid={}", status.resting->oid);
-        else if (status.filled)
-            spdlog::info("  Filled oid={}", status.filled->oid);
-        else if (status.error)
-            spdlog::info("  Error: {}", *status.error);
-    }
+    logPlaceOrder(parser.parsePlaceOrder(api.placeOrder({order2}, hyperliquid::Grouping::Na)));
 
-    spdlog::info("Modifying order (changing price to 1750.0)...");
-
+    spdlog::info("Modifying order (price -> 1750.0)...");
     hyperliquid::OrderRequest modifiedOrder;
     modifiedOrder.asset = "ETH";
     modifiedOrder.isBuy = true;
@@ -126,28 +106,14 @@ int main()
     modify.cloid = cloid;
     modify.order = modifiedOrder;
 
-    auto modifyRaw = api.modifyOrder(modify);
-    spdlog::info("Modify response: {}", modifyRaw);
-    auto modifyResp = parser.parseModifyOrder(modifyRaw);
-    spdlog::info("Modify order status: {}", modifyResp.status);
+    auto modifyResp = parser.parseModifyOrder(api.modifyOrder(modify));
+    spdlog::info("Modify order: status={}", modifyResp.status);
 
-    spdlog::info("Cancelling order by cloid={}...", cloid);
-
+    spdlog::info("Cancelling by cloid={}...", cloid);
     hyperliquid::CancelByCloidRequest cancel2;
     cancel2.asset = "ETH";
     cancel2.cloid = cloid;
-
-    auto cancelRaw2 = api.cancelOrderByCloid({cancel2});
-    spdlog::info("Cancel response: {}", cancelRaw2);
-    auto cancelResp2 = parser.parseCancelOrder(cancelRaw2);
-    spdlog::info("Cancel order status: {}", cancelResp2.status);
-    for (const auto& status : cancelResp2.statuses)
-    {
-        if (status.success)
-            spdlog::info("  Success: {}", *status.success);
-        else if (status.error)
-            spdlog::info("  Error: {}", *status.error);
-    }
+    logCancelOrder(parser.parseCancelOrder(api.cancelOrderByCloid({cancel2})));
 
     return 0;
 }

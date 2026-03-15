@@ -1,4 +1,4 @@
-// Tests ported from hyperliquid-python-sdk/tests/signing_test.py
+// Signing tests ported from hyperliquid-python-sdk
 #include <gtest/gtest.h>
 
 #include "signing/Signing.h"
@@ -21,8 +21,6 @@ static uint64_t floatToIntForHashing(double value)
     return static_cast<uint64_t>(std::round(withDecimals));
 }
 
-// Python: order_request_to_order_wire + order_wires_to_order_action
-// Builds the action exactly as the Python SDK does
 static nlohmann::ordered_json orderWireToAction(const nlohmann::ordered_json& orderWire,
                                                  const std::string& grouping = "na")
 {
@@ -33,57 +31,47 @@ static nlohmann::ordered_json orderWireToAction(const nlohmann::ordered_json& or
     return action;
 }
 
-// Python: float_to_wire(x) -> Decimal(f"{x:.8f}").normalize() as string
+// Mirrors Python's float_to_wire: Decimal(f"{x:.8f}").normalize()
 static std::string floatToWire(double x)
 {
     char buf[64];
     std::snprintf(buf, sizeof(buf), "%.8f", x);
     std::string s(buf);
-    // Normalize: strip trailing zeros after decimal point
     if (s.find('.') != std::string::npos)
     {
         size_t last = s.find_last_not_of('0');
-        if (s[last] == '.') last--; // remove trailing dot too? No, Python Decimal keeps it as integer
-        // Actually Python Decimal("100.00000000").normalize() = "1E+2" -> f format = "100"
-        // Python Decimal("1670.10000000").normalize() = "1670.1" -> f format = "1670.1"
-        // Python Decimal("0.01470000").normalize() = "0.0147"
         if (s[last] == '.')
-            s = s.substr(0, last); // drop the dot for integers
+            s = s.substr(0, last);
         else
             s = s.substr(0, last + 1);
     }
     return s;
 }
 
-// test_phantom_agent_creation_matches_production
+static nlohmann::ordered_json makeLimitOrderWire(int asset, bool isBuy, double price, double size, const std::string& tif)
+{
+    nlohmann::ordered_json wire;
+    wire["a"] = asset;
+    wire["b"] = isBuy;
+    wire["p"] = floatToWire(price);
+    wire["s"] = floatToWire(size);
+    wire["r"] = false;
+    wire["t"] = {{"limit", {{"tif", tif}}}};
+    return wire;
+}
+
 TEST(SigningTest, PhantomAgentCreationMatchesProduction)
 {
     uint64_t timestamp = 1677777606040;
 
-    // order_request_to_order_wire(order_request, 4)
-    nlohmann::ordered_json orderWire;
-    orderWire["a"] = 4;
-    orderWire["b"] = true;
-    orderWire["p"] = floatToWire(1670.1);   // "1670.1"
-    orderWire["s"] = floatToWire(0.0147);   // "0.0147"
-    orderWire["r"] = false;
-    nlohmann::ordered_json limitInner;
-    limitInner["tif"] = "Ioc";
-    nlohmann::ordered_json limitOuter;
-    limitOuter["limit"] = limitInner;
-    orderWire["t"] = limitOuter;
-
+    auto orderWire = makeLimitOrderWire(4, true, 1670.1, 0.0147, "Ioc");
     auto action = orderWireToAction(orderWire);
-
-    // action_hash(action, None, timestamp, None)
     auto hash = SigningHelpers::actionHash(action, std::nullopt, timestamp, std::nullopt);
 
-    // construct_phantom_agent connectionId check
     std::string connectionIdHex = SigningHelpers::toHexPadded(hash.data(), 32);
     EXPECT_EQ(connectionIdHex, "0x0fcbeda5ae3c4950a548021552a4fea2226858c4453571bf3f24ba017eac2908");
 }
 
-// test_l1_action_signing_matches
 TEST(SigningTest, L1ActionSigningMatches)
 {
     auto wallet = testWallet();
@@ -102,24 +90,10 @@ TEST(SigningTest, L1ActionSigningMatches)
     EXPECT_EQ(sigTestnet.v, 28);
 }
 
-// test_l1_action_signing_order_matches
 TEST(SigningTest, L1ActionSigningOrderMatches)
 {
     auto wallet = testWallet();
-
-    // order_request_to_order_wire({coin: ETH, is_buy: True, sz: 100, limit_px: 100, ...}, 1)
-    nlohmann::ordered_json orderWire;
-    orderWire["a"] = 1;
-    orderWire["b"] = true;
-    orderWire["p"] = floatToWire(100);    // "100"
-    orderWire["s"] = floatToWire(100);    // "100"
-    orderWire["r"] = false;
-    nlohmann::ordered_json limitInner;
-    limitInner["tif"] = "Gtc";
-    nlohmann::ordered_json limitOuter;
-    limitOuter["limit"] = limitInner;
-    orderWire["t"] = limitOuter;
-
+    auto orderWire = makeLimitOrderWire(1, true, 100, 100, "Gtc");
     auto action = orderWireToAction(orderWire);
 
     auto sigMainnet = Signing::signL1Action(wallet, action, std::nullopt, 0, std::nullopt, true);
@@ -133,24 +107,11 @@ TEST(SigningTest, L1ActionSigningOrderMatches)
     EXPECT_EQ(sigTestnet.v, 27);
 }
 
-// test_l1_action_signing_order_with_cloid_matches
 TEST(SigningTest, L1ActionSigningOrderWithCloidMatches)
 {
     auto wallet = testWallet();
-
-    nlohmann::ordered_json orderWire;
-    orderWire["a"] = 1;
-    orderWire["b"] = true;
-    orderWire["p"] = floatToWire(100);
-    orderWire["s"] = floatToWire(100);
-    orderWire["r"] = false;
-    nlohmann::ordered_json limitInner;
-    limitInner["tif"] = "Gtc";
-    nlohmann::ordered_json limitOuter;
-    limitOuter["limit"] = limitInner;
-    orderWire["t"] = limitOuter;
+    auto orderWire = makeLimitOrderWire(1, true, 100, 100, "Gtc");
     orderWire["c"] = "0x00000000000000000000000000000001";
-
     auto action = orderWireToAction(orderWire);
 
     auto sigMainnet = Signing::signL1Action(wallet, action, std::nullopt, 0, std::nullopt, true);
@@ -164,7 +125,6 @@ TEST(SigningTest, L1ActionSigningOrderWithCloidMatches)
     EXPECT_EQ(sigTestnet.v, 28);
 }
 
-// test_l1_action_signing_matches_with_vault
 TEST(SigningTest, L1ActionSigningMatchesWithVault)
 {
     auto wallet = testWallet();
@@ -185,26 +145,17 @@ TEST(SigningTest, L1ActionSigningMatchesWithVault)
     EXPECT_EQ(sigTestnet.v, 27);
 }
 
-// test_l1_action_signing_tpsl_order_matches
 TEST(SigningTest, L1ActionSigningTpslOrderMatches)
 {
     auto wallet = testWallet();
 
-    // order_type: {"trigger": {"triggerPx": 103, "isMarket": True, "tpsl": "sl"}}
-    // order_type_to_wire produces: {"trigger": {"isMarket": True, "triggerPx": "103", "tpsl": "sl"}}
     nlohmann::ordered_json orderWire;
     orderWire["a"] = 1;
     orderWire["b"] = true;
     orderWire["p"] = floatToWire(100);
     orderWire["s"] = floatToWire(100);
     orderWire["r"] = false;
-    nlohmann::ordered_json triggerInner;
-    triggerInner["isMarket"] = true;
-    triggerInner["triggerPx"] = floatToWire(103);  // "103"
-    triggerInner["tpsl"] = "sl";
-    nlohmann::ordered_json triggerOuter;
-    triggerOuter["trigger"] = triggerInner;
-    orderWire["t"] = triggerOuter;
+    orderWire["t"] = {{"trigger", {{"isMarket", true}, {"triggerPx", floatToWire(103)}, {"tpsl", "sl"}}}};
 
     auto action = orderWireToAction(orderWire);
 
@@ -219,15 +170,12 @@ TEST(SigningTest, L1ActionSigningTpslOrderMatches)
     EXPECT_EQ(sigTestnet.v, 28);
 }
 
-// test_float_to_int_for_hashing
 TEST(SigningTest, FloatToIntForHashing)
 {
-    // 123123123123 * 1e8 exceeds double precision (~15 digits), skip that case
     EXPECT_EQ(floatToIntForHashing(0.00001231), 1231ULL);
     EXPECT_EQ(floatToIntForHashing(1.033), 103300000ULL);
 }
 
-// test_sign_usd_transfer_action
 TEST(SigningTest, SignUsdTransferAction)
 {
     auto wallet = testWallet();
@@ -255,7 +203,6 @@ TEST(SigningTest, SignUsdTransferAction)
     EXPECT_EQ(sig.v, 27);
 }
 
-// test_sign_withdraw_from_bridge_action
 TEST(SigningTest, SignWithdrawFromBridgeAction)
 {
     auto wallet = testWallet();
@@ -283,7 +230,6 @@ TEST(SigningTest, SignWithdrawFromBridgeAction)
     EXPECT_EQ(sig.v, 28);
 }
 
-// test_create_sub_account_action
 TEST(SigningTest, CreateSubAccountAction)
 {
     auto wallet = testWallet();
@@ -302,7 +248,6 @@ TEST(SigningTest, CreateSubAccountAction)
     EXPECT_EQ(sigTestnet.v, 28);
 }
 
-// test_sub_account_transfer_action
 TEST(SigningTest, SubAccountTransferAction)
 {
     auto wallet = testWallet();
@@ -323,7 +268,6 @@ TEST(SigningTest, SubAccountTransferAction)
     EXPECT_EQ(sigTestnet.v, 28);
 }
 
-// test_schedule_cancel_action (both with and without time)
 TEST(SigningTest, ScheduleCancelAction)
 {
     auto wallet = testWallet();

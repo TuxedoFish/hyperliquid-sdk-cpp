@@ -112,6 +112,54 @@ namespace hyperliquid
 
     // --- Websocket data types (authenticated) ---
 
+    enum class OrderStatus { Open, Filled, Canceled, Triggered, Rejected, MarginCanceled, OracleRejected, Unknown };
+
+    inline OrderStatus stringToOrderStatus(std::string_view s)
+    {
+        if (s == "open") return OrderStatus::Open;
+        if (s == "filled") return OrderStatus::Filled;
+        if (s == "canceled") return OrderStatus::Canceled;
+        if (s == "triggered") return OrderStatus::Triggered;
+        if (s == "rejected") return OrderStatus::Rejected;
+        if (s == "marginCanceled") return OrderStatus::MarginCanceled;
+        if (s == "oracleRejected") return OrderStatus::OracleRejected;
+        return OrderStatus::Unknown;
+    }
+
+    inline std::string toString(OrderStatus status)
+    {
+        switch (status)
+        {
+        case OrderStatus::Open: return "open";
+        case OrderStatus::Filled: return "filled";
+        case OrderStatus::Canceled: return "canceled";
+        case OrderStatus::Triggered: return "triggered";
+        case OrderStatus::Rejected: return "rejected";
+        case OrderStatus::MarginCanceled: return "marginCanceled";
+        case OrderStatus::OracleRejected: return "oracleRejected";
+        default: return "unknown";
+        }
+    }
+
+    enum class LiquidationMethod { Market, Backstop, Unknown };
+
+    inline LiquidationMethod stringToLiquidationMethod(std::string_view s)
+    {
+        if (s == "market") return LiquidationMethod::Market;
+        if (s == "backstop") return LiquidationMethod::Backstop;
+        return LiquidationMethod::Unknown;
+    }
+
+    inline std::string toString(LiquidationMethod method)
+    {
+        switch (method)
+        {
+        case LiquidationMethod::Market: return "market";
+        case LiquidationMethod::Backstop: return "backstop";
+        default: return "unknown";
+        }
+    }
+
     struct Fill
     {
         std::string coin;
@@ -133,7 +181,7 @@ namespace hyperliquid
         bool isLiquidation;
         std::string liquidatedUser;
         double liquidationMarkPx;
-        std::string liquidationMethod;
+        LiquidationMethod liquidationMethod;
     };
 
     struct OrderUpdate
@@ -146,7 +194,7 @@ namespace hyperliquid
         uint64_t timestamp;
         double origSz;
         std::string cloid;
-        std::string status;
+        OrderStatus status;
         uint64_t statusTimestamp;
     };
 
