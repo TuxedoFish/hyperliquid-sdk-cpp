@@ -59,12 +59,12 @@ public:
         }
     }
 
-    void onOrderUpdate(const hyperliquid::OrderUpdate& update, bool isSnapshot) override {
-        spdlog::info("Order update: coin={} side={} status={} oid={} sz={} limitPx={} snapshot={}",
-                      update.coin, update.side, hyperliquid::toString(update.status), update.oid, update.sz, update.limitPx, isSnapshot);
+    void onOrderUpdate(const hyperliquid::OrderUpdate& update) override {
+        spdlog::info("Order update: coin={} side={} status={} oid={} sz={} limitPx={}",
+                      update.coin, update.side, hyperliquid::toString(update.status), update.oid, update.sz, update.limitPx);
     }
 
-    void onUserFill(const hyperliquid::Fill& fill, bool isSnapshot) override {
+    void onUserFill(const hyperliquid::Fill& fill) override {
         spdlog::info("Fill: coin={} side={} px={} sz={} dir={} closedPnl={} fee={} oid={}",
                       fill.coin, fill.side, fill.px, fill.sz, fill.dir, fill.closedPnl, fill.fee, fill.oid);
 

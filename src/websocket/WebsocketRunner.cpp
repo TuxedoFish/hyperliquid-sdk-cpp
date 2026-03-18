@@ -26,7 +26,6 @@ WebsocketRunner::~WebsocketRunner() {
 net::io_context& WebsocketRunner::getIoContext() { return ioc_; }
 
 void WebsocketRunner::onPongReceived() {
-    getLogger()->debug("Pong received");
     lastPongTime_ = std::chrono::steady_clock::now();
     pendingPong_ = false;
 }
@@ -247,7 +246,6 @@ void WebsocketRunner::setupControlCallback() {
 void WebsocketRunner::startPingTimer() {
     if (stopping_ || !connected_) return;
 
-    getLogger()->debug("Scheduling next ping in {}s", PING_INTERVAL_SECS);
     pingTimer_ = std::make_unique<net::steady_timer>(ioc_, std::chrono::seconds(PING_INTERVAL_SECS));
     pingTimer_->async_wait([this](const boost::system::error_code& ec) {
         if (!ec && !stopping_ && connected_) {
@@ -270,8 +268,6 @@ void WebsocketRunner::doPing() {
         }
     }
 
-    // Hyperliquid expects JSON ping, not WebSocket protocol ping
-    getLogger()->debug("Sending JSON ping");
     pendingPong_ = true;
     std::string pingMsg = R"({"method":"ping"})";
     net::post(ws_->get_executor(), [this, pingMsg]() {

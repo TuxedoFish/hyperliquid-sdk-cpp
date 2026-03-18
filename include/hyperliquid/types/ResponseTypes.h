@@ -182,6 +182,7 @@ namespace hyperliquid
         std::string liquidatedUser;
         double liquidationMarkPx;
         LiquidationMethod liquidationMethod;
+        bool isSnapshot;
     };
 
     struct OrderUpdate
