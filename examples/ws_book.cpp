@@ -24,10 +24,19 @@ public:
     }
 
     // hyperliquid::WSMessageHandler
-    void onL2BookLevel(const hyperliquid::L2BookUpdate& book, const hyperliquid::PriceLevel& level) override {
-        spdlog::info("{} [L2Book] {} {} {} @ {} ({})", book.time, book.coin,
-                     level.side == hyperliquid::Side::Bid ? "BID" : "ASK",
-                     level.sz, level.px, level.n);
+    void onL2Book(const hyperliquid::L2BookSnapshot& snapshot) override {
+        spdlog::info("{} [L2Book] {} bids={} asks={}", snapshot.time, snapshot.coin,
+                     snapshot.numBids, snapshot.numAsks);
+        for (uint8_t i = 0; i < snapshot.numBids; i++)
+        {
+            const auto& lvl = snapshot.bids[i];
+            spdlog::info("  BID {} @ {} ({})", lvl.sz, lvl.px, lvl.n);
+        }
+        for (uint8_t i = 0; i < snapshot.numAsks; i++)
+        {
+            const auto& lvl = snapshot.asks[i];
+            spdlog::info("  ASK {} @ {} ({})", lvl.sz, lvl.px, lvl.n);
+        }
     }
 
     void onBbo(const hyperliquid::BboUpdate& bbo) override {

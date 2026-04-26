@@ -129,9 +129,15 @@ namespace hyperliquid
 
         void crackL2Book(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
+            L2BookSnapshot snapshot;
+            snapshot.coin = std::string(data["coin"].get_string().value());
+            snapshot.time = data["time"].get_uint64().value();
+            snapshot.numBids = 0;
+            snapshot.numAsks = 0;
+
             L2BookUpdate book;
-            book.coin = std::string(data["coin"].get_string().value());
-            book.time = data["time"].get_uint64().value();
+            book.coin = snapshot.coin;
+            book.time = snapshot.time;
 
             auto levels = data["levels"].get_array().value();
             size_t sideIdx = 0;
@@ -153,6 +159,16 @@ namespace hyperliquid
                         level.px = std::string(obj["px"].get_string().value());
                         level.sz = std::string(obj["sz"].get_string().value());
                         level.n = static_cast<int>(obj["n"].get_int64().value());
+
+                        if (s == Side::Bid && snapshot.numBids < L2_BOOK_MAX_LEVELS)
+                        {
+                            snapshot.bids[snapshot.numBids++] = level;
+                        }
+                        else if (s == Side::Ask && snapshot.numAsks < L2_BOOK_MAX_LEVELS)
+                        {
+                            snapshot.asks[snapshot.numAsks++] = level;
+                        }
+
                         listener.onL2BookLevel(book, level);
                     }
                     catch (const simdjson::simdjson_error& e)
@@ -162,6 +178,8 @@ namespace hyperliquid
                 }
                 sideIdx++;
             }
+
+            listener.onL2Book(snapshot);
         }
 
         void crackBbo(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)

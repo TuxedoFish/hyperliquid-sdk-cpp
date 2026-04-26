@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -41,6 +42,18 @@ namespace hyperliquid
     {
         std::string coin;
         uint64_t time;
+    };
+
+    static constexpr size_t L2_BOOK_MAX_LEVELS = 20;
+
+    struct L2BookSnapshot
+    {
+        std::string coin;
+        uint64_t time;
+        std::array<PriceLevel, L2_BOOK_MAX_LEVELS> bids;
+        std::array<PriceLevel, L2_BOOK_MAX_LEVELS> asks;
+        uint8_t numBids;
+        uint8_t numAsks;
     };
 
     struct BboUpdate
