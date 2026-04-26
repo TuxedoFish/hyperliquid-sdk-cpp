@@ -135,10 +135,6 @@ namespace hyperliquid
             snapshot.numBids = 0;
             snapshot.numAsks = 0;
 
-            L2BookUpdate book;
-            book.coin = snapshot.coin;
-            book.time = snapshot.time;
-
             auto levels = data["levels"].get_array().value();
             size_t sideIdx = 0;
             for (auto side : levels)
@@ -168,8 +164,6 @@ namespace hyperliquid
                         {
                             snapshot.asks[snapshot.numAsks++] = level;
                         }
-
-                        listener.onL2BookLevel(book, level);
                     }
                     catch (const simdjson::simdjson_error& e)
                     {
