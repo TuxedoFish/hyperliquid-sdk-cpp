@@ -187,6 +187,11 @@ void RestApi::metaAsync(const std::optional<std::string>& dex)
     impl_->signAndSend(RestEndpointType::Meta, InfoRequestBuilder::meta(dex));
 }
 
+void RestApi::outcomeMetaAsync()
+{
+    impl_->signAndSend(RestEndpointType::OutcomeMeta, InfoRequestBuilder::outcomeMeta());
+}
+
 void RestApi::perpDexsAsync()
 {
     impl_->signAndSend(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs());

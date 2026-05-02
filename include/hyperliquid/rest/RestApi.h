@@ -34,6 +34,7 @@ public:
 
     void spotMetaAsync();
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
+    void outcomeMetaAsync();
     void perpDexsAsync();
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
