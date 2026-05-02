@@ -30,7 +30,8 @@ int main() {
     for (const auto& outcome : outcomeMeta.outcomes) {
         const auto& d = outcome.description;
         spdlog::info("  [{}] {}  class={} underlying={} expiry={} targetPrice={} period={}",
-                     outcome.outcome, outcome.name, d.outcomeClass, d.underlying, d.expiry, d.targetPrice, d.period);
+                     outcome.outcome, outcome.name, d.outcomeClass, d.underlying,
+                     std::chrono::system_clock::to_time_t(d.expiry), d.targetPrice, d.period);
         for (const auto& side : outcome.sideSpecs) {
             spdlog::info("    side: {}", side.name);
         }

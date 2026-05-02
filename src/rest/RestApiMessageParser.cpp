@@ -188,7 +188,7 @@ namespace hyperliquid
                     std::string_view val = segment.substr(colon + 1);
                     if (key == "class") result.outcomeClass = std::string(val);
                     else if (key == "underlying") result.underlying = std::string(val);
-                    else if (key == "expiry") result.expiry = std::string(val);
+                    else if (key == "expiry") result.expiry = parseOutcomeExpiry(std::string(val));
                     else if (key == "targetPrice") result.targetPrice = std::string(val);
                     else if (key == "period") result.period = std::string(val);
                 }

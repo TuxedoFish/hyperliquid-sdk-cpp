@@ -136,7 +136,7 @@ int main() {
             outcomeIndex = outcome.outcome;
             spdlog::info("Found BTC 1d outcome: index={} class={} expiry={} targetPrice={}",
                          outcome.outcome, outcome.description.outcomeClass,
-                         outcome.description.expiry, outcome.description.targetPrice);
+                         std::chrono::system_clock::to_time_t(outcome.description.expiry), outcome.description.targetPrice);
             break;
         }
     }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -361,11 +362,27 @@ namespace hyperliquid
         std::string name;
     };
 
+    // Parses "20260503-0600" -> time_point (UTC)
+    inline std::chrono::system_clock::time_point parseOutcomeExpiry(const std::string& s)
+    {
+        // Format: YYYYMMDD-HHMM
+        std::tm tm = {};
+        tm.tm_year = std::stoi(s.substr(0, 4)) - 1900;
+        tm.tm_mon = std::stoi(s.substr(4, 2)) - 1;
+        tm.tm_mday = std::stoi(s.substr(6, 2));
+        tm.tm_hour = std::stoi(s.substr(9, 2));
+        tm.tm_min = std::stoi(s.substr(11, 2));
+        tm.tm_sec = 0;
+        tm.tm_isdst = 0;
+        std::time_t t = timegm(&tm);
+        return std::chrono::system_clock::from_time_t(t);
+    }
+
     struct OutcomeDescription
     {
         std::string outcomeClass;
         std::string underlying;
-        std::string expiry;
+        std::chrono::system_clock::time_point expiry;
         std::string targetPrice;
         std::string period;
     };
