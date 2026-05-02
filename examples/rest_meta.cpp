@@ -7,7 +7,7 @@ int main() {
     hyperliquid::setLogLevel(hyperliquid::LogLevel::Debug);
 
     hyperliquid::ApiConfig config;
-    config.env = hyperliquid::Environment::Mainnet;
+    config.env = hyperliquid::Environment::Testnet;
 
     hyperliquid::RestApi api(config);
     hyperliquid::RestApiMessageParser parser;
@@ -21,6 +21,20 @@ int main() {
     }
 
     auto dexes = parser.parsePerpDexs(api.perpDexs());
+
+    spdlog::info("=== Outcomes ===");
+    auto rawOutcome = api.outcomeMeta();
+    spdlog::info(rawOutcome);
+    auto outcomeMeta = parser.parseOutcomeMeta(rawOutcome);
+    spdlog::info("{} outcomes:", outcomeMeta.outcomes.size());
+    for (const auto& outcome : outcomeMeta.outcomes) {
+        const auto& d = outcome.description;
+        spdlog::info("  [{}] {}  class={} underlying={} expiry={} targetPrice={} period={}",
+                     outcome.outcome, outcome.name, d.outcomeClass, d.underlying, d.expiry, d.targetPrice, d.period);
+        for (const auto& side : outcome.sideSpecs) {
+            spdlog::info("    side: {}", side.name);
+        }
+    }
 
     spdlog::info("=== Perps ===");
     auto defaultMeta = parser.parseMeta(api.meta());

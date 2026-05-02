@@ -26,6 +26,7 @@ namespace hyperliquid
         // Post requests over websocket
         void spotMeta();
         void meta(const std::optional<std::string>& dex = std::nullopt);
+        void outcomeMeta();
         void perpDexs();
         void placeOrder(const std::vector<OrderRequest>& orders,
                                Grouping grouping,

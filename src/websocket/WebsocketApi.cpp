@@ -217,6 +217,11 @@ namespace hyperliquid
         return impl_->signAndSend(RestEndpointType::Meta, InfoRequestBuilder::meta(dex));
     }
 
+    void WebsocketApi::outcomeMeta()
+    {
+        return impl_->signAndSend(RestEndpointType::OutcomeMeta, InfoRequestBuilder::outcomeMeta());
+    }
+
     void WebsocketApi::perpDexs()
     {
         return impl_->signAndSend(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs());

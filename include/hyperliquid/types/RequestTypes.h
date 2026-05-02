@@ -142,6 +142,8 @@ namespace hyperliquid
         OrderStatus,
         UserRateLimit,
         PerpDexs,
+        // Info endpoints (Outcomes)
+        OutcomeMeta,
         // Info endpoints (Spot)
         SpotMeta,
         SpotMetaAndAssetCtxs,
@@ -175,6 +177,8 @@ namespace hyperliquid
         case RestEndpointType::UserRateLimit: return "userRateLimit";
         case RestEndpointType::PerpDexs: return "perpDexs";
 
+        case RestEndpointType::OutcomeMeta: return "outcomeMeta";
+
         case RestEndpointType::SpotMeta: return "spotMeta";
         case RestEndpointType::SpotMetaAndAssetCtxs: return "spotMetaAndAssetCtxs";
         case RestEndpointType::SpotClearinghouseState: return "spotClearinghouseState";
@@ -207,6 +211,8 @@ namespace hyperliquid
         case RestEndpointType::OrderStatus: return false;
         case RestEndpointType::UserRateLimit: return false;
         case RestEndpointType::PerpDexs: return false;
+
+        case RestEndpointType::OutcomeMeta: return false;
 
         case RestEndpointType::SpotMeta: return false;
         case RestEndpointType::SpotMetaAndAssetCtxs: return false;
@@ -277,6 +283,9 @@ namespace hyperliquid
         std::optional<LimitOrderType> limit;
         std::optional<TriggerOrderType> trigger;
         std::optional<std::string> cloid;
+        bool isOutcome = false;
+        int outcomeIndex = 0;
+        int outcomeSide = 0;
     };
 
     enum class Grouping { Na, NormalTpsl, PositionTpsl };
@@ -296,12 +305,18 @@ namespace hyperliquid
     {
         std::string asset;
         uint64_t oid;
+        bool isOutcome = false;
+        int outcomeIndex = 0;
+        int outcomeSide = 0;
     };
 
     struct CancelByCloidRequest
     {
         std::string asset;
         std::string cloid;
+        bool isOutcome = false;
+        int outcomeIndex = 0;
+        int outcomeSide = 0;
     };
 
     struct ModifyRequest
@@ -316,6 +331,26 @@ namespace hyperliquid
         std::string address;
         int fee;
     };
+
+    inline int outcomeEncoding(int outcomeIndex, int side)
+    {
+        return 10 * outcomeIndex + side;
+    }
+
+    inline int outcomeAssetId(int outcomeIndex, int side)
+    {
+        return 100000000 + outcomeEncoding(outcomeIndex, side);
+    }
+
+    inline std::string outcomeCoin(int outcomeIndex, int side)
+    {
+        return "#" + std::to_string(outcomeEncoding(outcomeIndex, side));
+    }
+
+    inline std::string outcomeToken(int outcomeIndex, int side)
+    {
+        return "+" + std::to_string(outcomeEncoding(outcomeIndex, side));
+    }
 
     inline std::string generateCloid()
     {

@@ -134,6 +134,11 @@ std::string RestApi::meta(const std::optional<std::string>& dex)
     return impl_->signAndSendSync(RestEndpointType::Meta, InfoRequestBuilder::meta(dex));
 }
 
+std::string RestApi::outcomeMeta()
+{
+    return impl_->signAndSendSync(RestEndpointType::OutcomeMeta, InfoRequestBuilder::outcomeMeta());
+}
+
 std::string RestApi::perpDexs()
 {
     return impl_->signAndSendSync(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs());

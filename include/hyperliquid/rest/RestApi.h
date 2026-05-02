@@ -22,6 +22,7 @@ public:
 
     std::string spotMeta();
     std::string meta(const std::optional<std::string>& dex = std::nullopt);
+    std::string outcomeMeta();
     std::string perpDexs();
     std::string placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,

@@ -354,6 +354,36 @@ namespace hyperliquid
         std::string notification;
     };
 
+    // --- Outcome market types ---
+
+    struct OutcomeSideSpec
+    {
+        std::string name;
+    };
+
+    struct OutcomeDescription
+    {
+        std::string outcomeClass;
+        std::string underlying;
+        std::string expiry;
+        std::string targetPrice;
+        std::string period;
+    };
+
+    struct Outcome
+    {
+        int outcome;
+        std::string name;
+        std::string descriptionRaw;
+        OutcomeDescription description;
+        std::vector<OutcomeSideSpec> sideSpecs;
+    };
+
+    struct OutcomeMetaResponse
+    {
+        std::vector<Outcome> outcomes;
+    };
+
     // --- Rest endpoint types (unauthenticated) ---
 
     struct AssetMeta

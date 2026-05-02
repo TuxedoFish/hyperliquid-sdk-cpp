@@ -23,6 +23,7 @@ namespace hyperliquid
 
         SpotMetaResponse parseSpotMeta(const std::string& message);
         MetaResponse parseMeta(const std::string& message);
+        OutcomeMetaResponse parseOutcomeMeta(const std::string& message);
         PerpDexsResponse parsePerpDexs(const std::string& message);
         PlaceOrderResponse parsePlaceOrder(const std::string& message);
         CancelOrderResponse parseCancelOrder(const std::string& message);

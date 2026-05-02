@@ -17,6 +17,13 @@ nlohmann::ordered_json InfoRequestBuilder::meta(const std::optional<std::string>
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::outcomeMeta()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::OutcomeMeta);
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::perpDexs()
 {
     nlohmann::ordered_json body;

@@ -10,6 +10,7 @@ public:
 
     virtual void onSpotMeta(const SpotMetaResponse& response) {}
     virtual void onMeta(const MetaResponse& response) {}
+    virtual void onOutcomeMeta(const OutcomeMetaResponse& response) {}
     virtual void onPerpDexs(const PerpDexsResponse& response) {}
     virtual void onPlaceOrder(const PlaceOrderResponse& response) {}
     virtual void onCancelOrder(const CancelOrderResponse& response) {}

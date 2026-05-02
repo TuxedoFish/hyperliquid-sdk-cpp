@@ -92,7 +92,9 @@ namespace hyperliquid
     nlohmann::ordered_json ExchangeRequestBuilder::buildOrderWire(const OrderRequest& order) const
     {
         nlohmann::ordered_json orderJson;
-        orderJson["a"] = symbolMap_.resolve(order.asset);
+        orderJson["a"] = order.isOutcome
+            ? outcomeAssetId(order.outcomeIndex, order.outcomeSide)
+            : symbolMap_.resolve(order.asset);
         orderJson["b"] = order.isBuy;
         orderJson["p"] = floatToWire(order.price);
         orderJson["s"] = floatToWire(order.size);
@@ -154,7 +156,9 @@ namespace hyperliquid
         for (const auto& cancel : cancels)
         {
             nlohmann::ordered_json cancelJson;
-            cancelJson["a"] = symbolMap_.resolve(cancel.asset);
+            cancelJson["a"] = cancel.isOutcome
+                ? outcomeAssetId(cancel.outcomeIndex, cancel.outcomeSide)
+                : symbolMap_.resolve(cancel.asset);
             cancelJson["o"] = cancel.oid;
             cancelsJson.push_back(cancelJson);
         }
@@ -175,7 +179,9 @@ namespace hyperliquid
         for (const auto& cancel : cancels)
         {
             nlohmann::ordered_json cancelJson;
-            cancelJson["asset"] = symbolMap_.resolve(cancel.asset);
+            cancelJson["asset"] = cancel.isOutcome
+                ? outcomeAssetId(cancel.outcomeIndex, cancel.outcomeSide)
+                : symbolMap_.resolve(cancel.asset);
             cancelJson["cloid"] = cancel.cloid;
             cancelsJson.push_back(cancelJson);
         }

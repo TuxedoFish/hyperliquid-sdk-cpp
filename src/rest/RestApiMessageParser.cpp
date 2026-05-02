@@ -22,6 +22,9 @@ namespace hyperliquid
             case RestEndpointType::Meta:
                 listener.onMeta(parseMeta(message));
                 break;
+            case RestEndpointType::OutcomeMeta:
+                listener.onOutcomeMeta(parseOutcomeMeta(message));
+                break;
             case RestEndpointType::PerpDexs:
                 listener.onPerpDexs(parsePerpDexs(message));
                 break;
@@ -165,6 +168,69 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& err)
             {
                 getLogger()->error("RestMessageParser: parse error in modifyOrder: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        static OutcomeDescription parseOutcomeDescription(const std::string& desc)
+        {
+            OutcomeDescription result;
+            size_t pos = 0;
+            while (pos < desc.size())
+            {
+                size_t sep = desc.find('|', pos);
+                std::string_view segment(desc.data() + pos, (sep == std::string::npos ? desc.size() : sep) - pos);
+                size_t colon = segment.find(':');
+                if (colon != std::string_view::npos)
+                {
+                    std::string_view key = segment.substr(0, colon);
+                    std::string_view val = segment.substr(colon + 1);
+                    if (key == "class") result.outcomeClass = std::string(val);
+                    else if (key == "underlying") result.underlying = std::string(val);
+                    else if (key == "expiry") result.expiry = std::string(val);
+                    else if (key == "targetPrice") result.targetPrice = std::string(val);
+                    else if (key == "period") result.period = std::string(val);
+                }
+                if (sep == std::string::npos) break;
+                pos = sep + 1;
+            }
+            return result;
+        }
+
+        OutcomeMetaResponse parseOutcomeMeta(const std::string& message)
+        {
+            OutcomeMetaResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto outcomes = doc["outcomes"].get_array().value();
+                for (auto entry : outcomes)
+                {
+                    auto obj = entry.get_object().value();
+                    Outcome outcome;
+                    outcome.outcome = static_cast<int>(obj["outcome"].get_int64().value());
+                    outcome.name = std::string(obj["name"].get_string().value());
+                    outcome.descriptionRaw = std::string(obj["description"].get_string().value());
+                    outcome.description = parseOutcomeDescription(outcome.descriptionRaw);
+
+                    auto sideSpecs = obj["sideSpecs"].get_array().value();
+                    for (auto sideEntry : sideSpecs)
+                    {
+                        auto sideObj = sideEntry.get_object().value();
+                        OutcomeSideSpec spec;
+                        spec.name = std::string(sideObj["name"].get_string().value());
+                        outcome.sideSpecs.push_back(std::move(spec));
+                    }
+
+                    response.outcomes.push_back(std::move(outcome));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in outcomeMeta: {}\n  raw: {}", e.what(), message);
             }
 
             return response;
@@ -323,6 +389,11 @@ namespace hyperliquid
     MetaResponse RestApiMessageParser::parseMeta(const std::string& message)
     {
         return impl_->parseMeta(message);
+    }
+
+    OutcomeMetaResponse RestApiMessageParser::parseOutcomeMeta(const std::string& message)
+    {
+        return impl_->parseOutcomeMeta(message);
     }
 
     PerpDexsResponse RestApiMessageParser::parsePerpDexs(const std::string& message)
