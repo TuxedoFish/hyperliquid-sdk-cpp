@@ -37,9 +37,7 @@ public:
 
         // Sell (offer) into the empty offer side - IOC to cross the spread
         hyperliquid::OrderRequest order;
-        order.isOutcome = true;
-        order.outcomeIndex = outcomeIndex_;
-        order.outcomeSide = outcomeSide_;
+        order.assetId = hyperliquid::outcomeAssetId(outcomeIndex_, outcomeSide_);
         order.isBuy = false;
         order.price = 0.50;
         order.size = 100.0;

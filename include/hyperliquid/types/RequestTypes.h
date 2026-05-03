@@ -283,9 +283,7 @@ namespace hyperliquid
         std::optional<LimitOrderType> limit;
         std::optional<TriggerOrderType> trigger;
         std::optional<std::string> cloid;
-        bool isOutcome = false;
-        int outcomeIndex = 0;
-        int outcomeSide = 0;
+        std::optional<int> assetId;
     };
 
     enum class Grouping { Na, NormalTpsl, PositionTpsl };
@@ -305,18 +303,14 @@ namespace hyperliquid
     {
         std::string asset;
         uint64_t oid;
-        bool isOutcome = false;
-        int outcomeIndex = 0;
-        int outcomeSide = 0;
+        std::optional<int> assetId;
     };
 
     struct CancelByCloidRequest
     {
         std::string asset;
         std::string cloid;
-        bool isOutcome = false;
-        int outcomeIndex = 0;
-        int outcomeSide = 0;
+        std::optional<int> assetId;
     };
 
     struct ModifyRequest

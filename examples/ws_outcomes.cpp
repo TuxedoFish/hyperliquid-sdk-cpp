@@ -35,9 +35,7 @@ public:
         ws_->subscribe(hyperliquid::SubscriptionType::OrderUpdates);
 
         hyperliquid::OrderRequest order;
-        order.isOutcome = true;
-        order.outcomeIndex = outcomeIndex_;
-        order.outcomeSide = outcomeSide_;
+        order.assetId = hyperliquid::outcomeAssetId(outcomeIndex_, outcomeSide_);
         order.isBuy = true;
         order.price = 0.10;
         order.size = 100.0; // Min size is 10 USDH
@@ -64,9 +62,7 @@ public:
             spdlog::info("Order resting oid={}, modifying to px=0.20 sz=200...", first.resting->oid);
 
             hyperliquid::OrderRequest modified;
-            modified.isOutcome = true;
-            modified.outcomeIndex = outcomeIndex_;
-            modified.outcomeSide = outcomeSide_;
+            modified.assetId = hyperliquid::outcomeAssetId(outcomeIndex_, outcomeSide_);
             modified.isBuy = true;
             modified.price = 0.20;
             modified.size = 200.0;
@@ -89,9 +85,7 @@ public:
 
         spdlog::info("Modified, cancelling by cloid...");
         hyperliquid::CancelByCloidRequest cancel;
-        cancel.isOutcome = true;
-        cancel.outcomeIndex = outcomeIndex_;
-        cancel.outcomeSide = outcomeSide_;
+        cancel.assetId = hyperliquid::outcomeAssetId(outcomeIndex_, outcomeSide_);
         cancel.cloid = cloid_;
         ws_->cancelOrderByCloid({cancel});
     }

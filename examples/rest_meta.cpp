@@ -7,7 +7,7 @@ int main() {
     hyperliquid::setLogLevel(hyperliquid::LogLevel::Debug);
 
     hyperliquid::ApiConfig config;
-    config.env = hyperliquid::Environment::Testnet;
+    config.env = hyperliquid::Environment::Mainnet;
 
     hyperliquid::RestApi api(config);
     hyperliquid::RestApiMessageParser parser;
