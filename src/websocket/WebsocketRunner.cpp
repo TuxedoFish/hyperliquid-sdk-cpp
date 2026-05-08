@@ -120,6 +120,8 @@ void WebsocketRunner::onWsHandshake(beast::error_code ec) {
         return;
     }
 
+    getLogger()->info("WebSocket connected successfully");
+
     setupControlCallback();
     lastPongTime_ = std::chrono::steady_clock::now();
     pendingPong_ = false;
@@ -159,12 +161,14 @@ void WebsocketRunner::onRead(beast::error_code errorCode, std::size_t) {
                     stopping_ = false;
                 });
         } else if (errorCode == websocket::error::closed) {
-            getLogger()->error("Unexpected websocket close");
+            getLogger()->error("Unexpected websocket close (connected={} writing={} queueSize={})",
+                               connected_.load(), writing_, writeQueue_.size());
             listener_.onWsDisconnected(true, errorCode.message());
             connected_ = false;
             scheduleReconnect();
         } else {
-            getLogger()->error("Unexpected error: {}", errorCode.message());
+            getLogger()->error("Unexpected read error: {} (connected={} writing={} queueSize={})",
+                               errorCode.message(), connected_.load(), writing_, writeQueue_.size());
             listener_.onWsDisconnected(true, errorCode.message());
             connected_ = false;
             scheduleReconnect();
@@ -195,7 +199,8 @@ void WebsocketRunner::doWrite() {
 
 void WebsocketRunner::onWrite(beast::error_code ec, std::size_t) {
     if (ec) {
-        getLogger()->error("write error: {}", ec.message());
+        getLogger()->error("write error: {} (connected={} queueSize={})", ec.message(), connected_.load(), writeQueue_.size());
+        writing_ = false;
         return;
     }
 
@@ -227,7 +232,16 @@ void WebsocketRunner::scheduleReconnect() {
 }
 
 void WebsocketRunner::doReconnect() {
+    getLogger()->info("doReconnect: clearing state (writing={} queueSize={})", writing_, writeQueue_.size());
+
+    // Clear all pending state from previous connection
     pendingPong_ = false;
+    writing_ = false;
+    readBuf_.consume(readBuf_.size());
+    while (!writeQueue_.empty()) {
+        writeQueue_.pop();
+    }
+
     ws_ = std::make_unique<websocket::stream<beast::ssl_stream<beast::tcp_stream>>>(
         net::make_strand(ioc_), sslCtx_);
     doResolve();
