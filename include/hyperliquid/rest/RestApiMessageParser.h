@@ -19,7 +19,8 @@ namespace hyperliquid
         RestApiMessageParser(const RestApiMessageParser&) = delete;
         RestApiMessageParser& operator=(const RestApiMessageParser&) = delete;
 
-        void parse(const std::string& message, RestEndpointType type);
+        void parse(const std::string& message, RestEndpointType type,
+                   std::optional<uint64_t> correlationId = std::nullopt);
 
         SpotMetaResponse parseSpotMeta(const std::string& message);
         MetaResponse parseMeta(const std::string& message);

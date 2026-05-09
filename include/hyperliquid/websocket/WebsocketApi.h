@@ -24,17 +24,23 @@ namespace hyperliquid
         void unsubscribe(SubscriptionType type, const std::map<std::string, std::string>& filters = {});
 
         // Post requests over websocket
-        void spotMeta();
-        void meta(const std::optional<std::string>& dex = std::nullopt);
-        void outcomeMeta();
-        void perpDexs();
+        void spotMeta(std::optional<uint64_t> correlationId = std::nullopt);
+        void meta(const std::optional<std::string>& dex = std::nullopt,
+                  std::optional<uint64_t> correlationId = std::nullopt);
+        void outcomeMeta(std::optional<uint64_t> correlationId = std::nullopt);
+        void perpDexs(std::optional<uint64_t> correlationId = std::nullopt);
         void placeOrder(const std::vector<OrderRequest>& orders,
                                Grouping grouping,
-                               const std::optional<Builder>& builder = std::nullopt);
-        void cancelOrder(const std::vector<CancelRequest>& cancels);
-        void cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels);
-        void modifyOrder(const ModifyRequest& modify);
-        void batchModifyOrder(const std::vector<ModifyRequest>& modifies);
+                               const std::optional<Builder>& builder = std::nullopt,
+                               std::optional<uint64_t> correlationId = std::nullopt);
+        void cancelOrder(const std::vector<CancelRequest>& cancels,
+                         std::optional<uint64_t> correlationId = std::nullopt);
+        void cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels,
+                                std::optional<uint64_t> correlationId = std::nullopt);
+        void modifyOrder(const ModifyRequest& modify,
+                         std::optional<uint64_t> correlationId = std::nullopt);
+        void batchModifyOrder(const std::vector<ModifyRequest>& modifies,
+                              std::optional<uint64_t> correlationId = std::nullopt);
 
         void start();
         void stop();

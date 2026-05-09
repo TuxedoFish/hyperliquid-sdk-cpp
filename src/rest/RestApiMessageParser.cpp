@@ -12,32 +12,33 @@ namespace hyperliquid
 
         explicit Impl(RestEndpointListener& listener) : listener(listener) {}
 
-        void parse(const std::string& message, RestEndpointType type)
+        void parse(const std::string& message, RestEndpointType type,
+                   std::optional<uint64_t> correlationId = std::nullopt)
         {
             switch (type)
             {
             case RestEndpointType::SpotMeta:
-                listener.onSpotMeta(parseSpotMeta(message));
+                listener.onSpotMeta(parseSpotMeta(message), correlationId);
                 break;
             case RestEndpointType::Meta:
-                listener.onMeta(parseMeta(message));
+                listener.onMeta(parseMeta(message), correlationId);
                 break;
             case RestEndpointType::OutcomeMeta:
-                listener.onOutcomeMeta(parseOutcomeMeta(message));
+                listener.onOutcomeMeta(parseOutcomeMeta(message), correlationId);
                 break;
             case RestEndpointType::PerpDexs:
-                listener.onPerpDexs(parsePerpDexs(message));
+                listener.onPerpDexs(parsePerpDexs(message), correlationId);
                 break;
             case RestEndpointType::PlaceOrder:
-                listener.onPlaceOrder(parsePlaceOrder(message));
+                listener.onPlaceOrder(parsePlaceOrder(message), correlationId);
                 break;
             case RestEndpointType::CancelOrder:
             case RestEndpointType::CancelOrderByCloid:
-                listener.onCancelOrder(parseCancelOrder(message));
+                listener.onCancelOrder(parseCancelOrder(message), correlationId);
                 break;
             case RestEndpointType::ModifyOrder:
             case RestEndpointType::BatchModifyOrder:
-                listener.onModifyOrder(parseModifyOrder(message));
+                listener.onModifyOrder(parseModifyOrder(message), correlationId);
                 break;
             default:
                 getLogger()->error("RestMessageParser: unhandled RestEndpointType: {}", toString(type));
@@ -376,9 +377,10 @@ namespace hyperliquid
     RestApiMessageParser::RestApiMessageParser(RestApiMessageParser&&) noexcept = default;
     RestApiMessageParser& RestApiMessageParser::operator=(RestApiMessageParser&&) noexcept = default;
 
-    void RestApiMessageParser::parse(const std::string& message, RestEndpointType type)
+    void RestApiMessageParser::parse(const std::string& message, RestEndpointType type,
+                                     std::optional<uint64_t> correlationId)
     {
-        impl_->parse(message, type);
+        impl_->parse(message, type, correlationId);
     }
 
     SpotMetaResponse RestApiMessageParser::parseSpotMeta(const std::string& message)

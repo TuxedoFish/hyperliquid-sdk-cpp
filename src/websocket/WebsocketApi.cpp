@@ -15,6 +15,12 @@
 
 namespace hyperliquid
 {
+    struct PostRequestInfo
+    {
+        RestEndpointType type;
+        std::optional<uint64_t> correlationId;
+    };
+
     struct WebsocketApi::Impl : internal::WSListener
     {
         internal::WebsocketRunner ws;
@@ -24,7 +30,7 @@ namespace hyperliquid
         ExchangeRequestBuilder exchangeRequestBuilder;
         const ApiConfig& config;
         std::atomic<int> postRequestCounter;
-        std::unordered_map<uint64_t, RestEndpointType> postRequestIdToType;
+        std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
         simdjson::ondemand::parser sjParser;
         simdjson::padded_string sjPadded;
 
@@ -64,13 +70,13 @@ namespace hyperliquid
                     auto data = doc["data"].get_object().value();
                     uint64_t id = data["id"].get_uint64().value();
                     auto payload = simdjson::to_json_string(data["response"]["payload"]);
-                    auto it = postRequestIdToType.find(id);
-                    if (it != postRequestIdToType.end())
+                    auto it = postRequestInfo.find(id);
+                    if (it != postRequestInfo.end())
                     {
-                        auto type = it->second;
-                        postRequestIdToType.erase(it);
+                        auto info = it->second;
+                        postRequestInfo.erase(it);
                         std::string payloadStr(payload.value());
-                        listener.onPostResponse(payloadStr, type);
+                        listener.onPostResponse(payloadStr, info.type, info.correlationId);
                     }
                     else
                     {
@@ -100,12 +106,13 @@ namespace hyperliquid
 
         void signAndSend(RestEndpointType type, nlohmann::ordered_json body,
                          const std::optional<std::string>& vaultAddress = std::nullopt,
-                         const std::optional<uint64_t>& expiresAfter = std::nullopt)
+                         const std::optional<uint64_t>& expiresAfter = std::nullopt,
+                         std::optional<uint64_t> correlationId = std::nullopt)
         {
             auto payload= Signing::prepareBody(config, type, std::move(body), vaultAddress, expiresAfter);
             auto payloadType = isAuthenticated(type) ? "action" : "info";
             int postRequestId = postRequestCounter.fetch_add(1);
-            postRequestIdToType[postRequestId] = type;
+            postRequestInfo[postRequestId] = {type, correlationId};
             nlohmann::ordered_json wrapped = {
                 {"method", "post"},
                 {"id", postRequestId},
@@ -207,55 +214,70 @@ namespace hyperliquid
         if (impl_->thread.joinable()) impl_->thread.join();
     }
 
-    void WebsocketApi::spotMeta()
+    void WebsocketApi::spotMeta(std::optional<uint64_t> correlationId)
     {
-        return impl_->signAndSend(RestEndpointType::SpotMeta, InfoRequestBuilder::spotMeta());
+        return impl_->signAndSend(RestEndpointType::SpotMeta, InfoRequestBuilder::spotMeta(),
+                                  std::nullopt, std::nullopt, correlationId);
     }
 
-    void WebsocketApi::meta(const std::optional<std::string>& dex)
+    void WebsocketApi::meta(const std::optional<std::string>& dex,
+                            std::optional<uint64_t> correlationId)
     {
-        return impl_->signAndSend(RestEndpointType::Meta, InfoRequestBuilder::meta(dex));
+        return impl_->signAndSend(RestEndpointType::Meta, InfoRequestBuilder::meta(dex),
+                                  std::nullopt, std::nullopt, correlationId);
     }
 
-    void WebsocketApi::outcomeMeta()
+    void WebsocketApi::outcomeMeta(std::optional<uint64_t> correlationId)
     {
-        return impl_->signAndSend(RestEndpointType::OutcomeMeta, InfoRequestBuilder::outcomeMeta());
+        return impl_->signAndSend(RestEndpointType::OutcomeMeta, InfoRequestBuilder::outcomeMeta(),
+                                  std::nullopt, std::nullopt, correlationId);
     }
 
-    void WebsocketApi::perpDexs()
+    void WebsocketApi::perpDexs(std::optional<uint64_t> correlationId)
     {
-        return impl_->signAndSend(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs());
+        return impl_->signAndSend(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs(),
+                                  std::nullopt, std::nullopt, correlationId);
     }
 
     void WebsocketApi::placeOrder(const std::vector<OrderRequest>& orders,
                                   Grouping grouping,
-                                  const std::optional<Builder>& builder)
+                                  const std::optional<Builder>& builder,
+                                  std::optional<uint64_t> correlationId)
     {
         return impl_->signAndSend(RestEndpointType::PlaceOrder,
-                                  impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder));
+                                  impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder),
+                                  std::nullopt, std::nullopt, correlationId);
     }
 
-    void WebsocketApi::cancelOrder(const std::vector<CancelRequest>& cancels)
+    void WebsocketApi::cancelOrder(const std::vector<CancelRequest>& cancels,
+                                   std::optional<uint64_t> correlationId)
     {
         return impl_->signAndSend(RestEndpointType::CancelOrder,
-                                  impl_->exchangeRequestBuilder.cancelOrder(cancels));
+                                  impl_->exchangeRequestBuilder.cancelOrder(cancels),
+                                  std::nullopt, std::nullopt, correlationId);
     }
 
-    void WebsocketApi::cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels)
+    void WebsocketApi::cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels,
+                                          std::optional<uint64_t> correlationId)
     {
         return impl_->signAndSend(RestEndpointType::CancelOrderByCloid,
-                                  impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels));
+                                  impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels),
+                                  std::nullopt, std::nullopt, correlationId);
     }
 
-    void WebsocketApi::modifyOrder(const ModifyRequest& modify)
+    void WebsocketApi::modifyOrder(const ModifyRequest& modify,
+                                   std::optional<uint64_t> correlationId)
     {
         return impl_->signAndSend(RestEndpointType::ModifyOrder,
-                                  impl_->exchangeRequestBuilder.modifyOrder(modify));
+                                  impl_->exchangeRequestBuilder.modifyOrder(modify),
+                                  std::nullopt, std::nullopt, correlationId);
     }
 
-    void WebsocketApi::batchModifyOrder(const std::vector<ModifyRequest>& modifies)
+    void WebsocketApi::batchModifyOrder(const std::vector<ModifyRequest>& modifies,
+                                        std::optional<uint64_t> correlationId)
     {
         return impl_->signAndSend(RestEndpointType::BatchModifyOrder,
-                                  impl_->exchangeRequestBuilder.batchModifyOrder(modifies));
+                                  impl_->exchangeRequestBuilder.batchModifyOrder(modifies),
+                                  std::nullopt, std::nullopt, correlationId);
     }
 }

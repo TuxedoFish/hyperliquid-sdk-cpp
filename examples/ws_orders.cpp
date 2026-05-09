@@ -23,8 +23,9 @@ public:
         messageParser.crack(message, *this);
     }
 
-    void onPostResponse(const std::string& message, hyperliquid::RestEndpointType type) override {
-        restParser.parse(message, type);
+    void onPostResponse(const std::string& message, hyperliquid::RestEndpointType type,
+                         std::optional<uint64_t> correlationId) override {
+        restParser.parse(message, type, correlationId);
     }
 
     void onPerpAssetCtx(const hyperliquid::PerpAssetCtx& ctx) override {
@@ -48,7 +49,8 @@ public:
         ws_->placeOrder({order}, hyperliquid::Grouping::Na);
     }
 
-    void onPlaceOrder(const hyperliquid::PlaceOrderResponse& response) override {
+    void onPlaceOrder(const hyperliquid::PlaceOrderResponse& response,
+                       std::optional<uint64_t> correlationId) override {
         spdlog::info("Place order: status={}", response.status);
         if (response.status != "ok" || response.statuses.empty()) return;
 
@@ -74,7 +76,8 @@ public:
         }
     }
 
-    void onModifyOrder(const hyperliquid::ModifyOrderResponse& response) override {
+    void onModifyOrder(const hyperliquid::ModifyOrderResponse& response,
+                        std::optional<uint64_t> correlationId) override {
         spdlog::info("Modify order: status={}", response.status);
         if (response.status != "ok") return;
 
@@ -85,7 +88,8 @@ public:
         ws_->cancelOrderByCloid({cancel});
     }
 
-    void onCancelOrder(const hyperliquid::CancelOrderResponse& response) override {
+    void onCancelOrder(const hyperliquid::CancelOrderResponse& response,
+                        std::optional<uint64_t> correlationId) override {
         spdlog::info("Cancel order: status={}", response.status);
         spdlog::info("Unsubscribing...");
         ws_->unsubscribe(hyperliquid::SubscriptionType::OrderUpdates);

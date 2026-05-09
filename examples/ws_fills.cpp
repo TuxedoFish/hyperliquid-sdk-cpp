@@ -23,8 +23,9 @@ public:
         messageParser.crack(message, *this);
     }
 
-    void onPostResponse(const std::string& message, hyperliquid::RestEndpointType type) override {
-        restParser.parse(message, type);
+    void onPostResponse(const std::string& message, hyperliquid::RestEndpointType type,
+                         std::optional<uint64_t> correlationId) override {
+        restParser.parse(message, type, correlationId);
     }
 
     void onPerpAssetCtx(const hyperliquid::PerpAssetCtx& ctx) override {
@@ -43,10 +44,13 @@ public:
         order.reduceOnly = false;
         order.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Ioc};
 
-        ws_->placeOrder({order}, hyperliquid::Grouping::Na);
+        ws_->placeOrder({order}, hyperliquid::Grouping::Na, std::nullopt, 1001);
     }
 
-    void onPlaceOrder(const hyperliquid::PlaceOrderResponse& response) override {
+    void onPlaceOrder(const hyperliquid::PlaceOrderResponse& response,
+                       std::optional<uint64_t> correlationId) override {
+        if (correlationId)
+            spdlog::info("Ack received for correlationId -> {}", *correlationId);
         spdlog::info("Place order: status={}", response.status);
         for (const auto& s : response.statuses)
         {
@@ -65,6 +69,10 @@ public:
     }
 
     void onUserFill(const hyperliquid::Fill& fill) override {
+        if (fill.isSnapshot)
+        {
+            return;
+        }
         spdlog::info("Fill: coin={} side={} px={} sz={} dir={} closedPnl={} fee={} oid={}",
                       fill.coin, fill.side, fill.px, fill.sz, fill.dir, fill.closedPnl, fill.fee, fill.oid);
 
@@ -83,7 +91,7 @@ public:
             close.reduceOnly = true;
             close.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Ioc};
 
-            ws_->placeOrder({close}, hyperliquid::Grouping::Na);
+            ws_->placeOrder({close}, hyperliquid::Grouping::Na, std::nullopt, 1002);
         }
     }
 
