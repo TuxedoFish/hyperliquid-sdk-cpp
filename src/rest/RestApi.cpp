@@ -63,7 +63,8 @@ struct RestApi::Impl {
                      const std::optional<std::string>& vaultAddress = std::nullopt,
                      const std::optional<uint64_t>& expiresAfter = std::nullopt)
     {
-        auto prepared = Signing::prepareBody(config, type, std::move(body), vaultAddress, expiresAfter);
+        auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
+        auto prepared = Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
         std::string serialized = prepared.dump();
 
         auto session = std::make_shared<HttpSession>(
@@ -83,7 +84,8 @@ struct RestApi::Impl {
                                 const std::optional<std::string>& vaultAddress = std::nullopt,
                                 const std::optional<uint64_t>& expiresAfter = std::nullopt)
     {
-        auto prepared = Signing::prepareBody(config, type, std::move(body), vaultAddress, expiresAfter);
+        auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
+        auto prepared = Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
         std::string serialized = prepared.dump();
         getLogger()->debug("{}", serialized);
 
@@ -146,34 +148,44 @@ std::string RestApi::perpDexs()
 
 std::string RestApi::placeOrder(const std::vector<OrderRequest>& orders,
                                 Grouping grouping,
-                                const std::optional<Builder>& builder)
+                                const std::optional<Builder>& builder,
+                                const std::optional<std::string>& vaultAddress)
 {
     return impl_->signAndSendSync(RestEndpointType::PlaceOrder,
-                                  impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder));
+                                  impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder),
+                                  vaultAddress);
 }
 
-std::string RestApi::cancelOrder(const std::vector<CancelRequest>& cancels)
+std::string RestApi::cancelOrder(const std::vector<CancelRequest>& cancels,
+                                 const std::optional<std::string>& vaultAddress)
 {
     return impl_->signAndSendSync(RestEndpointType::CancelOrder,
-                                   impl_->exchangeRequestBuilder.cancelOrder(cancels));
+                                   impl_->exchangeRequestBuilder.cancelOrder(cancels),
+                                   vaultAddress);
 }
 
-    std::string RestApi::cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels)
+std::string RestApi::cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels,
+                                        const std::optional<std::string>& vaultAddress)
 {
     return impl_->signAndSendSync(RestEndpointType::CancelOrderByCloid,
-                                   impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels));
+                                   impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels),
+                                   vaultAddress);
 }
 
-    std::string RestApi::modifyOrder(const ModifyRequest& modify)
+std::string RestApi::modifyOrder(const ModifyRequest& modify,
+                                 const std::optional<std::string>& vaultAddress)
 {
     return impl_->signAndSendSync(RestEndpointType::ModifyOrder,
-                                   impl_->exchangeRequestBuilder.modifyOrder(modify));
+                                   impl_->exchangeRequestBuilder.modifyOrder(modify),
+                                   vaultAddress);
 }
 
-    std::string RestApi::batchModifyOrder(const std::vector<ModifyRequest>& modifies)
+std::string RestApi::batchModifyOrder(const std::vector<ModifyRequest>& modifies,
+                                      const std::optional<std::string>& vaultAddress)
 {
     return impl_->signAndSendSync(RestEndpointType::BatchModifyOrder,
-                                   impl_->exchangeRequestBuilder.batchModifyOrder(modifies));
+                                   impl_->exchangeRequestBuilder.batchModifyOrder(modifies),
+                                   vaultAddress);
 }
 
 
@@ -199,29 +211,44 @@ void RestApi::perpDexsAsync()
 
 void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,
                                Grouping grouping,
-                               const std::optional<Builder>& builder)
+                               const std::optional<Builder>& builder,
+                               const std::optional<std::string>& vaultAddress)
 {
-    impl_->signAndSend(RestEndpointType::PlaceOrder, impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder));
+    impl_->signAndSend(RestEndpointType::PlaceOrder,
+                       impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder),
+                       vaultAddress);
 }
 
-void RestApi::cancelOrderAsync(const std::vector<CancelRequest>& cancels)
+void RestApi::cancelOrderAsync(const std::vector<CancelRequest>& cancels,
+                                const std::optional<std::string>& vaultAddress)
 {
-    impl_->signAndSend(RestEndpointType::CancelOrder, impl_->exchangeRequestBuilder.cancelOrder(cancels));
+    impl_->signAndSend(RestEndpointType::CancelOrder,
+                       impl_->exchangeRequestBuilder.cancelOrder(cancels),
+                       vaultAddress);
 }
 
-void RestApi::cancelOrderByCloidAsync(const std::vector<CancelByCloidRequest>& cancels)
+void RestApi::cancelOrderByCloidAsync(const std::vector<CancelByCloidRequest>& cancels,
+                                       const std::optional<std::string>& vaultAddress)
 {
-    impl_->signAndSend(RestEndpointType::CancelOrderByCloid, impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels));
+    impl_->signAndSend(RestEndpointType::CancelOrderByCloid,
+                       impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels),
+                       vaultAddress);
 }
 
-void RestApi::modifyOrderAsync(const ModifyRequest& modify)
+void RestApi::modifyOrderAsync(const ModifyRequest& modify,
+                                const std::optional<std::string>& vaultAddress)
 {
-    impl_->signAndSend(RestEndpointType::ModifyOrder, impl_->exchangeRequestBuilder.modifyOrder(modify));
+    impl_->signAndSend(RestEndpointType::ModifyOrder,
+                       impl_->exchangeRequestBuilder.modifyOrder(modify),
+                       vaultAddress);
 }
 
-void RestApi::batchModifyOrderAsync(const std::vector<ModifyRequest>& modifies)
+void RestApi::batchModifyOrderAsync(const std::vector<ModifyRequest>& modifies,
+                                     const std::optional<std::string>& vaultAddress)
 {
-    impl_->signAndSend(RestEndpointType::BatchModifyOrder, impl_->exchangeRequestBuilder.batchModifyOrder(modifies));
+    impl_->signAndSend(RestEndpointType::BatchModifyOrder,
+                       impl_->exchangeRequestBuilder.batchModifyOrder(modifies),
+                       vaultAddress);
 }
 
 }

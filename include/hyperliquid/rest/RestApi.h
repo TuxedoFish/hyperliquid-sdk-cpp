@@ -26,11 +26,16 @@ public:
     std::string perpDexs();
     std::string placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
-                           const std::optional<Builder>& builder = std::nullopt);
-    std::string cancelOrder(const std::vector<CancelRequest>& cancels);
-    std::string cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels);
-    std::string modifyOrder(const ModifyRequest& modify);
-    std::string batchModifyOrder(const std::vector<ModifyRequest>& modifies);
+                           const std::optional<Builder>& builder = std::nullopt,
+                           const std::optional<std::string>& vaultAddress = std::nullopt);
+    std::string cancelOrder(const std::vector<CancelRequest>& cancels,
+                            const std::optional<std::string>& vaultAddress = std::nullopt);
+    std::string cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels,
+                                   const std::optional<std::string>& vaultAddress = std::nullopt);
+    std::string modifyOrder(const ModifyRequest& modify,
+                            const std::optional<std::string>& vaultAddress = std::nullopt);
+    std::string batchModifyOrder(const std::vector<ModifyRequest>& modifies,
+                                 const std::optional<std::string>& vaultAddress = std::nullopt);
 
     void spotMetaAsync();
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
@@ -38,11 +43,16 @@ public:
     void perpDexsAsync();
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
-                         const std::optional<Builder>& builder = std::nullopt);
-    void cancelOrderAsync(const std::vector<CancelRequest>& cancels);
-    void cancelOrderByCloidAsync(const std::vector<CancelByCloidRequest>& cancels);
-    void modifyOrderAsync(const ModifyRequest& modify);
-    void batchModifyOrderAsync(const std::vector<ModifyRequest>& modifies);
+                         const std::optional<Builder>& builder = std::nullopt,
+                         const std::optional<std::string>& vaultAddress = std::nullopt);
+    void cancelOrderAsync(const std::vector<CancelRequest>& cancels,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
+    void cancelOrderByCloidAsync(const std::vector<CancelByCloidRequest>& cancels,
+                                 const std::optional<std::string>& vaultAddress = std::nullopt);
+    void modifyOrderAsync(const ModifyRequest& modify,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
+    void batchModifyOrderAsync(const std::vector<ModifyRequest>& modifies,
+                               const std::optional<std::string>& vaultAddress = std::nullopt);
 
 private:
     struct Impl;

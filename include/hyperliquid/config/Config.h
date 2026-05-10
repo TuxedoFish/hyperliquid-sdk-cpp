@@ -22,5 +22,6 @@ namespace hyperliquid
         std::optional<Wallet> wallet;
         std::set<std::string> dexes;
         bool skipBuildingSymbolMap;
+        std::optional<std::string> vaultAddress;
     };
 }

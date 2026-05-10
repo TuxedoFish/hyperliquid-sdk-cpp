@@ -109,7 +109,8 @@ namespace hyperliquid
                          const std::optional<uint64_t>& expiresAfter = std::nullopt,
                          std::optional<uint64_t> correlationId = std::nullopt)
         {
-            auto payload= Signing::prepareBody(config, type, std::move(body), vaultAddress, expiresAfter);
+            auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
+            auto payload = Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
             auto payloadType = isAuthenticated(type) ? "action" : "info";
             int postRequestId = postRequestCounter.fetch_add(1);
             postRequestInfo[postRequestId] = {type, correlationId};
@@ -242,42 +243,47 @@ namespace hyperliquid
     void WebsocketApi::placeOrder(const std::vector<OrderRequest>& orders,
                                   Grouping grouping,
                                   const std::optional<Builder>& builder,
-                                  std::optional<uint64_t> correlationId)
+                                  std::optional<uint64_t> correlationId,
+                                  const std::optional<std::string>& vaultAddress)
     {
         return impl_->signAndSend(RestEndpointType::PlaceOrder,
                                   impl_->exchangeRequestBuilder.placeOrder(orders, grouping, builder),
-                                  std::nullopt, std::nullopt, correlationId);
+                                  vaultAddress, std::nullopt, correlationId);
     }
 
     void WebsocketApi::cancelOrder(const std::vector<CancelRequest>& cancels,
-                                   std::optional<uint64_t> correlationId)
+                                   std::optional<uint64_t> correlationId,
+                                   const std::optional<std::string>& vaultAddress)
     {
         return impl_->signAndSend(RestEndpointType::CancelOrder,
                                   impl_->exchangeRequestBuilder.cancelOrder(cancels),
-                                  std::nullopt, std::nullopt, correlationId);
+                                  vaultAddress, std::nullopt, correlationId);
     }
 
     void WebsocketApi::cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels,
-                                          std::optional<uint64_t> correlationId)
+                                          std::optional<uint64_t> correlationId,
+                                          const std::optional<std::string>& vaultAddress)
     {
         return impl_->signAndSend(RestEndpointType::CancelOrderByCloid,
                                   impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels),
-                                  std::nullopt, std::nullopt, correlationId);
+                                  vaultAddress, std::nullopt, correlationId);
     }
 
     void WebsocketApi::modifyOrder(const ModifyRequest& modify,
-                                   std::optional<uint64_t> correlationId)
+                                   std::optional<uint64_t> correlationId,
+                                   const std::optional<std::string>& vaultAddress)
     {
         return impl_->signAndSend(RestEndpointType::ModifyOrder,
                                   impl_->exchangeRequestBuilder.modifyOrder(modify),
-                                  std::nullopt, std::nullopt, correlationId);
+                                  vaultAddress, std::nullopt, correlationId);
     }
 
     void WebsocketApi::batchModifyOrder(const std::vector<ModifyRequest>& modifies,
-                                        std::optional<uint64_t> correlationId)
+                                        std::optional<uint64_t> correlationId,
+                                        const std::optional<std::string>& vaultAddress)
     {
         return impl_->signAndSend(RestEndpointType::BatchModifyOrder,
                                   impl_->exchangeRequestBuilder.batchModifyOrder(modifies),
-                                  std::nullopt, std::nullopt, correlationId);
+                                  vaultAddress, std::nullopt, correlationId);
     }
 }
