@@ -31,18 +31,19 @@ public:
     void onPerpAssetCtx(const hyperliquid::PerpAssetCtx& ctx) override {
         if (ctx.coin != "ETH" || orderPlaced_ || !ctx.hasMidPx) return;
         orderPlaced_ = true;
+        midPx_ = ctx.midPx;
 
-        // IOC sell at bid- to cross the spread immediately
-        double crossPx = std::floor(ctx.midPx * 0.99 * 10.0) / 10.0;
-        spdlog::info("ETH mid={}, sending IOC sell at {} to cross...", ctx.midPx, crossPx);
+        // GTC sell above mid so it rests on the book (will amend to cross later)
+        double restPx = std::ceil(midPx_ * 1.01 * 10.0) / 10.0;
+        spdlog::info("ETH mid={}, sending GTC sell at {} to rest on book...", midPx_, restPx);
 
         hyperliquid::OrderRequest order;
         order.asset = "ETH";
         order.isBuy = false;
-        order.price = crossPx;
+        order.price = restPx;
         order.size = 0.01;
         order.reduceOnly = false;
-        order.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Ioc};
+        order.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Gtc};
 
         ws_->placeOrder({order}, hyperliquid::Grouping::Na, std::nullopt, 1001);
     }
@@ -57,10 +58,37 @@ public:
             if (s.filled)
                 spdlog::info("  Filled oid={} avgPx={} totalSz={}", s.filled->oid, s.filled->avgPx, s.filled->totalSz);
             else if (s.resting)
+            {
                 spdlog::info("  Resting oid={}", s.resting->oid);
+
+                // Amend the resting order to cross the spread
+                double crossPx = std::floor(midPx_ * 0.99 * 10.0) / 10.0;
+                spdlog::info("Amending order {} to IOC sell at {} to cross...", s.resting->oid, crossPx);
+
+                hyperliquid::OrderRequest amended;
+                amended.asset = "ETH";
+                amended.isBuy = false;
+                amended.price = crossPx;
+                amended.size = 0.01;
+                amended.reduceOnly = false;
+                amended.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Ioc};
+
+                hyperliquid::ModifyRequest modify;
+                modify.oid = s.resting->oid;
+                modify.order = amended;
+
+                ws_->modifyOrder(modify, 1003);
+            }
             else if (s.error)
                 spdlog::info("  Error: {}", *s.error);
         }
+    }
+
+    void onModifyOrder(const hyperliquid::ModifyOrderResponse& response,
+                        std::optional<uint64_t> correlationId) override {
+        if (correlationId)
+            spdlog::info("Modify ack received for correlationId -> {}", *correlationId);
+        spdlog::info("Modify order: status={}", response.status);
     }
 
     void onOrderUpdate(const hyperliquid::OrderUpdate& update) override {
@@ -110,6 +138,7 @@ private:
     hyperliquid::WebsocketMessageParser messageParser;
     hyperliquid::RestApiMessageParser restParser;
     hyperliquid::WebsocketApi* ws_;
+    double midPx_ = 0.0;
     bool orderPlaced_ = false;
     bool closeSent_ = false;
 };
