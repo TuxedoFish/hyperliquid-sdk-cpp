@@ -499,5 +499,6 @@ namespace hyperliquid
     {
         std::string status;
         std::string type;
+        std::vector<OrderStatusResult> statuses;
     };
 }

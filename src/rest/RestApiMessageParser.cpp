@@ -165,6 +165,41 @@ namespace hyperliquid
 
                 auto resp = doc["response"].get_object().value();
                 response.type = std::string(resp["type"].get_string().value());
+
+                auto statuses = resp["data"]["statuses"].get_array().value();
+                for (auto entry : statuses)
+                {
+                    auto obj = entry.get_object().value();
+                    OrderStatusResult result;
+
+                    simdjson::ondemand::value resting;
+                    if (obj["resting"].get(resting) == simdjson::SUCCESS)
+                    {
+                        auto restingObj = resting.get_object().value();
+                        OrderStatusResting rest;
+                        rest.oid = restingObj["oid"].get_uint64().value();
+                        result.resting = std::move(rest);
+                    }
+
+                    simdjson::ondemand::value filled;
+                    if (obj["filled"].get(filled) == simdjson::SUCCESS)
+                    {
+                        auto filledObj = filled.get_object().value();
+                        OrderStatusFilled fill;
+                        fill.totalSz = std::string(filledObj["totalSz"].get_string().value());
+                        fill.avgPx = std::string(filledObj["avgPx"].get_string().value());
+                        fill.oid = filledObj["oid"].get_uint64().value();
+                        result.filled = std::move(fill);
+                    }
+
+                    simdjson::ondemand::value error;
+                    if (obj["error"].get(error) == simdjson::SUCCESS)
+                    {
+                        result.error = std::string(error.get_string().value());
+                    }
+
+                    response.statuses.push_back(std::move(result));
+                }
             }
             catch (const simdjson::simdjson_error& err)
             {
