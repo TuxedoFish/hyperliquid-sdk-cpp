@@ -61,6 +61,8 @@ namespace hyperliquid
                 auto resp = doc["response"].get_object().value();
                 response.type = std::string(resp["type"].get_string().value());
 
+                if (response.type == "default") return response;
+
                 auto statuses = resp["data"]["statuses"].get_array().value();
                 for (auto entry : statuses)
                 {
@@ -119,6 +121,8 @@ namespace hyperliquid
                 auto resp = doc["response"].get_object().value();
                 response.type = std::string(resp["type"].get_string().value());
 
+                if (response.type == "default") return response;
+
                 auto statuses = resp["data"]["statuses"].get_array().value();
                 for (auto entry : statuses)
                 {
@@ -165,6 +169,8 @@ namespace hyperliquid
 
                 auto resp = doc["response"].get_object().value();
                 response.type = std::string(resp["type"].get_string().value());
+
+                if (response.type == "default") return response;
 
                 auto statuses = resp["data"]["statuses"].get_array().value();
                 for (auto entry : statuses)

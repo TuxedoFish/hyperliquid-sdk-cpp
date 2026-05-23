@@ -126,7 +126,7 @@ namespace hyperliquid
 
     // --- Websocket data types (authenticated) ---
 
-    enum class OrderStatus { Open, Filled, Canceled, Triggered, Rejected, MarginCanceled, OracleRejected, Unknown };
+    enum class OrderStatus { Open, Filled, Canceled, Triggered, Rejected, MarginCanceled, OracleRejected, IocCancelRejected, Unknown };
 
     inline OrderStatus stringToOrderStatus(std::string_view s)
     {
@@ -137,6 +137,7 @@ namespace hyperliquid
         if (s == "rejected") return OrderStatus::Rejected;
         if (s == "marginCanceled") return OrderStatus::MarginCanceled;
         if (s == "oracleRejected") return OrderStatus::OracleRejected;
+        if (s == "iocCancelRejected") return OrderStatus::IocCancelRejected;
         return OrderStatus::Unknown;
     }
 
@@ -151,6 +152,7 @@ namespace hyperliquid
         case OrderStatus::Rejected: return "rejected";
         case OrderStatus::MarginCanceled: return "marginCanceled";
         case OrderStatus::OracleRejected: return "oracleRejected";
+        case OrderStatus::IocCancelRejected: return "iocCancelRejected";
         default: return "unknown";
         }
     }
