@@ -1,5 +1,6 @@
 #include "hyperliquid/websocket/WebsocketMessageParser.h"
 #include <charconv>
+#include <cstring>
 #include <simdjson.h>
 #include "../config/Logger.h"
 
@@ -7,6 +8,108 @@
 
 namespace hyperliquid
 {
+    // Find pattern in [p, end), return pointer past the pattern, or nullptr
+    static inline const char* scanTo(const char* p, const char* end,
+                                     const char* pattern, size_t len)
+    {
+        const char* found = static_cast<const char*>(memmem(p, end - p, pattern, len));
+        return found ? found + len : nullptr;
+    }
+
+    static inline uint64_t parseUint64Fast(const char*& p, const char* end)
+    {
+        uint64_t val = 0;
+        while (p < end && *p >= '0' && *p <= '9')
+        {
+            val = val * 10 + (*p - '0');
+            p++;
+        }
+        return val;
+    }
+
+    static void parseLevels(const char*& p, const char* end,
+                            std::array<PriceLevel, L2_BOOK_MAX_LEVELS>& levels,
+                            uint8_t& count, Side side)
+    {
+        while (p < end && count < L2_BOOK_MAX_LEVELS)
+        {
+            // Find next "px":"
+            const char* px = scanTo(p, end, "\"px\":\"", 6);
+            if (!px) return;
+
+            // Check if we crossed the ],[ boundary (bid/ask split)
+            // by seeing if there's a ],[ between our current position and px
+            for (const char* scan = p; scan < px - 1; ++scan)
+            {
+                if (scan[0] == ']' && scan[1] == ',' && scan[2] == '[')
+                {
+                    p = scan + 3;
+                    return;  // done with this side
+                }
+            }
+
+            const char* pxEnd = static_cast<const char*>(memchr(px, '"', end - px));
+            if (!pxEnd) return;
+
+            const char* sz = scanTo(pxEnd, end, "\"sz\":\"", 6);
+            if (!sz) return;
+            const char* szEnd = static_cast<const char*>(memchr(sz, '"', end - sz));
+            if (!szEnd) return;
+
+            const char* nPos = scanTo(szEnd, end, "\"n\":", 4);
+            if (!nPos) return;
+            int n = 0;
+            while (nPos < end && *nPos >= '0' && *nPos <= '9')
+            {
+                n = n * 10 + (*nPos - '0');
+                nPos++;
+            }
+
+            levels[count].side = side;
+            levels[count].px = std::string_view(px, pxEnd - px);
+            levels[count].sz = std::string_view(sz, szEnd - sz);
+            levels[count].n = n;
+            count++;
+
+            p = nPos;
+        }
+    }
+
+    static bool crackL2BookFast(std::string_view msg, WebsocketMessageHandler& listener)
+    {
+        L2BookSnapshot snapshot;
+        snapshot.numBids = 0;
+        snapshot.numAsks = 0;
+
+        const char* p = msg.data();
+        const char* end = p + msg.size();
+
+        // Find "coin":" — extract coin name up to closing quote
+        p = scanTo(p, end, "\"coin\":\"", 8);
+        if (!p) return false;
+        const char* coinEnd = static_cast<const char*>(memchr(p, '"', end - p));
+        if (!coinEnd) return false;
+        snapshot.coin = std::string(p, coinEnd - p);
+
+        // Find "time": — parse uint64
+        p = scanTo(coinEnd, end, "\"time\":", 7);
+        if (!p) return false;
+        snapshot.time = parseUint64Fast(p, end);
+
+        // Find start of levels array: "levels":[[
+        p = scanTo(p, end, "[[", 2);
+        if (!p) return false;
+
+        // Parse bid levels until we hit ],[ boundary
+        parseLevels(p, end, snapshot.bids, snapshot.numBids, Side::Bid);
+
+        // Parse ask levels
+        parseLevels(p, end, snapshot.asks, snapshot.numAsks, Side::Ask);
+
+        listener.onL2Book(snapshot);
+        return true;
+    }
+
     struct WebsocketMessageParser::Impl
     {
         simdjson::ondemand::parser parser;
@@ -19,8 +122,17 @@ namespace hyperliquid
             return val;
         }
 
-        void crack(const std::string& message, WebsocketMessageHandler& listener)
+        void crack(std::string_view message, WebsocketMessageHandler& listener)
         {
+            // Fast path: l2Book is the most common message type.
+            // Detect via cheap string scan and parse without simdjson.
+            if (message.size() > 30 && message.find("\"l2Book\"") != std::string_view::npos)
+            {
+                if (crackL2BookFast(message, listener))
+                    return;
+                // Fall through to simdjson if fast parse failed
+            }
+
             padded = simdjson::padded_string(message.data(), message.size());
             auto doc = parser.iterate(padded);
 
@@ -47,6 +159,7 @@ namespace hyperliquid
 
                 if (channel == "l2Book")
                 {
+                    // Fast path already handled this above — only here as fallback
                     auto data = doc["data"].get_object().value();
                     crackL2Book(data, listener);
                 }
@@ -152,8 +265,8 @@ namespace hyperliquid
                         auto obj = entry.get_object().value();
                         PriceLevel level;
                         level.side = s;
-                        level.px = std::string(obj["px"].get_string().value());
-                        level.sz = std::string(obj["sz"].get_string().value());
+                        level.px = obj["px"].get_string().value();
+                        level.sz = obj["sz"].get_string().value();
                         level.n = static_cast<int>(obj["n"].get_int64().value());
 
                         if (s == Side::Bid && snapshot.numBids < L2_BOOK_MAX_LEVELS)
@@ -195,8 +308,8 @@ namespace hyperliquid
                     if (!isNull)
                     {
                         auto obj = entry.get_object().value();
-                        update.bid.px = std::string(obj["px"].get_string().value());
-                        update.bid.sz = std::string(obj["sz"].get_string().value());
+                        update.bid.px = obj["px"].get_string().value();
+                        update.bid.sz = obj["sz"].get_string().value();
                         update.bid.n = static_cast<int>(obj["n"].get_int64().value());
                     }
                 }
@@ -206,8 +319,8 @@ namespace hyperliquid
                     if (!isNull)
                     {
                         auto obj = entry.get_object().value();
-                        update.ask.px = std::string(obj["px"].get_string().value());
-                        update.ask.sz = std::string(obj["sz"].get_string().value());
+                        update.ask.px = obj["px"].get_string().value();
+                        update.ask.sz = obj["sz"].get_string().value();
                         update.ask.n = static_cast<int>(obj["n"].get_int64().value());
                     }
                 }
@@ -228,8 +341,8 @@ namespace hyperliquid
                     trade.coin = std::string(obj["coin"].get_string().value());
                     auto sideStr = obj["side"].get_string().value();
                     trade.side = sideStr.size() > 0 ? sideStr[0] : '?';
-                    trade.px = std::string(obj["px"].get_string().value());
-                    trade.sz = std::string(obj["sz"].get_string().value());
+                    trade.px = obj["px"].get_string().value();
+                    trade.sz = obj["sz"].get_string().value();
                     trade.hash = std::string(obj["hash"].get_string().value());
                     trade.time = obj["time"].get_uint64().value();
                     trade.tid = obj["tid"].get_uint64().value();
@@ -535,7 +648,7 @@ namespace hyperliquid
     WebsocketMessageParser::WebsocketMessageParser(WebsocketMessageParser&&) noexcept = default;
     WebsocketMessageParser& WebsocketMessageParser::operator=(WebsocketMessageParser&&) noexcept = default;
 
-    void WebsocketMessageParser::crack(const std::string& message, WebsocketMessageHandler& listener)
+    void WebsocketMessageParser::crack(std::string_view message, WebsocketMessageHandler& listener)
     {
         impl_->crack(message, listener);
     }

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "RequestTypes.h"
@@ -34,8 +35,8 @@ namespace hyperliquid
     struct PriceLevel
     {
         Side side;
-        std::string px;
-        std::string sz;
+        std::string_view px;
+        std::string_view sz;
         int n;
     };
 
@@ -71,8 +72,8 @@ namespace hyperliquid
     {
         std::string coin;
         char side;
-        std::string px;
-        std::string sz;
+        std::string_view px;
+        std::string_view sz;
         uint64_t time;
         uint64_t tid;
         std::string hash;

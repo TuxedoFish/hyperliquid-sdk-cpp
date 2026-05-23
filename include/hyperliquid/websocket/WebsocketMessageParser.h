@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include "WebsocketMessageHandler.h"
 
 namespace hyperliquid
@@ -17,7 +18,7 @@ namespace hyperliquid
         WebsocketMessageParser(const WebsocketMessageParser&) = delete;
         WebsocketMessageParser& operator=(const WebsocketMessageParser&) = delete;
 
-        void crack(const std::string& message, WebsocketMessageHandler& listener);
+        void crack(std::string_view message, WebsocketMessageHandler& listener);
         void reset();
 
     private:
