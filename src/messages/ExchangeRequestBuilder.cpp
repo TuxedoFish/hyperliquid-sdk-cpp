@@ -43,7 +43,7 @@ namespace hyperliquid
         auto dexesRaw = api->perpDexs();
         getLogger()->debug("perpDexs response: {}", dexesRaw);
         auto dexesResponse = parser.parsePerpDexs(dexesRaw);
-        int perpIdx = 0;
+        int perpIdx = 1;
         for (const auto& dex : dexesResponse.dexes)
         {
             if (config.dexes.count(dex.name) == 0)

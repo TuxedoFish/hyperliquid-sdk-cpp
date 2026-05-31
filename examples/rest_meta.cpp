@@ -20,7 +20,9 @@ int main() {
         spdlog::info("  {}  szDecimals={}", asset.name, asset.szDecimals);
     }
 
-    auto dexes = parser.parsePerpDexs(api.perpDexs());
+    auto rawDexes = api.perpDexs();
+    spdlog::info(rawDexes);
+    auto dexes = parser.parsePerpDexs(rawDexes);
 
     spdlog::info("=== Outcomes ===");
     auto rawOutcome = api.outcomeMeta();
