@@ -46,7 +46,7 @@ namespace hyperliquid
         uint64_t time;
     };
 
-    static constexpr size_t L2_BOOK_MAX_LEVELS = 20;
+    static constexpr size_t L2_BOOK_MAX_LEVELS = 50;
 
     struct L2BookSnapshot
     {

@@ -103,6 +103,11 @@ namespace hyperliquid
         // Parse bid levels until we hit ],[ boundary
         parseLevels(p, end, snapshot.bids, snapshot.numBids, Side::Bid);
 
+        // If parseLevels exited due to count limit (not finding ],[),
+        // we need to skip past the ],[ boundary before parsing asks.
+        const char* boundary = scanTo(p, end, "],[", 3);
+        if (boundary) p = boundary;
+
         // Parse ask levels
         parseLevels(p, end, snapshot.asks, snapshot.numAsks, Side::Ask);
 
