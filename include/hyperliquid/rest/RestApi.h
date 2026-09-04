@@ -13,12 +13,7 @@
 
 namespace hyperliquid {
 
-// Thrown by the sync RestApi methods when the HTTP transport itself fails
-// (DNS/connect/TLS/write/read errors). It is NOT thrown for application-level
-// errors reported by the exchange (status == "err") -- those are surfaced via
-// the `status`/`error` fields on the typed response structs so callers can
-// inspect them without a try/catch, consistent with how RestApiMessageParser
-// already represents them.
+// Thrown by the sync RestApi methods on HTTP transport failure only; application-level "err" responses are returned as typed values, not thrown.
 class RestApiTransportError : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;

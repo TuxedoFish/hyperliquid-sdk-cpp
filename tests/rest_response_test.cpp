@@ -1,5 +1,3 @@
-// Tests for typed REST response parsing (RestApiMessageParser), exercised
-// directly against sample JSON strings -- no network access required.
 #include <gtest/gtest.h>
 
 #include "hyperliquid/rest/RestApiMessageParser.h"
