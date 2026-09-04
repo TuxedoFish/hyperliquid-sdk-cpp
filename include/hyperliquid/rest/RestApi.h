@@ -90,6 +90,21 @@ public:
     SimpleResponse updateIsolatedMargin(const UpdateIsolatedMarginRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     SimpleResponse approveAgent(const ApproveAgentRequest& request);
+    TwapOrderResponse twapOrder(const TwapOrderRequest& request,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
+    TwapCancelResponse twapCancel(const TwapCancelRequest& request,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
+    // vaultTransfer/usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee move
+    // funds against the calling wallet directly (their target vault/destination/etc. is a field
+    // of the request itself), so unlike the other exchange methods they do not take a
+    // vaultAddress parameter.
+    SimpleResponse vaultTransfer(const VaultTransferRequest& request);
+    SimpleResponse usdClassTransfer(const UsdClassTransferRequest& request);
+    SimpleResponse sendAsset(const SendAssetRequest& request);
+    SimpleResponse usdSend(const UsdSendRequest& request);
+    SimpleResponse spotSend(const SpotSendRequest& request);
+    SimpleResponse withdraw3(const Withdraw3Request& request);
+    SimpleResponse approveBuilderFee(const ApproveBuilderFeeRequest& request);
 
     void spotMetaAsync();
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
@@ -148,6 +163,17 @@ public:
     void updateIsolatedMarginAsync(const UpdateIsolatedMarginRequest& request,
                                    const std::optional<std::string>& vaultAddress = std::nullopt);
     void approveAgentAsync(const ApproveAgentRequest& request);
+    void twapOrderAsync(const TwapOrderRequest& request,
+                                   const std::optional<std::string>& vaultAddress = std::nullopt);
+    void twapCancelAsync(const TwapCancelRequest& request,
+                                   const std::optional<std::string>& vaultAddress = std::nullopt);
+    void vaultTransferAsync(const VaultTransferRequest& request);
+    void usdClassTransferAsync(const UsdClassTransferRequest& request);
+    void sendAssetAsync(const SendAssetRequest& request);
+    void usdSendAsync(const UsdSendRequest& request);
+    void spotSendAsync(const SpotSendRequest& request);
+    void withdraw3Async(const Withdraw3Request& request);
+    void approveBuilderFeeAsync(const ApproveBuilderFeeRequest& request);
 
 private:
     struct Impl;

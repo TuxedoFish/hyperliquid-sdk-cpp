@@ -171,6 +171,15 @@ namespace hyperliquid
         UpdateLeverage,
         UpdateIsolatedMargin,
         ApproveAgent,
+        TwapOrder,
+        TwapCancel,
+        VaultTransfer,
+        UsdClassTransfer,
+        SendAsset,
+        UsdSend,
+        SpotSend,
+        Withdraw3,
+        ApproveBuilderFee,
     };
 
     inline std::string toString(RestEndpointType type)
@@ -215,6 +224,15 @@ namespace hyperliquid
         case RestEndpointType::UpdateLeverage: return "updateLeverage";
         case RestEndpointType::UpdateIsolatedMargin: return "updateIsolatedMargin";
         case RestEndpointType::ApproveAgent: return "approveAgent";
+        case RestEndpointType::TwapOrder: return "twapOrder";
+        case RestEndpointType::TwapCancel: return "twapCancel";
+        case RestEndpointType::VaultTransfer: return "vaultTransfer";
+        case RestEndpointType::UsdClassTransfer: return "usdClassTransfer";
+        case RestEndpointType::SendAsset: return "sendAsset";
+        case RestEndpointType::UsdSend: return "usdSend";
+        case RestEndpointType::SpotSend: return "spotSend";
+        case RestEndpointType::Withdraw3: return "withdraw3";
+        case RestEndpointType::ApproveBuilderFee: return "approveBuilderFee";
         default: throw std::invalid_argument("Unknown InfoEndpointType");
         }
     }
@@ -261,6 +279,15 @@ namespace hyperliquid
         case RestEndpointType::UpdateLeverage: return true;
         case RestEndpointType::UpdateIsolatedMargin: return true;
         case RestEndpointType::ApproveAgent: return true;
+        case RestEndpointType::TwapOrder: return true;
+        case RestEndpointType::TwapCancel: return true;
+        case RestEndpointType::VaultTransfer: return true;
+        case RestEndpointType::UsdClassTransfer: return true;
+        case RestEndpointType::SendAsset: return true;
+        case RestEndpointType::UsdSend: return true;
+        case RestEndpointType::SpotSend: return true;
+        case RestEndpointType::Withdraw3: return true;
+        case RestEndpointType::ApproveBuilderFee: return true;
         default: throw std::invalid_argument("Unknown RestEndpointType");
         }
     }
@@ -268,6 +295,24 @@ namespace hyperliquid
     inline std::string toPath(RestEndpointType type)
     {
         return isAuthenticated(type) ? "/exchange" : "/info";
+    }
+
+    // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee are EIP-712
+    // user-signed actions (see Signing::prepareUserSignedActionBody), not L1 actions.
+    inline bool isUserSignedAction(RestEndpointType type)
+    {
+        switch (type)
+        {
+        case RestEndpointType::UsdClassTransfer:
+        case RestEndpointType::SendAsset:
+        case RestEndpointType::UsdSend:
+        case RestEndpointType::SpotSend:
+        case RestEndpointType::Withdraw3:
+        case RestEndpointType::ApproveBuilderFee:
+            return true;
+        default:
+            return false;
+        }
     }
 
     enum class Tif { Alo, Ioc, Gtc };
@@ -384,6 +429,72 @@ namespace hyperliquid
     {
         std::string agentAddress;
         std::optional<std::string> agentName;
+    };
+
+    struct TwapOrderRequest
+    {
+        std::string asset;
+        bool isBuy;
+        double size;
+        bool reduceOnly;
+        int minutes;
+        bool randomize;
+        std::optional<int> assetId;
+    };
+
+    struct TwapCancelRequest
+    {
+        std::string asset;
+        uint64_t twapId;
+        std::optional<int> assetId;
+    };
+
+    struct VaultTransferRequest
+    {
+        std::string vaultAddress;
+        bool isDeposit;
+        uint64_t usd;
+    };
+
+    struct UsdClassTransferRequest
+    {
+        double amount;
+        bool toPerp;
+    };
+
+    struct SendAssetRequest
+    {
+        std::string destination;
+        std::string sourceDex;
+        std::string destinationDex;
+        std::string token;
+        double amount;
+        std::string fromSubAccount;
+    };
+
+    struct UsdSendRequest
+    {
+        std::string destination;
+        double amount;
+    };
+
+    struct SpotSendRequest
+    {
+        std::string destination;
+        std::string token;
+        double amount;
+    };
+
+    struct Withdraw3Request
+    {
+        std::string destination;
+        double amount;
+    };
+
+    struct ApproveBuilderFeeRequest
+    {
+        std::string maxFeeRate;
+        std::string builder;
     };
 
     inline int outcomeEncoding(int outcomeIndex, int side)

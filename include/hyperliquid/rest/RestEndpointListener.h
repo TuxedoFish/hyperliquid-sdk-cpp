@@ -38,6 +38,8 @@ public:
     virtual void onCancelOrder(const CancelOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onModifyOrder(const ModifyOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onSimpleResponse(const SimpleResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onTwapOrder(const TwapOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onTwapCancel(const TwapCancelResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
 };
 
 }
