@@ -314,6 +314,28 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::cDeposit(uint64_t wei) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "cDeposit";
+        action["wei"] = wei;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::cWithdraw(uint64_t wei) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "cWithdraw";
+        action["wei"] = wei;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     nlohmann::ordered_json ExchangeRequestBuilder::vaultTransfer(const VaultTransferRequest& request) const
     {
         nlohmann::ordered_json action;
@@ -401,6 +423,19 @@ namespace hyperliquid
         action["type"] = "approveBuilderFee";
         action["maxFeeRate"] = request.maxFeeRate;
         action["builder"] = request.builder;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::tokenDelegate(const TokenDelegateRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "tokenDelegate";
+        action["validator"] = request.validator;
+        action["isUndelegate"] = request.isUndelegate;
+        action["wei"] = request.wei;
 
         nlohmann::ordered_json body;
         body["action"] = action;

@@ -109,6 +109,9 @@ namespace hyperliquid
             case RestEndpointType::SpotSend:
             case RestEndpointType::Withdraw3:
             case RestEndpointType::ApproveBuilderFee:
+            case RestEndpointType::CDeposit:
+            case RestEndpointType::CWithdraw:
+            case RestEndpointType::TokenDelegate:
                 listener.onSimpleResponse(parseSimpleResponse(message), correlationId);
                 break;
             case RestEndpointType::TwapOrder:
@@ -116,6 +119,18 @@ namespace hyperliquid
                 break;
             case RestEndpointType::TwapCancel:
                 listener.onTwapCancel(parseTwapCancel(message), correlationId);
+                break;
+            case RestEndpointType::Delegations:
+                listener.onDelegations(parseDelegations(message), correlationId);
+                break;
+            case RestEndpointType::DelegatorSummary:
+                listener.onDelegatorSummary(parseDelegatorSummary(message), correlationId);
+                break;
+            case RestEndpointType::DelegatorHistory:
+                listener.onDelegatorHistory(parseDelegatorHistory(message), correlationId);
+                break;
+            case RestEndpointType::DelegatorRewards:
+                listener.onDelegatorRewards(parseDelegatorRewards(message), correlationId);
                 break;
             default:
                 getLogger()->error("RestMessageParser: unhandled RestEndpointType: {}", toString(type));
@@ -559,6 +574,140 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& err)
             {
                 getLogger()->error("RestMessageParser: parse error in perpDexs: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        DelegationsResponse parseDelegations(const std::string& message)
+        {
+            DelegationsResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    Delegation delegation;
+                    delegation.validator = std::string(obj["validator"].get_string().value());
+                    delegation.amount = parseNumberField(obj, "amount");
+                    delegation.lockedUntilTimestamp = obj["lockedUntilTimestamp"].get_uint64().value();
+                    response.delegations.push_back(std::move(delegation));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in delegations: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        DelegatorSummaryResponse parseDelegatorSummary(const std::string& message)
+        {
+            DelegatorSummaryResponse response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+                response.delegated = parseNumberField(obj, "delegated");
+                response.undelegated = parseNumberField(obj, "undelegated");
+                response.totalPendingWithdrawal = parseNumberField(obj, "totalPendingWithdrawal");
+                response.nPendingWithdrawals = static_cast<int>(obj["nPendingWithdrawals"].get_int64().value());
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in delegatorSummary: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        DelegatorHistoryResponse parseDelegatorHistory(const std::string& message)
+        {
+            DelegatorHistoryResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    DelegatorHistoryEntry historyEntry{};
+                    historyEntry.time = obj["time"].get_uint64().value();
+                    historyEntry.hash = std::string(obj["hash"].get_string().value());
+
+                    auto deltaObj = obj["delta"].get_object().value();
+
+                    simdjson::ondemand::value delegateVal;
+                    simdjson::ondemand::value cDepositVal;
+                    simdjson::ondemand::value withdrawalVal;
+                    if (deltaObj["delegate"].get(delegateVal) == simdjson::SUCCESS)
+                    {
+                        auto d = delegateVal.get_object().value();
+                        historyEntry.delta.type = DelegatorHistoryDeltaType::Delegate;
+                        historyEntry.delta.validator = std::string(d["validator"].get_string().value());
+                        historyEntry.delta.amount = parseNumberField(d, "amount");
+                        historyEntry.delta.isUndelegate = d["isUndelegate"].get_bool().value();
+                    }
+                    else if (deltaObj["cDeposit"].get(cDepositVal) == simdjson::SUCCESS)
+                    {
+                        auto d = cDepositVal.get_object().value();
+                        historyEntry.delta.type = DelegatorHistoryDeltaType::CDeposit;
+                        historyEntry.delta.amount = parseNumberField(d, "amount");
+                    }
+                    else if (deltaObj["withdrawal"].get(withdrawalVal) == simdjson::SUCCESS)
+                    {
+                        auto d = withdrawalVal.get_object().value();
+                        historyEntry.delta.type = DelegatorHistoryDeltaType::Withdrawal;
+                        historyEntry.delta.amount = parseNumberField(d, "amount");
+                        historyEntry.delta.phase = stringToWithdrawalPhase(d["phase"].get_string().value());
+                    }
+                    else
+                    {
+                        historyEntry.delta.type = DelegatorHistoryDeltaType::Unknown;
+                    }
+
+                    response.history.push_back(std::move(historyEntry));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in delegatorHistory: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        DelegatorRewardsResponse parseDelegatorRewards(const std::string& message)
+        {
+            DelegatorRewardsResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    DelegatorReward reward{};
+                    reward.time = obj["time"].get_uint64().value();
+                    reward.source = stringToDelegatorRewardSource(obj["source"].get_string().value());
+                    reward.totalAmount = parseNumberField(obj, "totalAmount");
+                    response.rewards.push_back(std::move(reward));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in delegatorRewards: {}\n  raw: {}", err.what(), message);
             }
 
             return response;
@@ -1632,5 +1781,25 @@ namespace hyperliquid
     TwapCancelResponse RestApiMessageParser::parseTwapCancel(const std::string& message)
     {
         return impl_->parseTwapCancel(message);
+    }
+
+    DelegationsResponse RestApiMessageParser::parseDelegations(const std::string& message)
+    {
+        return impl_->parseDelegations(message);
+    }
+
+    DelegatorSummaryResponse RestApiMessageParser::parseDelegatorSummary(const std::string& message)
+    {
+        return impl_->parseDelegatorSummary(message);
+    }
+
+    DelegatorHistoryResponse RestApiMessageParser::parseDelegatorHistory(const std::string& message)
+    {
+        return impl_->parseDelegatorHistory(message);
+    }
+
+    DelegatorRewardsResponse RestApiMessageParser::parseDelegatorRewards(const std::string& message)
+    {
+        return impl_->parseDelegatorRewards(message);
     }
 } // namespace hyperliquid

@@ -160,8 +160,13 @@ namespace hyperliquid
         SpotDeployState,
         SpotPairDeployAuctionStatus,
         TokenDetails,
+        // Info endpoints (Staking)
+        Delegations,
+        DelegatorSummary,
+        DelegatorHistory,
+        DelegatorRewards,
 
-        // Exchange endpoints (signed)
+        // Exchange endpoints (signed, L1 action)
         PlaceOrder,
         CancelOrder,
         CancelOrderByCloid,
@@ -180,6 +185,11 @@ namespace hyperliquid
         SpotSend,
         Withdraw3,
         ApproveBuilderFee,
+
+        // Exchange endpoints (signed, user-signed action)
+        CDeposit,
+        CWithdraw,
+        TokenDelegate,
     };
 
     inline std::string toString(RestEndpointType type)
@@ -215,6 +225,11 @@ namespace hyperliquid
         case RestEndpointType::SpotPairDeployAuctionStatus: return "spotPairDeployAuctionStatus";
         case RestEndpointType::TokenDetails: return "tokenDetails";
 
+        case RestEndpointType::Delegations: return "delegations";
+        case RestEndpointType::DelegatorSummary: return "delegatorSummary";
+        case RestEndpointType::DelegatorHistory: return "delegatorHistory";
+        case RestEndpointType::DelegatorRewards: return "delegatorRewards";
+
         case RestEndpointType::PlaceOrder: return "order";
         case RestEndpointType::CancelOrder: return "cancel";
         case RestEndpointType::CancelOrderByCloid: return "cancelByCloid";
@@ -233,6 +248,10 @@ namespace hyperliquid
         case RestEndpointType::SpotSend: return "spotSend";
         case RestEndpointType::Withdraw3: return "withdraw3";
         case RestEndpointType::ApproveBuilderFee: return "approveBuilderFee";
+
+        case RestEndpointType::CDeposit: return "cDeposit";
+        case RestEndpointType::CWithdraw: return "cWithdraw";
+        case RestEndpointType::TokenDelegate: return "tokenDelegate";
         default: throw std::invalid_argument("Unknown InfoEndpointType");
         }
     }
@@ -270,6 +289,11 @@ namespace hyperliquid
         case RestEndpointType::SpotPairDeployAuctionStatus: return false;
         case RestEndpointType::TokenDetails: return false;
 
+        case RestEndpointType::Delegations: return false;
+        case RestEndpointType::DelegatorSummary: return false;
+        case RestEndpointType::DelegatorHistory: return false;
+        case RestEndpointType::DelegatorRewards: return false;
+
         case RestEndpointType::PlaceOrder: return true;
         case RestEndpointType::CancelOrder: return true;
         case RestEndpointType::CancelOrderByCloid: return true;
@@ -288,6 +312,10 @@ namespace hyperliquid
         case RestEndpointType::SpotSend: return true;
         case RestEndpointType::Withdraw3: return true;
         case RestEndpointType::ApproveBuilderFee: return true;
+
+        case RestEndpointType::CDeposit: return true;
+        case RestEndpointType::CWithdraw: return true;
+        case RestEndpointType::TokenDelegate: return true;
         default: throw std::invalid_argument("Unknown RestEndpointType");
         }
     }
@@ -297,8 +325,9 @@ namespace hyperliquid
         return isAuthenticated(type) ? "/exchange" : "/info";
     }
 
-    // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee are EIP-712
-    // user-signed actions (see Signing::prepareUserSignedActionBody), not L1 actions.
+    // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee and the staking
+    // actions (cDeposit/cWithdraw/tokenDelegate) are EIP-712 user-signed actions (see
+    // Signing::prepareUserSignedActionBody / Signing::prepareUserSignedBody), not L1 actions.
     inline bool isUserSignedAction(RestEndpointType type)
     {
         switch (type)
@@ -309,6 +338,9 @@ namespace hyperliquid
         case RestEndpointType::SpotSend:
         case RestEndpointType::Withdraw3:
         case RestEndpointType::ApproveBuilderFee:
+        case RestEndpointType::CDeposit:
+        case RestEndpointType::CWithdraw:
+        case RestEndpointType::TokenDelegate:
             return true;
         default:
             return false;
@@ -495,6 +527,14 @@ namespace hyperliquid
     {
         std::string maxFeeRate;
         std::string builder;
+    };
+
+    struct TokenDelegateRequest
+    {
+        std::string validator;
+        // Amount to delegate/undelegate, in wei (1 HYPE == 1e8 wei).
+        uint64_t wei;
+        bool isUndelegate;
     };
 
     inline int outcomeEncoding(int outcomeIndex, int side)

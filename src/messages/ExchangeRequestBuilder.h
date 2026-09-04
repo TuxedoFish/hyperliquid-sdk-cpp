@@ -55,6 +55,12 @@ public:
 
     nlohmann::ordered_json approveBuilderFee(const ApproveBuilderFeeRequest& request) const;
 
+    nlohmann::ordered_json cDeposit(uint64_t wei) const;
+
+    nlohmann::ordered_json cWithdraw(uint64_t wei) const;
+
+    nlohmann::ordered_json tokenDelegate(const TokenDelegateRequest& request) const;
+
 private:
     nlohmann::ordered_json buildOrderWire(const OrderRequest& order) const;
     SymbolMap symbolMap_;

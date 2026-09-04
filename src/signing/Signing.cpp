@@ -169,6 +169,22 @@ nlohmann::ordered_json Signing::prepareUserSignedActionBody(
             {"builder", "address"}, {"nonce", "uint64"}};
         timeField = "nonce";
         break;
+    case RestEndpointType::CDeposit:
+    case RestEndpointType::CWithdraw:
+        primaryType = type == RestEndpointType::CDeposit
+            ? "HyperliquidTransaction:CDeposit"
+            : "HyperliquidTransaction:CWithdraw";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"wei", "uint64"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
+    case RestEndpointType::TokenDelegate:
+        primaryType = "HyperliquidTransaction:TokenDelegate";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"validator", "address"}, {"wei", "uint64"},
+            {"isUndelegate", "bool"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
     default:
         throw std::invalid_argument("Not a user-signed action: " + toString(type));
     }

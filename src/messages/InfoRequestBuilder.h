@@ -51,6 +51,11 @@ public:
     static nlohmann::ordered_json userFees(const std::string& user);
     static nlohmann::ordered_json maxBuilderFee(const std::string& user, const std::string& builder);
     static nlohmann::ordered_json approvedBuilders(const std::string& user);
+
+    static nlohmann::ordered_json delegations(const std::string& user);
+    static nlohmann::ordered_json delegatorSummary(const std::string& user);
+    static nlohmann::ordered_json delegatorHistory(const std::string& user);
+    static nlohmann::ordered_json delegatorRewards(const std::string& user);
 };
 
 } // namespace hyperliquid
