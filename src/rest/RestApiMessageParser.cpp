@@ -87,6 +87,21 @@ namespace hyperliquid
             case RestEndpointType::ApprovedBuilders:
                 listener.onApprovedBuilders(parseApprovedBuilders(message), correlationId);
                 break;
+            case RestEndpointType::VaultDetails:
+                listener.onVaultDetails(parseVaultDetails(message), correlationId);
+                break;
+            case RestEndpointType::UserVaultEquities:
+                listener.onUserVaultEquities(parseUserVaultEquities(message), correlationId);
+                break;
+            case RestEndpointType::Portfolio:
+                listener.onPortfolio(parsePortfolio(message), correlationId);
+                break;
+            case RestEndpointType::Referral:
+                listener.onReferral(parseReferral(message), correlationId);
+                break;
+            case RestEndpointType::UserRole:
+                listener.onUserRole(parseUserRole(message), correlationId);
+                break;
             case RestEndpointType::PlaceOrder:
                 listener.onPlaceOrder(parsePlaceOrder(message), correlationId);
                 break;
@@ -1553,6 +1568,280 @@ namespace hyperliquid
             return response;
         }
 
+        std::vector<PortfolioPeriodMetrics> parsePortfolioArray(simdjson::ondemand::array& arr)
+        {
+            std::vector<PortfolioPeriodMetrics> periods;
+            for (auto entry : arr)
+            {
+                auto pairArr = entry.get_array().value();
+                auto iter = pairArr.begin();
+                std::string periodName = std::string((*iter).get_string().value());
+                ++iter;
+                auto metricsObj = (*iter).get_object().value();
+
+                PortfolioPeriodMetrics metrics;
+                metrics.period = stringToPortfolioPeriodType(periodName);
+
+                auto accountValueHistory = metricsObj["accountValueHistory"].get_array().value();
+                for (auto point : accountValueHistory)
+                {
+                    auto pointArr = point.get_array().value();
+                    auto pointIter = pointArr.begin();
+                    uint64_t time = (*pointIter).get_uint64().value();
+                    ++pointIter;
+                    double value = toDouble((*pointIter).get_string().value());
+                    metrics.accountValueHistory.emplace_back(time, value);
+                }
+
+                auto pnlHistory = metricsObj["pnlHistory"].get_array().value();
+                for (auto point : pnlHistory)
+                {
+                    auto pointArr = point.get_array().value();
+                    auto pointIter = pointArr.begin();
+                    uint64_t time = (*pointIter).get_uint64().value();
+                    ++pointIter;
+                    double value = toDouble((*pointIter).get_string().value());
+                    metrics.pnlHistory.emplace_back(time, value);
+                }
+
+                metrics.vlm = parseNumberField(metricsObj, "vlm");
+                periods.push_back(std::move(metrics));
+            }
+            return periods;
+        }
+
+        VaultDetailsResponse parseVaultDetails(const std::string& message)
+        {
+            VaultDetailsResponse response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+                response.name = std::string(obj["name"].get_string().value());
+                response.vaultAddress = std::string(obj["vaultAddress"].get_string().value());
+                response.leader = std::string(obj["leader"].get_string().value());
+                response.description = std::string(obj["description"].get_string().value());
+
+                auto portfolioArr = obj["portfolio"].get_array().value();
+                response.portfolio = parsePortfolioArray(portfolioArr);
+
+                response.apr = parseNumberField(obj, "apr");
+
+                simdjson::ondemand::value followerStateVal;
+                if (obj["followerState"].get(followerStateVal) == simdjson::SUCCESS && !followerStateVal.is_null())
+                {
+                    auto rawStr = simdjson::to_json_string(followerStateVal);
+                    if (!rawStr.error()) response.followerStateRaw = std::string(rawStr.value());
+                }
+
+                response.leaderFraction = parseNumberField(obj, "leaderFraction");
+                response.leaderCommission = parseNumberField(obj, "leaderCommission");
+
+                auto followersArr = obj["followers"].get_array().value();
+                for (auto entry : followersArr)
+                {
+                    auto fObj = entry.get_object().value();
+                    VaultFollower follower;
+                    follower.user = std::string(fObj["user"].get_string().value());
+                    follower.vaultEquity = parseNumberField(fObj, "vaultEquity");
+                    follower.pnl = parseNumberField(fObj, "pnl");
+                    follower.allTimePnl = parseNumberField(fObj, "allTimePnl");
+                    follower.daysFollowing = static_cast<int>(fObj["daysFollowing"].get_int64().value());
+                    follower.vaultEntryTime = fObj["vaultEntryTime"].get_uint64().value();
+                    follower.lockupUntil = fObj["lockupUntil"].get_uint64().value();
+                    response.followers.push_back(std::move(follower));
+                }
+
+                response.maxDistributable = parseNumberField(obj, "maxDistributable");
+                response.maxWithdrawable = parseNumberField(obj, "maxWithdrawable");
+                response.isClosed = obj["isClosed"].get_bool().value();
+
+                simdjson::ondemand::value relVal;
+                if (obj["relationship"].get(relVal) == simdjson::SUCCESS && !relVal.is_null())
+                {
+                    auto relObj = relVal.get_object().value();
+                    response.relationship.type = std::string(relObj["type"].get_string().value());
+                    simdjson::ondemand::value dataVal;
+                    if (relObj["data"].get(dataVal) == simdjson::SUCCESS && !dataVal.is_null())
+                    {
+                        simdjson::ondemand::array childArr;
+                        if (!dataVal["childAddresses"].get_array().get(childArr))
+                        {
+                            for (auto child : childArr)
+                                response.relationship.childAddresses.push_back(std::string(child.get_string().value()));
+                        }
+                    }
+                }
+
+                response.allowDeposits = obj["allowDeposits"].get_bool().value();
+                response.alwaysCloseOnWithdraw = obj["alwaysCloseOnWithdraw"].get_bool().value();
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in vaultDetails: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        UserVaultEquitiesResponse parseUserVaultEquities(const std::string& message)
+        {
+            UserVaultEquitiesResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    UserVaultEquity equity;
+                    equity.vaultAddress = std::string(obj["vaultAddress"].get_string().value());
+                    equity.equity = parseNumberField(obj, "equity");
+                    response.equities.push_back(std::move(equity));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in userVaultEquities: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        PortfolioResponse parsePortfolio(const std::string& message)
+        {
+            PortfolioResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                response.periods = parsePortfolioArray(arr);
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in portfolio: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        ReferralResponse parseReferral(const std::string& message)
+        {
+            ReferralResponse response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+
+                simdjson::ondemand::value referredByVal;
+                if (obj["referredBy"].get(referredByVal) == simdjson::SUCCESS && !referredByVal.is_null())
+                {
+                    auto rbObj = referredByVal.get_object().value();
+                    ReferredBy referredBy;
+                    referredBy.referrer = std::string(rbObj["referrer"].get_string().value());
+                    referredBy.code = std::string(rbObj["code"].get_string().value());
+                    response.referredBy = std::move(referredBy);
+                }
+
+                response.cumVlm = parseNumberField(obj, "cumVlm");
+                response.unclaimedRewards = parseNumberField(obj, "unclaimedRewards");
+                response.claimedRewards = parseNumberField(obj, "claimedRewards");
+                response.builderRewards = parseNumberField(obj, "builderRewards");
+
+                simdjson::ondemand::array tokenToStateArr;
+                if (!obj["tokenToState"].get_array().get(tokenToStateArr))
+                {
+                    auto iter = tokenToStateArr.begin();
+                    if (iter != tokenToStateArr.end())
+                    {
+                        int tokenIndex = static_cast<int>((*iter).get_int64().value());
+                        ++iter;
+                        if (iter != tokenToStateArr.end())
+                        {
+                            auto stateObj = (*iter).get_object().value();
+                            TokenRewardState state;
+                            state.cumVlm = parseNumberField(stateObj, "cumVlm");
+                            state.unclaimedRewards = parseNumberField(stateObj, "unclaimedRewards");
+                            state.claimedRewards = parseNumberField(stateObj, "claimedRewards");
+                            state.builderRewards = parseNumberField(stateObj, "builderRewards");
+                            response.tokenToState = std::make_pair(tokenIndex, std::move(state));
+                        }
+                    }
+                }
+
+                simdjson::ondemand::value referrerStateVal;
+                if (obj["referrerState"].get(referrerStateVal) == simdjson::SUCCESS && !referrerStateVal.is_null())
+                {
+                    auto rsObj = referrerStateVal.get_object().value();
+                    ReferrerState referrerState;
+                    referrerState.stage = std::string(rsObj["stage"].get_string().value());
+                    auto dataObj = rsObj["data"].get_object().value();
+                    referrerState.code = std::string(dataObj["code"].get_string().value());
+                    auto statesArr = dataObj["referralStates"].get_array().value();
+                    for (auto entry : statesArr)
+                    {
+                        auto sObj = entry.get_object().value();
+                        ReferralState state;
+                        state.cumVlm = parseNumberField(sObj, "cumVlm");
+                        state.cumRewardedFeesSinceReferred = parseNumberField(sObj, "cumRewardedFeesSinceReferred");
+                        state.cumFeesRewardedToReferrer = parseNumberField(sObj, "cumFeesRewardedToReferrer");
+                        state.timeJoined = sObj["timeJoined"].get_uint64().value();
+                        state.user = std::string(sObj["user"].get_string().value());
+                        referrerState.referralStates.push_back(std::move(state));
+                    }
+                    response.referrerState = std::move(referrerState);
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in referral: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        UserRoleResponse parseUserRole(const std::string& message)
+        {
+            UserRoleResponse response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+                response.role = stringToUserRoleType(obj["role"].get_string().value());
+
+                simdjson::ondemand::object dataObj;
+                if (!obj["data"].get_object().get(dataObj))
+                {
+                    if (response.role == UserRoleType::Agent)
+                    {
+                        std::string_view sv;
+                        if (!dataObj["user"].get_string().get(sv)) response.agentUser = std::string(sv);
+                    }
+                    else if (response.role == UserRoleType::SubAccount)
+                    {
+                        std::string_view sv;
+                        if (!dataObj["master"].get_string().get(sv)) response.subAccountMaster = std::string(sv);
+                    }
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in userRole: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
         SpotMetaResponse parseSpotMeta(const std::string& message)
         {
             SpotMetaResponse response;
@@ -1751,6 +2040,31 @@ namespace hyperliquid
     ApprovedBuildersResponse RestApiMessageParser::parseApprovedBuilders(const std::string& message)
     {
         return impl_->parseApprovedBuilders(message);
+    }
+
+    VaultDetailsResponse RestApiMessageParser::parseVaultDetails(const std::string& message)
+    {
+        return impl_->parseVaultDetails(message);
+    }
+
+    UserVaultEquitiesResponse RestApiMessageParser::parseUserVaultEquities(const std::string& message)
+    {
+        return impl_->parseUserVaultEquities(message);
+    }
+
+    PortfolioResponse RestApiMessageParser::parsePortfolio(const std::string& message)
+    {
+        return impl_->parsePortfolio(message);
+    }
+
+    ReferralResponse RestApiMessageParser::parseReferral(const std::string& message)
+    {
+        return impl_->parseReferral(message);
+    }
+
+    UserRoleResponse RestApiMessageParser::parseUserRole(const std::string& message)
+    {
+        return impl_->parseUserRole(message);
     }
 
     PlaceOrderResponse RestApiMessageParser::parsePlaceOrder(const std::string& message)

@@ -56,6 +56,13 @@ public:
     static nlohmann::ordered_json delegatorSummary(const std::string& user);
     static nlohmann::ordered_json delegatorHistory(const std::string& user);
     static nlohmann::ordered_json delegatorRewards(const std::string& user);
+
+    static nlohmann::ordered_json vaultDetails(const std::string& vaultAddress,
+                                               const std::optional<std::string>& user = std::nullopt);
+    static nlohmann::ordered_json userVaultEquities(const std::string& user);
+    static nlohmann::ordered_json portfolio(const std::string& user);
+    static nlohmann::ordered_json referral(const std::string& user);
+    static nlohmann::ordered_json userRole(const std::string& user);
 };
 
 } // namespace hyperliquid

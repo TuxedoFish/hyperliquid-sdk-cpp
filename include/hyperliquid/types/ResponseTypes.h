@@ -959,6 +959,174 @@ namespace hyperliquid
         std::vector<std::string> builders;
     };
 
+    enum class PortfolioPeriodType { Day, Week, Month, AllTime, PerpDay, PerpWeek, PerpMonth, PerpAllTime, Unknown };
+
+    inline PortfolioPeriodType stringToPortfolioPeriodType(std::string_view s)
+    {
+        if (s == "day") return PortfolioPeriodType::Day;
+        if (s == "week") return PortfolioPeriodType::Week;
+        if (s == "month") return PortfolioPeriodType::Month;
+        if (s == "allTime") return PortfolioPeriodType::AllTime;
+        if (s == "perpDay") return PortfolioPeriodType::PerpDay;
+        if (s == "perpWeek") return PortfolioPeriodType::PerpWeek;
+        if (s == "perpMonth") return PortfolioPeriodType::PerpMonth;
+        if (s == "perpAllTime") return PortfolioPeriodType::PerpAllTime;
+        return PortfolioPeriodType::Unknown;
+    }
+
+    inline std::string toString(PortfolioPeriodType type)
+    {
+        switch (type)
+        {
+        case PortfolioPeriodType::Day: return "day";
+        case PortfolioPeriodType::Week: return "week";
+        case PortfolioPeriodType::Month: return "month";
+        case PortfolioPeriodType::AllTime: return "allTime";
+        case PortfolioPeriodType::PerpDay: return "perpDay";
+        case PortfolioPeriodType::PerpWeek: return "perpWeek";
+        case PortfolioPeriodType::PerpMonth: return "perpMonth";
+        case PortfolioPeriodType::PerpAllTime: return "perpAllTime";
+        default: return "unknown";
+        }
+    }
+
+    struct PortfolioPeriodMetrics
+    {
+        PortfolioPeriodType period;
+        std::vector<std::pair<uint64_t, double>> accountValueHistory;
+        std::vector<std::pair<uint64_t, double>> pnlHistory;
+        double vlm;
+    };
+
+    struct PortfolioResponse
+    {
+        std::vector<PortfolioPeriodMetrics> periods;
+    };
+
+    struct VaultFollower
+    {
+        std::string user;
+        double vaultEquity;
+        double pnl;
+        double allTimePnl;
+        int daysFollowing;
+        uint64_t vaultEntryTime;
+        uint64_t lockupUntil;
+    };
+
+    // "relationship.data" varies by relationship.type ("parent" is the only documented
+    // variant); only childAddresses is modeled, the rest is left at defaults.
+    struct VaultRelationship
+    {
+        std::string type;
+        std::vector<std::string> childAddresses;
+    };
+
+    struct VaultDetailsResponse
+    {
+        std::string name;
+        std::string vaultAddress;
+        std::string leader;
+        std::string description;
+        std::vector<PortfolioPeriodMetrics> portfolio;
+        double apr;
+        std::optional<std::string> followerStateRaw; // raw JSON of followerState; undocumented shape, null when absent
+        double leaderFraction;
+        double leaderCommission;
+        std::vector<VaultFollower> followers;
+        double maxDistributable;
+        double maxWithdrawable;
+        bool isClosed;
+        VaultRelationship relationship;
+        bool allowDeposits;
+        bool alwaysCloseOnWithdraw;
+    };
+
+    struct UserVaultEquity
+    {
+        std::string vaultAddress;
+        double equity;
+    };
+
+    struct UserVaultEquitiesResponse
+    {
+        std::vector<UserVaultEquity> equities;
+    };
+
+    struct ReferredBy
+    {
+        std::string referrer;
+        std::string code;
+    };
+
+    struct ReferralState
+    {
+        double cumVlm;
+        double cumRewardedFeesSinceReferred;
+        double cumFeesRewardedToReferrer;
+        uint64_t timeJoined;
+        std::string user;
+    };
+
+    struct ReferrerState
+    {
+        std::string stage;
+        std::string code;
+        std::vector<ReferralState> referralStates;
+    };
+
+    struct TokenRewardState
+    {
+        double cumVlm;
+        double unclaimedRewards;
+        double claimedRewards;
+        double builderRewards;
+    };
+
+    struct ReferralResponse
+    {
+        std::optional<ReferredBy> referredBy;
+        double cumVlm;
+        double unclaimedRewards;
+        double claimedRewards;
+        double builderRewards;
+        // Wire shape is a flat [tokenIndex, state] tuple, not an array of tuples.
+        std::optional<std::pair<int, TokenRewardState>> tokenToState;
+        std::optional<ReferrerState> referrerState;
+    };
+
+    enum class UserRoleType { User, Agent, Vault, SubAccount, Missing, Unknown };
+
+    inline UserRoleType stringToUserRoleType(std::string_view s)
+    {
+        if (s == "user") return UserRoleType::User;
+        if (s == "agent") return UserRoleType::Agent;
+        if (s == "vault") return UserRoleType::Vault;
+        if (s == "subAccount") return UserRoleType::SubAccount;
+        if (s == "missing") return UserRoleType::Missing;
+        return UserRoleType::Unknown;
+    }
+
+    inline std::string toString(UserRoleType type)
+    {
+        switch (type)
+        {
+        case UserRoleType::User: return "user";
+        case UserRoleType::Agent: return "agent";
+        case UserRoleType::Vault: return "vault";
+        case UserRoleType::SubAccount: return "subAccount";
+        case UserRoleType::Missing: return "missing";
+        default: return "unknown";
+        }
+    }
+
+    struct UserRoleResponse
+    {
+        UserRoleType role;
+        std::optional<std::string> agentUser;
+        std::optional<std::string> subAccountMaster;
+    };
+
     // --- Rest endpoint types (authenticated) ---
 
     struct OrderStatusResting

@@ -45,6 +45,11 @@ namespace hyperliquid
         UserFeesResponse parseUserFees(const std::string& message);
         MaxBuilderFeeResponse parseMaxBuilderFee(const std::string& message);
         ApprovedBuildersResponse parseApprovedBuilders(const std::string& message);
+        VaultDetailsResponse parseVaultDetails(const std::string& message);
+        UserVaultEquitiesResponse parseUserVaultEquities(const std::string& message);
+        PortfolioResponse parsePortfolio(const std::string& message);
+        ReferralResponse parseReferral(const std::string& message);
+        UserRoleResponse parseUserRole(const std::string& message);
         PlaceOrderResponse parsePlaceOrder(const std::string& message);
         CancelOrderResponse parseCancelOrder(const std::string& message);
         ModifyOrderResponse parseModifyOrder(const std::string& message);

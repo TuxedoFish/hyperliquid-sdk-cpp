@@ -316,6 +316,37 @@ ApprovedBuildersResponse RestApi::approvedBuilders(const std::string& user)
         impl_->signAndSendSync(RestEndpointType::ApprovedBuilders, InfoRequestBuilder::approvedBuilders(user)));
 }
 
+VaultDetailsResponse RestApi::vaultDetails(const std::string& vaultAddress, const std::optional<std::string>& user)
+{
+    return RestApiMessageParser().parseVaultDetails(
+        impl_->signAndSendSync(RestEndpointType::VaultDetails,
+                               InfoRequestBuilder::vaultDetails(vaultAddress, user)));
+}
+
+UserVaultEquitiesResponse RestApi::userVaultEquities(const std::string& user)
+{
+    return RestApiMessageParser().parseUserVaultEquities(
+        impl_->signAndSendSync(RestEndpointType::UserVaultEquities, InfoRequestBuilder::userVaultEquities(user)));
+}
+
+PortfolioResponse RestApi::portfolio(const std::string& user)
+{
+    return RestApiMessageParser().parsePortfolio(
+        impl_->signAndSendSync(RestEndpointType::Portfolio, InfoRequestBuilder::portfolio(user)));
+}
+
+ReferralResponse RestApi::referral(const std::string& user)
+{
+    return RestApiMessageParser().parseReferral(
+        impl_->signAndSendSync(RestEndpointType::Referral, InfoRequestBuilder::referral(user)));
+}
+
+UserRoleResponse RestApi::userRole(const std::string& user)
+{
+    return RestApiMessageParser().parseUserRole(
+        impl_->signAndSendSync(RestEndpointType::UserRole, InfoRequestBuilder::userRole(user)));
+}
+
 PlaceOrderResponse RestApi::placeOrder(const std::vector<OrderRequest>& orders,
                                 Grouping grouping,
                                 const std::optional<Builder>& builder,
@@ -633,6 +664,31 @@ void RestApi::maxBuilderFeeAsync(const std::string& user, const std::string& bui
 void RestApi::approvedBuildersAsync(const std::string& user)
 {
     impl_->signAndSend(RestEndpointType::ApprovedBuilders, InfoRequestBuilder::approvedBuilders(user));
+}
+
+void RestApi::vaultDetailsAsync(const std::string& vaultAddress, const std::optional<std::string>& user)
+{
+    impl_->signAndSend(RestEndpointType::VaultDetails, InfoRequestBuilder::vaultDetails(vaultAddress, user));
+}
+
+void RestApi::userVaultEquitiesAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::UserVaultEquities, InfoRequestBuilder::userVaultEquities(user));
+}
+
+void RestApi::portfolioAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::Portfolio, InfoRequestBuilder::portfolio(user));
+}
+
+void RestApi::referralAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::Referral, InfoRequestBuilder::referral(user));
+}
+
+void RestApi::userRoleAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::UserRole, InfoRequestBuilder::userRole(user));
 }
 
 void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,
