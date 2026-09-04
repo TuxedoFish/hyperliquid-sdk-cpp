@@ -6,6 +6,43 @@
 
 namespace hyperliquid {
 
+namespace {
+
+// EIP-712 field lists for user-signed actions, keyed by RestEndpointType. Field order
+// must match the on-chain HyperliquidTransaction:* struct definition.
+const std::vector<EIP712Field>& userSignedActionFields(RestEndpointType type)
+{
+    static const std::vector<EIP712Field> sendToEvmWithDataFields = {
+        {"hyperliquidChain", "string"},
+        {"token", "string"},
+        {"amount", "string"},
+        {"sourceDex", "string"},
+        {"destinationRecipient", "string"},
+        {"addressEncoding", "string"},
+        {"destinationChainId", "uint32"},
+        {"gasLimit", "uint64"},
+        {"data", "bytes"},
+        {"nonce", "uint64"},
+    };
+
+    switch (type)
+    {
+    case RestEndpointType::SendToEvmWithData: return sendToEvmWithDataFields;
+    default: throw std::invalid_argument("No EIP-712 field list for RestEndpointType: " + toString(type));
+    }
+}
+
+std::string userSignedActionPrimaryType(RestEndpointType type)
+{
+    switch (type)
+    {
+    case RestEndpointType::SendToEvmWithData: return "HyperliquidTransaction:SendToEvmWithData";
+    default: throw std::invalid_argument("No EIP-712 primary type for RestEndpointType: " + toString(type));
+    }
+}
+
+}
+
 nlohmann::ordered_json Signing::prepareBody(
     const ApiConfig& config,
     RestEndpointType type,
@@ -29,9 +66,25 @@ nlohmann::ordered_json Signing::prepareBody(
         body["nonce"] = nonce;
 
         bool isMainnet = (config.env == Environment::Mainnet);
-        auto action = body["action"];
-        auto signature = signL1Action(
-            config.wallet.value(), action, vaultAddress, nonce, expiresAfter, isMainnet);
+
+        Signature signature;
+        if (isUserSignedAction(type))
+        {
+            auto action = body["action"];
+            action["nonce"] = nonce;
+            action["signatureChainId"] = "0x66eee";
+            action["hyperliquidChain"] = isMainnet ? "Mainnet" : "Testnet";
+            signature = signUserSignedAction(
+                config.wallet.value(), action, userSignedActionFields(type),
+                userSignedActionPrimaryType(type), isMainnet);
+            body["action"] = action;
+        }
+        else
+        {
+            auto action = body["action"];
+            signature = signL1Action(
+                config.wallet.value(), action, vaultAddress, nonce, expiresAfter, isMainnet);
+        }
 
         nlohmann::ordered_json signatureJson;
         signatureJson["r"] = signature.r;

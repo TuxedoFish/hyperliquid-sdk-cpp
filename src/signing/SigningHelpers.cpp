@@ -223,7 +223,7 @@ std::array<uint8_t, 32> SigningHelpers::userSignedStructHash(
             auto valHash = keccak256(reinterpret_cast<const uint8_t*>(val.c_str()), val.size());
             encoded.insert(encoded.end(), valHash.begin(), valHash.end());
         }
-        else if (field.type == "uint64")
+        else if (field.type == "uint64" || field.type == "uint32")
         {
             auto val = action[field.name].get<uint64_t>();
             auto valEncoded = encodeUint256(val);
@@ -241,6 +241,13 @@ std::array<uint8_t, 32> SigningHelpers::userSignedStructHash(
             auto val = action[field.name].get<bool>();
             auto valEncoded = encodeUint256(val ? 1 : 0);
             encoded.insert(encoded.end(), valEncoded.begin(), valEncoded.end());
+        }
+        else if (field.type == "bytes")
+        {
+            auto val = action[field.name].get<std::string>();
+            auto valBytes = hexToBytes(val);
+            auto valHash = keccak256(valBytes);
+            encoded.insert(encoded.end(), valHash.begin(), valHash.end());
         }
     }
 

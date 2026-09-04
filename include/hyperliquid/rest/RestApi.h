@@ -118,6 +118,12 @@ public:
     DelegatorSummaryResponse delegatorSummary(const std::string& user);
     DelegatorHistoryResponse delegatorHistory(const std::string& user);
     DelegatorRewardsResponse delegatorRewards(const std::string& user);
+    SimpleResponse sendToEvmWithData(const SendToEvmWithDataRequest& request);
+    SimpleResponse agentSendAsset(const AgentSendAssetRequest& request,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
+    SimpleResponse reserveRequestWeight(const ReserveRequestWeightRequest& request,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
+    SimpleResponse noop(const std::optional<std::string>& vaultAddress = std::nullopt);
 
     void spotMetaAsync();
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
@@ -200,6 +206,12 @@ public:
     void delegatorSummaryAsync(const std::string& user);
     void delegatorHistoryAsync(const std::string& user);
     void delegatorRewardsAsync(const std::string& user);
+    void sendToEvmWithDataAsync(const SendToEvmWithDataRequest& request);
+    void agentSendAssetAsync(const AgentSendAssetRequest& request,
+                             const std::optional<std::string>& vaultAddress = std::nullopt);
+    void reserveRequestWeightAsync(const ReserveRequestWeightRequest& request,
+                                   const std::optional<std::string>& vaultAddress = std::nullopt);
+    void noopAsync(const std::optional<std::string>& vaultAddress = std::nullopt);
 
 private:
     struct Impl;

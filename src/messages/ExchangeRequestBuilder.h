@@ -61,6 +61,14 @@ public:
 
     nlohmann::ordered_json tokenDelegate(const TokenDelegateRequest& request) const;
 
+    nlohmann::ordered_json sendToEvmWithData(const SendToEvmWithDataRequest& request) const;
+
+    nlohmann::ordered_json agentSendAsset(const AgentSendAssetRequest& request) const;
+
+    nlohmann::ordered_json reserveRequestWeight(const ReserveRequestWeightRequest& request) const;
+
+    nlohmann::ordered_json noop() const;
+
 private:
     nlohmann::ordered_json buildOrderWire(const OrderRequest& order) const;
     SymbolMap symbolMap_;

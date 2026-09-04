@@ -463,4 +463,60 @@ namespace hyperliquid
         body["action"] = action;
         return body;
     }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::sendToEvmWithData(const SendToEvmWithDataRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "sendToEvmWithData";
+        action["token"] = request.token;
+        action["amount"] = request.amount;
+        action["sourceDex"] = request.sourceDex;
+        action["destinationRecipient"] = request.destinationRecipient;
+        action["addressEncoding"] = toString(request.addressEncoding);
+        action["destinationChainId"] = request.destinationChainId;
+        action["gasLimit"] = request.gasLimit;
+        action["data"] = request.data;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::agentSendAsset(const AgentSendAssetRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "agentSendAsset";
+        action["destination"] = request.destination;
+        action["sourceDex"] = request.sourceDex;
+        action["destinationDex"] = request.destinationDex;
+        action["token"] = request.token;
+        action["amount"] = request.amount;
+        action["fromSubAccount"] = request.fromSubAccount.value_or("");
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::reserveRequestWeight(const ReserveRequestWeightRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "reserveRequestWeight";
+        action["weight"] = request.weight;
+        if (request.destination) action["destination"] = *request.destination;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::noop() const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "noop";
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
 }
