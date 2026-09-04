@@ -1,30 +1,37 @@
-#include "WSRunner.h"
-#include <iostream>
+#include "WebsocketRunner.h"
 #include <algorithm>
+#include "../config/Logger.h"
 
 namespace hyperliquid {
 namespace internal {
 
-WSRunner::WSRunner(const std::string& host, const std::string& port, const std::string& path, WSListener& listener)
+WebsocketRunner::WebsocketRunner(ApiConfig& config, WSListener& listener)
     : listener_(listener)
     , sslCtx_(ssl::context::tlsv12_client)
     , resolver_(net::make_strand(ioc_))
-    , ws_(std::make_unique<websocket::stream<beast::ssl_stream<beast::tcp_stream>>>(net::make_strand(ioc_), sslCtx_))
-    , host_(host)
-    , port_(port)
-    , path_(path) {
+    , ws_(std::make_unique<websocket::stream<beast::ssl_stream<beast::tcp_stream>>>(net::make_strand(ioc_), sslCtx_)) {
+    auto endpoint = toWsEndpoint(config.env);
+    host_ = endpoint.host;
+    port_ = endpoint.port;
+    path_ = endpoint.path;
 
     sslCtx_.set_default_verify_paths();
     sslCtx_.set_verify_mode(ssl::verify_peer);
 }
 
-WSRunner::~WSRunner() {
+WebsocketRunner::~WebsocketRunner() {
     stop();
 }
 
-net::io_context& WSRunner::getIoContext() { return ioc_; }
+net::io_context& WebsocketRunner::getIoContext() { return ioc_; }
 
-void WSRunner::send(const std::string& message) {
+void WebsocketRunner::onPongReceived() {
+    lastPongTime_ = std::chrono::steady_clock::now();
+    pendingPong_ = false;
+}
+
+void WebsocketRunner::send(const std::string& message) {
+    getLogger()->debug("ws send: {}", message);
     net::post(ws_->get_executor(), [this, msg = message]() {
         writeQueue_.push(msg);
         if (connected_ && !writing_) {
@@ -33,12 +40,12 @@ void WSRunner::send(const std::string& message) {
     });
 }
 
-void WSRunner::start() {
+void WebsocketRunner::start() {
     doResolve();
     ioc_.run();
 }
 
-void WSRunner::stop() {
+void WebsocketRunner::stop() {
     if (reconnectTimer_) reconnectTimer_->cancel();
     if (pingTimer_) pingTimer_->cancel();
     if (!ioc_.stopped() && !stopping_) {
@@ -46,16 +53,16 @@ void WSRunner::stop() {
     }
 }
 
-void WSRunner::doResolve() {
+void WebsocketRunner::doResolve() {
     resolver_.async_resolve(host_, port_,
         [this](beast::error_code ec, tcp::resolver::results_type results) {
             onResolve(ec, results);
         });
 }
 
-void WSRunner::onResolve(beast::error_code ec, tcp::resolver::results_type results) {
+void WebsocketRunner::onResolve(beast::error_code ec, tcp::resolver::results_type results) {
     if (ec) {
-        std::cerr << "resolve error: " << ec.message() << std::endl;
+        getLogger()->error("resolve error: {}", ec.message());
         scheduleReconnect();
         return;
     }
@@ -68,16 +75,16 @@ void WSRunner::onResolve(beast::error_code ec, tcp::resolver::results_type resul
         });
 }
 
-void WSRunner::onConnect(beast::error_code ec, tcp::resolver::results_type::endpoint_type) {
+void WebsocketRunner::onConnect(beast::error_code ec, tcp::resolver::results_type::endpoint_type) {
     if (ec) {
-        std::cerr << "connect error: " << ec.message() << std::endl;
+        getLogger()->error("connect error: {}", ec.message());
         scheduleReconnect();
         return;
     }
 
     if (!SSL_set_tlsext_host_name(ws_->next_layer().native_handle(), host_.c_str())) {
         ec = beast::error_code(static_cast<int>(::ERR_get_error()), net::error::get_ssl_category());
-        std::cerr << "SNI error: " << ec.message() << std::endl;
+        getLogger()->error("SNI error: {}", ec.message());
         scheduleReconnect();
         return;
     }
@@ -88,9 +95,9 @@ void WSRunner::onConnect(beast::error_code ec, tcp::resolver::results_type::endp
         [this](beast::error_code ec) { onSslHandshake(ec); });
 }
 
-void WSRunner::onSslHandshake(beast::error_code ec) {
+void WebsocketRunner::onSslHandshake(beast::error_code ec) {
     if (ec) {
-        std::cerr << "SSL handshake error: " << ec.message() << std::endl;
+        getLogger()->error("SSL handshake error: {}", ec.message());
         scheduleReconnect();
         return;
     }
@@ -106,12 +113,14 @@ void WSRunner::onSslHandshake(beast::error_code ec) {
         [this](beast::error_code ec) { onWsHandshake(ec); });
 }
 
-void WSRunner::onWsHandshake(beast::error_code ec) {
+void WebsocketRunner::onWsHandshake(beast::error_code ec) {
     if (ec) {
-        std::cerr << "WebSocket handshake error: " << ec.message() << std::endl;
+        getLogger()->error("WebSocket handshake error: {}", ec.message());
         scheduleReconnect();
         return;
     }
+
+    getLogger()->info("WebSocket connected successfully");
 
     setupControlCallback();
     lastPongTime_ = std::chrono::steady_clock::now();
@@ -129,18 +138,18 @@ void WSRunner::onWsHandshake(beast::error_code ec) {
     doRead();
 }
 
-void WSRunner::doRead() {
+void WebsocketRunner::doRead() {
     ws_->async_read(readBuf_,
         [this](beast::error_code ec, std::size_t bytesTransferred) {
             onRead(ec, bytesTransferred);
         });
 }
 
-void WSRunner::onRead(beast::error_code errorCode, std::size_t) {
+void WebsocketRunner::onRead(beast::error_code errorCode, std::size_t) {
     if (errorCode) {
         if (stopping_) {
             // read cancelled, now safe to close
-            std::cout << "Closing websocket..." << std::endl;
+            getLogger()->info("Closing websocket...");
             ws_->async_close(websocket::close_code::normal,
                 [this](beast::error_code ec) {
                     if (ec) {
@@ -152,12 +161,14 @@ void WSRunner::onRead(beast::error_code errorCode, std::size_t) {
                     stopping_ = false;
                 });
         } else if (errorCode == websocket::error::closed) {
-            std::cerr << "Unexpected websocket close" << std::endl;
+            getLogger()->error("Unexpected websocket close (connected={} writing={} queueSize={})",
+                               connected_.load(), writing_, writeQueue_.size());
             listener_.onWsDisconnected(true, errorCode.message());
             connected_ = false;
             scheduleReconnect();
         } else {
-            std::cerr << "Unexpected error: " << errorCode.message() << std::endl;
+            getLogger()->error("Unexpected read error: {} (connected={} writing={} queueSize={})",
+                               errorCode.message(), connected_.load(), writing_, writeQueue_.size());
             listener_.onWsDisconnected(true, errorCode.message());
             connected_ = false;
             scheduleReconnect();
@@ -173,7 +184,7 @@ void WSRunner::onRead(beast::error_code errorCode, std::size_t) {
     doRead();
 }
 
-void WSRunner::doWrite() {
+void WebsocketRunner::doWrite() {
     if (writeQueue_.empty()) {
         writing_ = false;
         return;
@@ -186,9 +197,10 @@ void WSRunner::doWrite() {
         });
 }
 
-void WSRunner::onWrite(beast::error_code ec, std::size_t) {
+void WebsocketRunner::onWrite(beast::error_code ec, std::size_t) {
     if (ec) {
-        std::cerr << "write error: " << ec.message() << std::endl;
+        getLogger()->error("write error: {} (connected={} queueSize={})", ec.message(), connected_.load(), writeQueue_.size());
+        writing_ = false;
         return;
     }
 
@@ -196,20 +208,20 @@ void WSRunner::onWrite(beast::error_code ec, std::size_t) {
     doWrite();
 }
 
-void WSRunner::doClose() {
+void WebsocketRunner::doClose() {
     if (!connected_ || stopping_) return;
     if (pingTimer_) pingTimer_->cancel();
     stopping_ = true;
-    std::cout << "Waiting to close websocket..." << std::endl;
+    getLogger()->info("Waiting to close websocket...");
     beast::get_lowest_layer(*ws_).cancel();
 }
 
-void WSRunner::scheduleReconnect() {
+void WebsocketRunner::scheduleReconnect() {
     if (stopping_) return;
 
     reconnectAttempts_++;
     int delaySecs = std::min(1 << reconnectAttempts_, MAX_BACKOFF_SECS);
-    std::cout << "Reconnecting in " << delaySecs << "s (attempt " << reconnectAttempts_ << ")" << std::endl;
+    getLogger()->info("Reconnecting in {}s (attempt {})", delaySecs, reconnectAttempts_);
 
     reconnectTimer_ = std::make_unique<net::steady_timer>(ioc_, std::chrono::seconds(delaySecs));
     reconnectTimer_->async_wait([this](const boost::system::error_code& ec) {
@@ -219,14 +231,23 @@ void WSRunner::scheduleReconnect() {
     });
 }
 
-void WSRunner::doReconnect() {
+void WebsocketRunner::doReconnect() {
+    getLogger()->info("doReconnect: clearing state (writing={} queueSize={})", writing_, writeQueue_.size());
+
+    // Clear all pending state from previous connection
     pendingPong_ = false;
+    writing_ = false;
+    readBuf_.consume(readBuf_.size());
+    while (!writeQueue_.empty()) {
+        writeQueue_.pop();
+    }
+
     ws_ = std::make_unique<websocket::stream<beast::ssl_stream<beast::tcp_stream>>>(
         net::make_strand(ioc_), sslCtx_);
     doResolve();
 }
 
-void WSRunner::setupControlCallback() {
+void WebsocketRunner::setupControlCallback() {
     ws_->control_callback(
         [this](websocket::frame_type kind, beast::string_view) {
             if (kind == websocket::frame_type::pong) {
@@ -236,7 +257,7 @@ void WSRunner::setupControlCallback() {
         });
 }
 
-void WSRunner::startPingTimer() {
+void WebsocketRunner::startPingTimer() {
     if (stopping_ || !connected_) return;
 
     pingTimer_ = std::make_unique<net::steady_timer>(ioc_, std::chrono::seconds(PING_INTERVAL_SECS));
@@ -247,13 +268,13 @@ void WSRunner::startPingTimer() {
     });
 }
 
-void WSRunner::doPing() {
+void WebsocketRunner::doPing() {
     if (stopping_ || !connected_) return;
 
     if (pendingPong_) {
         auto elapsed = std::chrono::steady_clock::now() - lastPongTime_;
         if (elapsed > std::chrono::seconds(PONG_TIMEOUT_SECS)) {
-            std::cerr << "Pong timeout, reconnecting..." << std::endl;
+            getLogger()->error("Pong timeout, reconnecting...");
             connected_ = false;
             listener_.onWsDisconnected(true, "Pong timeout");
             scheduleReconnect();
@@ -262,15 +283,11 @@ void WSRunner::doPing() {
     }
 
     pendingPong_ = true;
-    ws_->async_ping({}, [this](beast::error_code ec) {
-        if (ec) {
-            if (!stopping_) {
-                std::cerr << "Ping failed: " << ec.message() << std::endl;
-                connected_ = false;
-                listener_.onWsDisconnected(true, "Ping failed");
-                scheduleReconnect();
-            }
-            return;
+    std::string pingMsg = R"({"method":"ping"})";
+    net::post(ws_->get_executor(), [this, pingMsg]() {
+        writeQueue_.push(pingMsg);
+        if (connected_ && !writing_) {
+            doWrite();
         }
         startPingTimer();
     });

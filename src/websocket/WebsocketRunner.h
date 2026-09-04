@@ -1,8 +1,5 @@
 #pragma once
 
-// INTERNAL HEADER — not part of the public API
-// Uses C++17 and Boost.Beast
-
 #include <atomic>
 #include <memory>
 #include <string>
@@ -17,6 +14,8 @@
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/steady_timer.hpp>
+
+#include "hyperliquid/config/Config.h"
 
 namespace hyperliquid {
 namespace internal {
@@ -35,12 +34,13 @@ public:
     virtual void onWsDisconnected(bool hasError, const std::string& errMsg) = 0;
 };
 
-class WSRunner {
+class WebsocketRunner {
 public:
-    WSRunner(const std::string& host, const std::string& port, const std::string& path, WSListener& listener);
-    ~WSRunner();
+    WebsocketRunner(ApiConfig& config, WSListener& listener);
+    ~WebsocketRunner();
 
     void send(const std::string& message);
+    void onPongReceived();
 
     net::io_context& getIoContext();
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(hyperliquid-sdk-cpp VERSION 0.1.0 LANGUAGES CXX)
+project(hyperliquid-sdk-cpp VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,13 +8,39 @@ find_package(OpenSSL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(simdjson CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+
+include(FetchContent)
+FetchContent_Declare(
+    secp256k1
+    GIT_REPOSITORY https://github.com/bitcoin-core/secp256k1.git
+    GIT_TAG        v0.7.1
+)
+set(SECP256K1_ENABLE_MODULE_RECOVERY ON CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_EXHAUSTIVE_TESTS OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_BENCHMARK OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SECP256K1_BUILD_CTIME_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(secp256k1)
 
 set(SDK_SOURCES
-        src/websocket/WSRunner.cpp
-        src/websocket/MarketData.cpp
-        src/websocket/WSMessageParser.cpp
-        src/rest/RestMessageParser.cpp
-        src/rest/InfoApi.cpp
+        src/rest/RestApiMessageParser.cpp
+        src/rest/RestApi.cpp
+        src/rest/HttpSession.cpp
+        src/messages/InfoRequestBuilder.cpp
+        src/messages/ExchangeRequestBuilder.cpp
+        src/rest/SymbolMap.cpp
+        src/config/Config.cpp
+
+        src/websocket/WebsocketRunner.cpp
+        src/websocket/WebsocketApi.cpp
+        src/websocket/WebsocketMessageParser.cpp
+
+        src/signing/Signing.cpp
+        src/signing/SigningHelpers.cpp
+        src/signing/sha3.c
+
         include/hyperliquid/types/RequestTypes.h
 )
 
@@ -25,7 +51,6 @@ target_include_directories(hyperliquid-sdk
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/websocket
 )
 
 target_link_libraries(hyperliquid-sdk
@@ -35,6 +60,8 @@ target_link_libraries(hyperliquid-sdk
         OpenSSL::Crypto
         nlohmann_json::nlohmann_json
         simdjson::simdjson
+        secp256k1
+        spdlog::spdlog
 )
 
 if(NOT MSVC)
@@ -48,11 +75,24 @@ set_target_properties(hyperliquid-sdk PROPERTIES
 )
 
 option(HYPERLIQUID_BUILD_EXAMPLES "Build example programs" OFF)
+option(HYPERLIQUID_BUILD_TESTS "Build tests" OFF)
+
+if(HYPERLIQUID_BUILD_TESTS)
+    enable_testing()
+    find_package(GTest CONFIG REQUIRED)
+
+    add_executable(signing_test tests/signing_test.cpp)
+    target_link_libraries(signing_test PRIVATE hyperliquid-sdk GTest::gtest GTest::gtest_main nlohmann_json::nlohmann_json)
+    target_include_directories(signing_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME signing_test COMMAND signing_test)
+endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)
-    add_executable(print_book examples/print_book.cpp)
-    target_link_libraries(print_book PRIVATE hyperliquid-sdk)
-
-    add_executable(fetch_meta examples/fetch_meta.cpp)
-    target_link_libraries(fetch_meta PRIVATE hyperliquid-sdk)
+    file(GLOB EXAMPLE_SOURCES examples/*.cpp)
+    foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
+        get_filename_component(EXAMPLE_NAME ${EXAMPLE_SOURCE} NAME_WE)
+        add_executable(${EXAMPLE_NAME} ${EXAMPLE_SOURCE})
+        target_link_libraries(${EXAMPLE_NAME} PRIVATE hyperliquid-sdk nlohmann_json::nlohmann_json spdlog::spdlog)
+        target_compile_definitions(${EXAMPLE_NAME} PRIVATE EXAMPLES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples/")
+    endforeach()
 endif()

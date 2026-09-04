@@ -1,0 +1,5 @@
+{
+  "wallet": "0xYOUR_WALLET_ADDRESS",
+  "privateKey": "YOUR_PRIVATE_KEY",
+  "subaccount": "0xYOUR_SUBACCOUNT_ADDRESS_OR_NULL"
+}
