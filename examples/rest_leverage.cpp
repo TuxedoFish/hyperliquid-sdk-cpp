@@ -1,5 +1,7 @@
 #include "test_config.h"
 
+#include <cmath>
+
 #include <hyperliquid/rest/RestApi.h>
 #include <hyperliquid/config/Config.h>
 #include <spdlog/spdlog.h>
@@ -64,7 +66,9 @@ int main()
         return 1;
     }
     double bestAsk = std::stod(book.asks.front().px);
-    double aggressiveBuyPx = bestAsk * 1.01;
+    // Integer prices are always valid regardless of tick size/significant-figure rules,
+    // so round up to guarantee a valid, book-crossing price.
+    double aggressiveBuyPx = std::ceil(bestAsk * 1.01);
 
     hyperliquid::OrderRequest openOrder;
     openOrder.asset = asset;
@@ -107,7 +111,7 @@ int main()
         return 1;
     }
     double bestBid = std::stod(closeBook.bids.front().px);
-    double aggressiveSellPx = bestBid * 0.99;
+    double aggressiveSellPx = std::floor(bestBid * 0.99);
 
     hyperliquid::OrderRequest closeOrder;
     closeOrder.asset = asset;

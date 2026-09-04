@@ -8,8 +8,6 @@
 
 using namespace hyperliquid;
 
-// Throwaway key generated for this test only - not associated with any real account,
-// and NOT read from examples/test.json.
 static const std::string kDummyPrivateKey =
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
