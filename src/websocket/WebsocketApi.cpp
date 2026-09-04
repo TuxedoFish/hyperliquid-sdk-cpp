@@ -150,6 +150,8 @@ namespace hyperliquid
         case SubscriptionType::ActiveAssetData:
         case SubscriptionType::UserTwapSliceFills:
         case SubscriptionType::UserTwapHistory:
+        case SubscriptionType::SpotState:
+        case SubscriptionType::AllDexsClearinghouseState:
             return true;
         default:
             return false;
