@@ -71,6 +71,7 @@ public:
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     SimpleResponse updateIsolatedMargin(const UpdateIsolatedMarginRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
+    SimpleResponse approveAgent(const ApproveAgentRequest& request);
 
     void spotMetaAsync();
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
@@ -115,6 +116,7 @@ public:
                              const std::optional<std::string>& vaultAddress = std::nullopt);
     void updateIsolatedMarginAsync(const UpdateIsolatedMarginRequest& request,
                                    const std::optional<std::string>& vaultAddress = std::nullopt);
+    void approveAgentAsync(const ApproveAgentRequest& request);
 
 private:
     struct Impl;

@@ -49,6 +49,11 @@ public:
         nlohmann::ordered_json body,
         const std::optional<std::string>& vaultAddress = std::nullopt,
         const std::optional<uint64_t>& expiresAfter = std::nullopt);
+
+    static nlohmann::ordered_json prepareApproveAgentBody(
+        const ApiConfig& config,
+        const std::string& agentAddress,
+        const std::optional<std::string>& agentName);
 };
 
 }

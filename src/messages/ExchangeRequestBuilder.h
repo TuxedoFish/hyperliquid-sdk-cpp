@@ -35,6 +35,8 @@ public:
 
     nlohmann::ordered_json updateIsolatedMargin(const UpdateIsolatedMarginRequest& request) const;
 
+    nlohmann::ordered_json approveAgent(const ApproveAgentRequest& request) const;
+
 private:
     nlohmann::ordered_json buildOrderWire(const OrderRequest& order) const;
     SymbolMap symbolMap_;
