@@ -656,6 +656,14 @@ namespace hyperliquid
         std::vector<Fill> fills;
     };
 
+    struct UserRateLimitResponse
+    {
+        double cumVlm;
+        int64_t nRequestsUsed;
+        int64_t nRequestsCap;
+        int64_t nRequestsSurplus;
+    };
+
     // --- Rest endpoint types (authenticated) ---
 
     struct OrderStatusResting

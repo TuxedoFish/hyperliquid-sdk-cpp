@@ -96,6 +96,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     hyperliquid_add_test(schedule_cancel_test)
     hyperliquid_add_test(websocket_parser_test)
     hyperliquid_add_test(approve_agent_test)
+    hyperliquid_add_test(user_rate_limit_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)

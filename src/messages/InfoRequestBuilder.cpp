@@ -125,4 +125,12 @@ nlohmann::ordered_json InfoRequestBuilder::clearinghouseState(const std::string&
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::userRateLimit(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserRateLimit);
+    body["user"] = user;
+    return body;
+}
+
 }

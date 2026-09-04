@@ -38,13 +38,13 @@ void HttpSession::run(const std::string& body)
 void HttpSession::onResolve(beast::error_code ec, tcp::resolver::results_type results)
 {
     if (ec) {
-        onComplete_("", ec);
+        onComplete_("", 0, ec);
         return;
     }
 
     if (!SSL_set_tlsext_host_name(stream_.native_handle(), host_.c_str())) {
         ec = beast::error_code(static_cast<int>(::ERR_get_error()), net::error::get_ssl_category());
-        onComplete_("", ec);
+        onComplete_("", 0, ec);
         return;
     }
 
@@ -58,7 +58,7 @@ void HttpSession::onResolve(beast::error_code ec, tcp::resolver::results_type re
 void HttpSession::onConnect(beast::error_code ec)
 {
     if (ec) {
-        onComplete_("", ec);
+        onComplete_("", 0, ec);
         return;
     }
 
@@ -72,7 +72,7 @@ void HttpSession::onConnect(beast::error_code ec)
 void HttpSession::onSslHandshake(beast::error_code ec)
 {
     if (ec) {
-        onComplete_("", ec);
+        onComplete_("", 0, ec);
         return;
     }
 
@@ -86,7 +86,7 @@ void HttpSession::onSslHandshake(beast::error_code ec)
 void HttpSession::onWrite(beast::error_code ec)
 {
     if (ec) {
-        onComplete_("", ec);
+        onComplete_("", 0, ec);
         return;
     }
 
@@ -99,11 +99,11 @@ void HttpSession::onWrite(beast::error_code ec)
 void HttpSession::onRead(beast::error_code ec)
 {
     if (ec) {
-        onComplete_("", ec);
+        onComplete_("", 0, ec);
         return;
     }
 
-    onComplete_(res_.body(), {});
+    onComplete_(res_.body(), res_.result_int(), {});
 
     beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(5));
     stream_.async_shutdown(
