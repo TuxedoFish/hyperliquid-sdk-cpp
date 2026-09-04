@@ -24,6 +24,16 @@ public:
     virtual void onUserFillsByTime(const UserFillsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onClearinghouseState(const ClearinghouseState& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onUserRateLimit(const UserRateLimitResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onMetaAndAssetCtxs(const MetaAndAssetCtxsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onSpotMetaAndAssetCtxs(const SpotMetaAndAssetCtxsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onSpotClearinghouseState(const SpotClearinghouseStateResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onFrontendOpenOrders(const FrontendOpenOrdersResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onHistoricalOrders(const HistoricalOrdersResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onUserTwapSliceFills(const UserTwapSliceFillsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onSubAccounts(const SubAccountsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onUserFees(const UserFeesResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onMaxBuilderFee(const MaxBuilderFeeResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onApprovedBuilders(const ApprovedBuildersResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onPlaceOrder(const PlaceOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onCancelOrder(const CancelOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onModifyOrder(const ModifyOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}

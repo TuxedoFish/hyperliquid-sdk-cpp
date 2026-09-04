@@ -133,4 +133,88 @@ nlohmann::ordered_json InfoRequestBuilder::userRateLimit(const std::string& user
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::metaAndAssetCtxs(const std::optional<std::string>& dex)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::MetaAndAssetCtxs);
+    if (dex) body["dex"] = *dex;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::spotMetaAndAssetCtxs()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::SpotMetaAndAssetCtxs);
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::spotClearinghouseState(const std::string& user,
+                                                                  const std::optional<std::string>& dex)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::SpotClearinghouseState);
+    body["user"] = user;
+    if (dex) body["dex"] = *dex;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::frontendOpenOrders(const std::string& user,
+                                                              const std::optional<std::string>& dex)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::FrontendOpenOrders);
+    body["user"] = user;
+    if (dex) body["dex"] = *dex;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::historicalOrders(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::HistoricalOrders);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::userTwapSliceFills(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserTwapSliceFills);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::subAccounts(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::SubAccounts);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::userFees(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserFees);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::maxBuilderFee(const std::string& user, const std::string& builder)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::MaxBuilderFee);
+    body["user"] = user;
+    body["builder"] = builder;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::approvedBuilders(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::ApprovedBuilders);
+    body["user"] = user;
+    return body;
+}
+
 }

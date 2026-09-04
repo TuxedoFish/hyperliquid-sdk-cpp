@@ -664,6 +664,231 @@ namespace hyperliquid
         int64_t nRequestsSurplus;
     };
 
+    struct MetaAndAssetCtxsResponse
+    {
+        MetaResponse meta;
+        std::vector<PerpAssetCtx> assetCtxs;
+    };
+
+    struct SpotUniversePair
+    {
+        std::string name;
+        std::vector<int> tokens;
+        int index;
+        bool isCanonical;
+    };
+
+    struct SpotMetaAndAssetCtxsMeta
+    {
+        std::vector<SpotAssetMeta> tokens;
+        std::vector<SpotUniversePair> universe;
+    };
+
+    struct SpotMetaAndAssetCtxsResponse
+    {
+        SpotMetaAndAssetCtxsMeta meta;
+        std::vector<SpotAssetCtx> assetCtxs;
+    };
+
+    struct SpotBalance
+    {
+        std::string coin;
+        int token;
+        double hold;
+        double total;
+        double entryNtl;
+    };
+
+    struct SpotClearinghouseStateResponse
+    {
+        std::vector<SpotBalance> balances;
+    };
+
+    enum class FrontendOrderType { Market, Limit, StopMarket, StopLimit, TakeProfitMarket, TakeProfitLimit, Unknown };
+
+    inline FrontendOrderType stringToFrontendOrderType(std::string_view s)
+    {
+        if (s == "Market") return FrontendOrderType::Market;
+        if (s == "Limit") return FrontendOrderType::Limit;
+        if (s == "Stop Market") return FrontendOrderType::StopMarket;
+        if (s == "Stop Limit") return FrontendOrderType::StopLimit;
+        if (s == "Take Profit Market") return FrontendOrderType::TakeProfitMarket;
+        if (s == "Take Profit Limit") return FrontendOrderType::TakeProfitLimit;
+        return FrontendOrderType::Unknown;
+    }
+
+    inline std::string toString(FrontendOrderType type)
+    {
+        switch (type)
+        {
+        case FrontendOrderType::Market: return "Market";
+        case FrontendOrderType::Limit: return "Limit";
+        case FrontendOrderType::StopMarket: return "Stop Market";
+        case FrontendOrderType::StopLimit: return "Stop Limit";
+        case FrontendOrderType::TakeProfitMarket: return "Take Profit Market";
+        case FrontendOrderType::TakeProfitLimit: return "Take Profit Limit";
+        default: return "Unknown";
+        }
+    }
+
+    enum class OrderTif { Gtc, Ioc, Alo, FrontendMarket, LiquidationMarket, Unknown };
+
+    inline OrderTif stringToOrderTif(std::string_view s)
+    {
+        if (s == "Gtc") return OrderTif::Gtc;
+        if (s == "Ioc") return OrderTif::Ioc;
+        if (s == "Alo") return OrderTif::Alo;
+        if (s == "FrontendMarket") return OrderTif::FrontendMarket;
+        if (s == "Liquidation Market") return OrderTif::LiquidationMarket;
+        return OrderTif::Unknown;
+    }
+
+    inline std::string toString(OrderTif tif)
+    {
+        switch (tif)
+        {
+        case OrderTif::Gtc: return "Gtc";
+        case OrderTif::Ioc: return "Ioc";
+        case OrderTif::Alo: return "Alo";
+        case OrderTif::FrontendMarket: return "FrontendMarket";
+        case OrderTif::LiquidationMarket: return "Liquidation Market";
+        default: return "Unknown";
+        }
+    }
+
+    struct FrontendOrder
+    {
+        std::string coin;
+        char side;
+        double limitPx;
+        double sz;
+        uint64_t oid;
+        uint64_t timestamp;
+        double origSz;
+        std::string cloid;
+        bool isPositionTpsl;
+        bool isTrigger;
+        double triggerPx;
+        std::string triggerCondition;
+        bool reduceOnly;
+        FrontendOrderType orderType;
+        std::optional<OrderTif> tif;
+    };
+
+    struct FrontendOpenOrdersResponse
+    {
+        std::vector<FrontendOrder> orders;
+    };
+
+    struct HistoricalOrder
+    {
+        FrontendOrder order;
+        OrderStatus status;
+        uint64_t statusTimestamp;
+    };
+
+    struct HistoricalOrdersResponse
+    {
+        std::vector<HistoricalOrder> orders;
+    };
+
+    struct UserTwapSliceFillsResponse
+    {
+        std::vector<TwapSliceFill> fills;
+    };
+
+    struct SubAccount
+    {
+        std::string name;
+        std::string subAccountUser;
+        std::string master;
+        ClearinghouseState clearinghouseState;
+        SpotClearinghouseStateResponse spotState;
+    };
+
+    struct SubAccountsResponse
+    {
+        std::vector<SubAccount> subAccounts;
+    };
+
+    struct DailyUserVolume
+    {
+        std::string date;
+        double userCross;
+        double userAdd;
+        double exchange;
+    };
+
+    struct FeeTierVip
+    {
+        double ntlCutoff;
+        double cross;
+        double add;
+        double spotCross;
+        double spotAdd;
+    };
+
+    struct FeeTierMm
+    {
+        double makerFractionCutoff;
+        double add;
+    };
+
+    struct StakingDiscountTier
+    {
+        double bpsOfMaxSupply;
+        double discount;
+    };
+
+    struct FeeSchedule
+    {
+        double cross;
+        double add;
+        double spotCross;
+        double spotAdd;
+        std::vector<FeeTierVip> vipTiers;
+        std::vector<FeeTierMm> mmTiers;
+        double referralDiscount;
+        std::vector<StakingDiscountTier> stakingDiscountTiers;
+    };
+
+    struct StakingLink
+    {
+        std::string type;
+        std::string stakingUser;
+    };
+
+    struct ActiveStakingDiscount
+    {
+        double bpsOfMaxSupply;
+        double discount;
+    };
+
+    struct UserFeesResponse
+    {
+        std::vector<DailyUserVolume> dailyUserVlm;
+        FeeSchedule feeSchedule;
+        double userCrossRate;
+        double userAddRate;
+        double userSpotCrossRate;
+        double userSpotAddRate;
+        double activeReferralDiscount;
+        double feeTrialEscrow;
+        std::optional<uint64_t> nextTrialAvailableTimestamp;
+        std::optional<StakingLink> stakingLink;
+        std::optional<ActiveStakingDiscount> activeStakingDiscount;
+    };
+
+    struct MaxBuilderFeeResponse
+    {
+        int maxFeeRateTenthsBps;
+    };
+
+    struct ApprovedBuildersResponse
+    {
+        std::vector<std::string> builders;
+    };
+
     // --- Rest endpoint types (authenticated) ---
 
     struct OrderStatusResting
