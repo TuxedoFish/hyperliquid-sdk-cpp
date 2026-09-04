@@ -243,6 +243,15 @@ CancelOrderResponse RestApi::cancelOrderByCloid(const std::vector<CancelByCloidR
                                    vaultAddress));
 }
 
+SimpleResponse RestApi::scheduleCancel(const std::optional<uint64_t>& time,
+                               const std::optional<std::string>& vaultAddress)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::ScheduleCancel,
+                                   impl_->exchangeRequestBuilder.scheduleCancel(time),
+                                   vaultAddress));
+}
+
 ModifyOrderResponse RestApi::modifyOrder(const ModifyRequest& modify,
                                  const std::optional<std::string>& vaultAddress)
 {
@@ -376,6 +385,14 @@ void RestApi::cancelOrderByCloidAsync(const std::vector<CancelByCloidRequest>& c
 {
     impl_->signAndSend(RestEndpointType::CancelOrderByCloid,
                        impl_->exchangeRequestBuilder.cancelOrderByCloid(cancels),
+                       vaultAddress);
+}
+
+void RestApi::scheduleCancelAsync(const std::optional<uint64_t>& time,
+                                   const std::optional<std::string>& vaultAddress)
+{
+    impl_->signAndSend(RestEndpointType::ScheduleCancel,
+                       impl_->exchangeRequestBuilder.scheduleCancel(time),
                        vaultAddress);
 }
 

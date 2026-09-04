@@ -61,6 +61,10 @@ public:
                             const std::optional<std::string>& vaultAddress = std::nullopt);
     CancelOrderResponse cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels,
                                    const std::optional<std::string>& vaultAddress = std::nullopt);
+    // Schedules an exchange-side cancel-all ("dead man's switch"). Passing no time (or std::nullopt)
+    // disarms any previously scheduled cancel; a future unix-ms timestamp arms it.
+    SimpleResponse scheduleCancel(const std::optional<uint64_t>& time = std::nullopt,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
     ModifyOrderResponse modifyOrder(const ModifyRequest& modify,
                             const std::optional<std::string>& vaultAddress = std::nullopt);
     ModifyOrderResponse batchModifyOrder(const std::vector<ModifyRequest>& modifies,
@@ -103,6 +107,8 @@ public:
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     void cancelOrderByCloidAsync(const std::vector<CancelByCloidRequest>& cancels,
                                  const std::optional<std::string>& vaultAddress = std::nullopt);
+    void scheduleCancelAsync(const std::optional<uint64_t>& time = std::nullopt,
+                             const std::optional<std::string>& vaultAddress = std::nullopt);
     void modifyOrderAsync(const ModifyRequest& modify,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     void batchModifyOrderAsync(const std::vector<ModifyRequest>& modifies,

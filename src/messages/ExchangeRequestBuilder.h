@@ -25,6 +25,8 @@ public:
 
     nlohmann::ordered_json cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels) const;
 
+    nlohmann::ordered_json scheduleCancel(const std::optional<uint64_t>& time = std::nullopt) const;
+
     nlohmann::ordered_json modifyOrder(const ModifyRequest& modify) const;
 
     nlohmann::ordered_json batchModifyOrder(const std::vector<ModifyRequest>& modifies) const;

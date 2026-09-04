@@ -67,6 +67,7 @@ namespace hyperliquid
                 break;
             case RestEndpointType::UpdateLeverage:
             case RestEndpointType::UpdateIsolatedMargin:
+            case RestEndpointType::ScheduleCancel:
                 listener.onSimpleResponse(parseSimpleResponse(message), correlationId);
                 break;
             default:
@@ -816,6 +817,34 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& e)
             {
                 getLogger()->error("RestMessageParser: parse error in meta: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        SimpleResponse parseSimpleResponse(const std::string& message)
+        {
+            SimpleResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.status = std::string(doc["status"].get_string().value());
+
+                if (response.status == "ok") return response;
+
+                // Error responses look like {"status":"err","response":"<message>"}
+                simdjson::ondemand::value errValue;
+                if (doc["response"].get(errValue) == simdjson::SUCCESS)
+                {
+                    if (errValue.type().value() == simdjson::ondemand::json_type::string)
+                        response.error = std::string(errValue.get_string().value());
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in simpleResponse: {}\n  raw: {}", e.what(), message);
             }
 
             return response;
