@@ -687,6 +687,105 @@ namespace hyperliquid
         std::vector<PerpDex> dexes;
     };
 
+    struct PerpsAtOpenInterestCapResponse
+    {
+        std::vector<std::string> coins;
+    };
+
+    struct PredictedFundingVenue
+    {
+        std::string venue;
+        std::optional<double> fundingRate;
+        std::optional<uint64_t> nextFundingTime;
+    };
+
+    struct PredictedFundingEntry
+    {
+        std::string coin;
+        std::vector<PredictedFundingVenue> venues;
+    };
+
+    struct PredictedFundingsResponse
+    {
+        std::vector<PredictedFundingEntry> fundings;
+    };
+
+    // "category" is dex-defined and open-ended (builder-deployed dexs can invent new
+    // categories), so it is kept as a string rather than a fixed enum.
+    struct PerpAnnotationResponse
+    {
+        std::string category;
+        std::string description;
+    };
+
+    struct PerpCategoryEntry
+    {
+        std::string coin;
+        std::string category;
+    };
+
+    struct PerpCategoriesResponse
+    {
+        std::vector<PerpCategoryEntry> categories;
+    };
+
+    struct PerpConciseAnnotationEntry
+    {
+        std::string coin;
+        std::string category;
+        std::vector<std::string> keywords;
+    };
+
+    struct PerpConciseAnnotationsResponse
+    {
+        std::vector<PerpConciseAnnotationEntry> annotations;
+    };
+
+    struct MarginTier
+    {
+        double lowerBound;
+        int maxLeverage;
+    };
+
+    struct MarginTableEntry
+    {
+        int id;
+        std::string description;
+        std::vector<MarginTier> marginTiers;
+    };
+
+    struct PerpDexMeta
+    {
+        std::vector<AssetMeta> universe;
+        std::vector<MarginTableEntry> marginTables;
+        int collateralToken;
+    };
+
+    struct PerpDexAssetCtx
+    {
+        double dayNtlVlm;
+        double funding;
+        std::vector<double> impactPxs;
+        double markPx;
+        double midPx;
+        bool hasMidPx;
+        double openInterest;
+        double oraclePx;
+        double premium;
+        double prevDayPx;
+    };
+
+    struct AllPerpMetasEntry
+    {
+        PerpDexMeta meta;
+        std::vector<PerpDexAssetCtx> assetCtxs;
+    };
+
+    struct AllPerpMetasResponse
+    {
+        std::vector<AllPerpMetasEntry> dexMetas;
+    };
+
     struct RestBookLevel
     {
         std::string px;

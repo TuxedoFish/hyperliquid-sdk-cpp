@@ -31,6 +31,50 @@ nlohmann::ordered_json InfoRequestBuilder::perpDexs()
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::perpsAtOpenInterestCap(const std::optional<std::string>& dex)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::PerpsAtOpenInterestCap);
+    if (dex) body["dex"] = *dex;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::predictedFundings()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::PredictedFundings);
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::perpAnnotation(const std::string& coin)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::PerpAnnotation);
+    body["coin"] = coin;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::perpCategories()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::PerpCategories);
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::perpConciseAnnotations()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::PerpConciseAnnotations);
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::allPerpMetas()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::AllPerpMetas);
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::l2Book(const std::string& coin,
                                                   const std::optional<int>& nSigFigs,
                                                   const std::optional<int>& mantissa)

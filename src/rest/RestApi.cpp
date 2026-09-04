@@ -184,6 +184,42 @@ PerpDexsResponse RestApi::perpDexs()
         impl_->signAndSendSync(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs()));
 }
 
+PerpsAtOpenInterestCapResponse RestApi::perpsAtOpenInterestCap(const std::optional<std::string>& dex)
+{
+    return RestApiMessageParser().parsePerpsAtOpenInterestCap(
+        impl_->signAndSendSync(RestEndpointType::PerpsAtOpenInterestCap, InfoRequestBuilder::perpsAtOpenInterestCap(dex)));
+}
+
+PredictedFundingsResponse RestApi::predictedFundings()
+{
+    return RestApiMessageParser().parsePredictedFundings(
+        impl_->signAndSendSync(RestEndpointType::PredictedFundings, InfoRequestBuilder::predictedFundings()));
+}
+
+PerpAnnotationResponse RestApi::perpAnnotation(const std::string& coin)
+{
+    return RestApiMessageParser().parsePerpAnnotation(
+        impl_->signAndSendSync(RestEndpointType::PerpAnnotation, InfoRequestBuilder::perpAnnotation(coin)));
+}
+
+PerpCategoriesResponse RestApi::perpCategories()
+{
+    return RestApiMessageParser().parsePerpCategories(
+        impl_->signAndSendSync(RestEndpointType::PerpCategories, InfoRequestBuilder::perpCategories()));
+}
+
+PerpConciseAnnotationsResponse RestApi::perpConciseAnnotations()
+{
+    return RestApiMessageParser().parsePerpConciseAnnotations(
+        impl_->signAndSendSync(RestEndpointType::PerpConciseAnnotations, InfoRequestBuilder::perpConciseAnnotations()));
+}
+
+AllPerpMetasResponse RestApi::allPerpMetas()
+{
+    return RestApiMessageParser().parseAllPerpMetas(
+        impl_->signAndSendSync(RestEndpointType::AllPerpMetas, InfoRequestBuilder::allPerpMetas()));
+}
+
 L2BookResponse RestApi::l2Book(const std::string& coin,
                                const std::optional<int>& nSigFigs,
                                const std::optional<int>& mantissa)
@@ -589,6 +625,36 @@ void RestApi::outcomeMetaAsync()
 void RestApi::perpDexsAsync()
 {
     impl_->signAndSend(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs());
+}
+
+void RestApi::perpsAtOpenInterestCapAsync(const std::optional<std::string>& dex)
+{
+    impl_->signAndSend(RestEndpointType::PerpsAtOpenInterestCap, InfoRequestBuilder::perpsAtOpenInterestCap(dex));
+}
+
+void RestApi::predictedFundingsAsync()
+{
+    impl_->signAndSend(RestEndpointType::PredictedFundings, InfoRequestBuilder::predictedFundings());
+}
+
+void RestApi::perpAnnotationAsync(const std::string& coin)
+{
+    impl_->signAndSend(RestEndpointType::PerpAnnotation, InfoRequestBuilder::perpAnnotation(coin));
+}
+
+void RestApi::perpCategoriesAsync()
+{
+    impl_->signAndSend(RestEndpointType::PerpCategories, InfoRequestBuilder::perpCategories());
+}
+
+void RestApi::perpConciseAnnotationsAsync()
+{
+    impl_->signAndSend(RestEndpointType::PerpConciseAnnotations, InfoRequestBuilder::perpConciseAnnotations());
+}
+
+void RestApi::allPerpMetasAsync()
+{
+    impl_->signAndSend(RestEndpointType::AllPerpMetas, InfoRequestBuilder::allPerpMetas());
 }
 
 void RestApi::l2BookAsync(const std::string& coin,

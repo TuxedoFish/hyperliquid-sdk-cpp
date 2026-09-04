@@ -15,6 +15,12 @@ public:
     virtual void onMeta(const MetaResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onOutcomeMeta(const OutcomeMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpDexs(const PerpDexsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPerpsAtOpenInterestCap(const PerpsAtOpenInterestCapResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPredictedFundings(const PredictedFundingsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPerpAnnotation(const PerpAnnotationResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPerpCategories(const PerpCategoriesResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPerpConciseAnnotations(const PerpConciseAnnotationsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onAllPerpMetas(const AllPerpMetasResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onL2Book(const L2BookResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onCandleSnapshot(const CandleSnapshotResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onAllMids(const AllMidsResponse&, std::optional<uint64_t> = std::nullopt) {}

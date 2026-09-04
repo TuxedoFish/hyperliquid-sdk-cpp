@@ -16,6 +16,12 @@ public:
     static nlohmann::ordered_json meta(const std::optional<std::string>& dex = std::nullopt);
     static nlohmann::ordered_json outcomeMeta();
     static nlohmann::ordered_json perpDexs();
+    static nlohmann::ordered_json perpsAtOpenInterestCap(const std::optional<std::string>& dex = std::nullopt);
+    static nlohmann::ordered_json predictedFundings();
+    static nlohmann::ordered_json perpAnnotation(const std::string& coin);
+    static nlohmann::ordered_json perpCategories();
+    static nlohmann::ordered_json perpConciseAnnotations();
+    static nlohmann::ordered_json allPerpMetas();
 
     static nlohmann::ordered_json l2Book(const std::string& coin,
                                          const std::optional<int>& nSigFigs = std::nullopt,

@@ -30,6 +30,24 @@ namespace hyperliquid
             case RestEndpointType::PerpDexs:
                 listener.onPerpDexs(parsePerpDexs(message), correlationId);
                 break;
+            case RestEndpointType::PerpsAtOpenInterestCap:
+                listener.onPerpsAtOpenInterestCap(parsePerpsAtOpenInterestCap(message), correlationId);
+                break;
+            case RestEndpointType::PredictedFundings:
+                listener.onPredictedFundings(parsePredictedFundings(message), correlationId);
+                break;
+            case RestEndpointType::PerpAnnotation:
+                listener.onPerpAnnotation(parsePerpAnnotation(message), correlationId);
+                break;
+            case RestEndpointType::PerpCategories:
+                listener.onPerpCategories(parsePerpCategories(message), correlationId);
+                break;
+            case RestEndpointType::PerpConciseAnnotations:
+                listener.onPerpConciseAnnotations(parsePerpConciseAnnotations(message), correlationId);
+                break;
+            case RestEndpointType::AllPerpMetas:
+                listener.onAllPerpMetas(parseAllPerpMetas(message), correlationId);
+                break;
             case RestEndpointType::L2Book:
                 listener.onL2Book(parseL2Book(message), correlationId);
                 break;
@@ -727,6 +745,285 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& err)
             {
                 getLogger()->error("RestMessageParser: parse error in delegatorRewards: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        PerpsAtOpenInterestCapResponse parsePerpsAtOpenInterestCap(const std::string& message)
+        {
+            PerpsAtOpenInterestCapResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    response.coins.emplace_back(entry.get_string().value());
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in perpsAtOpenInterestCap: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        PredictedFundingsResponse parsePredictedFundings(const std::string& message)
+        {
+            PredictedFundingsResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto pair = entry.get_array().value();
+                    auto iter = pair.begin();
+
+                    PredictedFundingEntry pf;
+                    pf.coin = std::string((*iter).get_string().value());
+                    ++iter;
+
+                    auto venues = (*iter).get_array().value();
+                    for (auto venueEntry : venues)
+                    {
+                        auto venuePair = venueEntry.get_array().value();
+                        auto vIter = venuePair.begin();
+
+                        PredictedFundingVenue venue;
+                        venue.venue = std::string((*vIter).get_string().value());
+                        ++vIter;
+
+                        auto obj = (*vIter).get_object().value();
+
+                        simdjson::ondemand::value rateVal;
+                        if (obj["fundingRate"].get(rateVal) == simdjson::SUCCESS && !rateVal.is_null())
+                        {
+                            std::string_view sv;
+                            venue.fundingRate = !rateVal.get_string().get(sv) ? toDouble(sv) : rateVal.get_double().value();
+                        }
+
+                        simdjson::ondemand::value timeVal;
+                        if (obj["nextFundingTime"].get(timeVal) == simdjson::SUCCESS && !timeVal.is_null())
+                            venue.nextFundingTime = timeVal.get_uint64().value();
+
+                        pf.venues.push_back(std::move(venue));
+                    }
+
+                    response.fundings.push_back(std::move(pf));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in predictedFundings: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        PerpAnnotationResponse parsePerpAnnotation(const std::string& message)
+        {
+            PerpAnnotationResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+                response.category = std::string(obj["category"].get_string().value());
+                response.description = std::string(obj["description"].get_string().value());
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in perpAnnotation: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        PerpCategoriesResponse parsePerpCategories(const std::string& message)
+        {
+            PerpCategoriesResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto pair = entry.get_array().value();
+                    auto iter = pair.begin();
+
+                    PerpCategoryEntry pc;
+                    pc.coin = std::string((*iter).get_string().value());
+                    ++iter;
+                    pc.category = std::string((*iter).get_string().value());
+
+                    response.categories.push_back(std::move(pc));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in perpCategories: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        PerpConciseAnnotationsResponse parsePerpConciseAnnotations(const std::string& message)
+        {
+            PerpConciseAnnotationsResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto pair = entry.get_array().value();
+                    auto iter = pair.begin();
+
+                    PerpConciseAnnotationEntry pc;
+                    pc.coin = std::string((*iter).get_string().value());
+                    ++iter;
+
+                    auto obj = (*iter).get_object().value();
+                    pc.category = std::string(obj["category"].get_string().value());
+
+                    simdjson::ondemand::array keywords;
+                    if (!obj["keywords"].get_array().get(keywords))
+                    {
+                        for (auto kw : keywords)
+                            pc.keywords.emplace_back(kw.get_string().value());
+                    }
+
+                    response.annotations.push_back(std::move(pc));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in perpConciseAnnotations: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        AllPerpMetasResponse parseAllPerpMetas(const std::string& message)
+        {
+            AllPerpMetasResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto pair = entry.get_array().value();
+                    auto iter = pair.begin();
+
+                    AllPerpMetasEntry dexEntry;
+
+                    auto metaObj = (*iter).get_object().value();
+
+                    auto universe = metaObj["universe"].get_array().value();
+                    for (auto u : universe)
+                    {
+                        auto uObj = u.get_object().value();
+                        AssetMeta asset;
+                        asset.name = std::string(uObj["name"].get_string().value());
+                        asset.szDecimals = static_cast<int>(uObj["szDecimals"].get_int64().value());
+                        asset.maxLeverage = static_cast<int>(uObj["maxLeverage"].get_int64().value());
+                        dexEntry.meta.universe.push_back(std::move(asset));
+                    }
+
+                    simdjson::ondemand::array marginTables;
+                    if (!metaObj["marginTables"].get_array().get(marginTables))
+                    {
+                        for (auto mt : marginTables)
+                        {
+                            auto mtPair = mt.get_array().value();
+                            auto mtIter = mtPair.begin();
+
+                            MarginTableEntry table;
+                            table.id = static_cast<int>((*mtIter).get_int64().value());
+                            ++mtIter;
+
+                            auto tableObj = (*mtIter).get_object().value();
+                            table.description = std::string(tableObj["description"].get_string().value());
+
+                            auto tiers = tableObj["marginTiers"].get_array().value();
+                            for (auto t : tiers)
+                            {
+                                auto tObj = t.get_object().value();
+                                MarginTier tier;
+                                tier.lowerBound = toDouble(tObj["lowerBound"].get_string().value());
+                                tier.maxLeverage = static_cast<int>(tObj["maxLeverage"].get_int64().value());
+                                table.marginTiers.push_back(tier);
+                            }
+
+                            dexEntry.meta.marginTables.push_back(std::move(table));
+                        }
+                    }
+
+                    dexEntry.meta.collateralToken = 0;
+                    simdjson::ondemand::value collateralVal;
+                    if (metaObj["collateralToken"].get(collateralVal) == simdjson::SUCCESS && !collateralVal.is_null())
+                        dexEntry.meta.collateralToken = static_cast<int>(collateralVal.get_int64().value());
+
+                    ++iter;
+                    simdjson::ondemand::array assetCtxs;
+                    if (!(*iter).get_array().get(assetCtxs))
+                    {
+                        for (auto ctxEntry : assetCtxs)
+                        {
+                            auto ctxObj = ctxEntry.get_object().value();
+                            PerpDexAssetCtx ctx;
+                            ctx.dayNtlVlm = parseNumberField(ctxObj, "dayNtlVlm");
+                            ctx.funding = parseNumberField(ctxObj, "funding");
+                            ctx.markPx = parseNumberField(ctxObj, "markPx");
+                            ctx.openInterest = parseNumberField(ctxObj, "openInterest");
+                            ctx.oraclePx = parseNumberField(ctxObj, "oraclePx");
+                            ctx.premium = parseNumberField(ctxObj, "premium");
+                            ctx.prevDayPx = parseNumberField(ctxObj, "prevDayPx");
+
+                            simdjson::ondemand::value midVal;
+                            ctx.hasMidPx = ctxObj["midPx"].get(midVal) == simdjson::SUCCESS && !midVal.is_null();
+                            ctx.midPx = 0.0;
+                            if (ctx.hasMidPx)
+                            {
+                                std::string_view sv;
+                                ctx.midPx = !midVal.get_string().get(sv) ? toDouble(sv) : midVal.get_double().value();
+                            }
+
+                            simdjson::ondemand::array impactPxs;
+                            if (!ctxObj["impactPxs"].get_array().get(impactPxs))
+                            {
+                                for (auto px : impactPxs)
+                                {
+                                    std::string_view sv;
+                                    ctx.impactPxs.push_back(!px.get_string().get(sv) ? toDouble(sv) : px.get_double().value());
+                                }
+                            }
+
+                            dexEntry.assetCtxs.push_back(std::move(ctx));
+                        }
+                    }
+
+                    response.dexMetas.push_back(std::move(dexEntry));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in allPerpMetas: {}\n  raw: {}", e.what(), message);
             }
 
             return response;
@@ -1978,6 +2275,36 @@ namespace hyperliquid
     PerpDexsResponse RestApiMessageParser::parsePerpDexs(const std::string& message)
     {
         return impl_->parsePerpDexs(message);
+    }
+
+    PerpsAtOpenInterestCapResponse RestApiMessageParser::parsePerpsAtOpenInterestCap(const std::string& message)
+    {
+        return impl_->parsePerpsAtOpenInterestCap(message);
+    }
+
+    PredictedFundingsResponse RestApiMessageParser::parsePredictedFundings(const std::string& message)
+    {
+        return impl_->parsePredictedFundings(message);
+    }
+
+    PerpAnnotationResponse RestApiMessageParser::parsePerpAnnotation(const std::string& message)
+    {
+        return impl_->parsePerpAnnotation(message);
+    }
+
+    PerpCategoriesResponse RestApiMessageParser::parsePerpCategories(const std::string& message)
+    {
+        return impl_->parsePerpCategories(message);
+    }
+
+    PerpConciseAnnotationsResponse RestApiMessageParser::parsePerpConciseAnnotations(const std::string& message)
+    {
+        return impl_->parsePerpConciseAnnotations(message);
+    }
+
+    AllPerpMetasResponse RestApiMessageParser::parseAllPerpMetas(const std::string& message)
+    {
+        return impl_->parseAllPerpMetas(message);
     }
 
     L2BookResponse RestApiMessageParser::parseL2Book(const std::string& message)
