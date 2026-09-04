@@ -38,10 +38,6 @@ int main()
 
     hyperliquid::RestApi api(config);
 
-    // NOTE: these are signed, state-changing exchange actions - they persist on the
-    // account (even on testnet) once executed. This example is intentionally not run
-    // automatically; a human should run it deliberately.
-
     const std::string asset = "ETH";
     const double size = 0.01;
 
