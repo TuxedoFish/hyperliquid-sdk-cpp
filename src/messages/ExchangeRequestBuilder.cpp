@@ -6,23 +6,18 @@
 #include <string>
 
 #include "InfoRequestBuilder.h"
-#include "config/Logger.h"
-#include "hyperliquid/rest/RestApiMessageParser.h"
 
 namespace hyperliquid
 {
     void ExchangeRequestBuilder::initializeMapping(const ApiConfig& config, RestApi* api)
     {
-        RestApiMessageParser parser;
         if (!config.wallet.has_value())
         {
             // Symbol map only needed for authenticated responses
             return;
         }
 
-        auto metaRaw = api->meta();
-        getLogger()->debug("meta response: {}", metaRaw);
-        auto defaultMetaResponse = parser.parseMeta(metaRaw);
+        auto defaultMetaResponse = api->meta();
         int index = 0;
         for (const auto& asset : defaultMetaResponse.universe)
         {
@@ -30,9 +25,7 @@ namespace hyperliquid
             index++;
         }
 
-        auto spotMetaRaw = api->spotMeta();
-        getLogger()->debug("spotMeta response: {}", spotMetaRaw);
-        auto spotMetaResponse = parser.parseSpotMeta(spotMetaRaw);
+        auto spotMetaResponse = api->spotMeta();
         for (const auto& token : spotMetaResponse.tokens)
         {
             symbolMap_.add(token.name, token.index + 10000);
@@ -40,9 +33,7 @@ namespace hyperliquid
 
         if (config.dexes.empty()) return;
 
-        auto dexesRaw = api->perpDexs();
-        getLogger()->debug("perpDexs response: {}", dexesRaw);
-        auto dexesResponse = parser.parsePerpDexs(dexesRaw);
+        auto dexesResponse = api->perpDexs();
         int perpIdx = 1;
         for (const auto& dex : dexesResponse.dexes)
         {
@@ -52,9 +43,7 @@ namespace hyperliquid
                 continue;
             }
 
-            auto dexMetaRaw = api->meta(dex.name);
-            getLogger()->debug("dex meta response for '{}': {}", dex.name, dexMetaRaw);
-            auto dexMetaResponse = parser.parseMeta(dexMetaRaw);
+            auto dexMetaResponse = api->meta(dex.name);
             index = 0;
             for (const auto& asset : dexMetaResponse.universe)
             {

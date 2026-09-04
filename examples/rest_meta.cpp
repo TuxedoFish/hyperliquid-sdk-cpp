@@ -1,5 +1,4 @@
 #include <hyperliquid/rest/RestApi.h>
-#include <hyperliquid/rest/RestApiMessageParser.h>
 #include <../include/hyperliquid/config/Config.h>
 #include <spdlog/spdlog.h>
 
@@ -10,24 +9,19 @@ int main() {
     config.env = hyperliquid::Environment::Mainnet;
 
     hyperliquid::RestApi api(config);
-    hyperliquid::RestApiMessageParser parser;
 
     spdlog::info("=== Spot ===");
-    auto spotMeta = parser.parseSpotMeta(api.spotMeta());
+    auto spotMeta = api.spotMeta();
 
     spdlog::info("{} assets:", spotMeta.tokens.size());
     for (const auto& asset : spotMeta.tokens) {
         spdlog::info("  {}  szDecimals={}", asset.name, asset.szDecimals);
     }
 
-    auto rawDexes = api.perpDexs();
-    spdlog::info(rawDexes);
-    auto dexes = parser.parsePerpDexs(rawDexes);
+    auto dexes = api.perpDexs();
 
     spdlog::info("=== Outcomes ===");
-    auto rawOutcome = api.outcomeMeta();
-    spdlog::info(rawOutcome);
-    auto outcomeMeta = parser.parseOutcomeMeta(rawOutcome);
+    auto outcomeMeta = api.outcomeMeta();
     spdlog::info("{} outcomes:", outcomeMeta.outcomes.size());
     for (const auto& outcome : outcomeMeta.outcomes) {
         const auto& d = outcome.description;
@@ -40,7 +34,7 @@ int main() {
     }
 
     spdlog::info("=== Perps ===");
-    auto defaultMeta = parser.parseMeta(api.meta());
+    auto defaultMeta = api.meta();
 
     spdlog::info("{} assets:", defaultMeta.universe.size());
     for (const auto& asset : defaultMeta.universe) {
@@ -54,7 +48,7 @@ int main() {
 
     for (const auto& dex : dexes.dexes) {
         spdlog::info("=== {} ===", dex.name);
-        auto meta = parser.parseMeta(api.meta(dex.name));
+        auto meta = api.meta(dex.name);
 
         spdlog::info("{} assets:", meta.universe.size());
         for (const auto& asset : meta.universe) {

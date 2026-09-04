@@ -75,6 +75,9 @@ namespace hyperliquid
                         auto restingObj = resting.get_object().value();
                         OrderStatusResting rest;
                         rest.oid = restingObj["oid"].get_uint64().value();
+                        simdjson::ondemand::value restingCloid;
+                        if (restingObj["cloid"].get(restingCloid) == simdjson::SUCCESS && !restingCloid.is_null())
+                            rest.cloid = std::string(restingCloid.get_string().value());
                         result.resting = std::move(rest);
                     }
 
@@ -86,6 +89,9 @@ namespace hyperliquid
                         fill.totalSz = std::string(filledObj["totalSz"].get_string().value());
                         fill.avgPx = std::string(filledObj["avgPx"].get_string().value());
                         fill.oid = filledObj["oid"].get_uint64().value();
+                        simdjson::ondemand::value filledCloid;
+                        if (filledObj["cloid"].get(filledCloid) == simdjson::SUCCESS && !filledCloid.is_null())
+                            fill.cloid = std::string(filledCloid.get_string().value());
                         result.filled = std::move(fill);
                     }
 
@@ -184,6 +190,9 @@ namespace hyperliquid
                         auto restingObj = resting.get_object().value();
                         OrderStatusResting rest;
                         rest.oid = restingObj["oid"].get_uint64().value();
+                        simdjson::ondemand::value restingCloid;
+                        if (restingObj["cloid"].get(restingCloid) == simdjson::SUCCESS && !restingCloid.is_null())
+                            rest.cloid = std::string(restingCloid.get_string().value());
                         result.resting = std::move(rest);
                     }
 
@@ -195,6 +204,9 @@ namespace hyperliquid
                         fill.totalSz = std::string(filledObj["totalSz"].get_string().value());
                         fill.avgPx = std::string(filledObj["avgPx"].get_string().value());
                         fill.oid = filledObj["oid"].get_uint64().value();
+                        simdjson::ondemand::value filledCloid;
+                        if (filledObj["cloid"].get(filledCloid) == simdjson::SUCCESS && !filledCloid.is_null())
+                            fill.cloid = std::string(filledCloid.get_string().value());
                         result.filled = std::move(fill);
                     }
 

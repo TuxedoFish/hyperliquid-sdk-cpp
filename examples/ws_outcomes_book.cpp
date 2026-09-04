@@ -54,9 +54,8 @@ int main() {
 
     // Fetch outcomeMeta and find BTC 1d market
     hyperliquid::RestApi restApi(config);
-    hyperliquid::RestApiMessageParser parser;
 
-    auto outcomeMeta = parser.parseOutcomeMeta(restApi.outcomeMeta());
+    auto outcomeMeta = restApi.outcomeMeta();
     spdlog::info("Fetched {} outcomes, searching for underlying=BTC period=1d...", outcomeMeta.outcomes.size());
 
     int outcomeIndex = -1;

@@ -2,14 +2,22 @@
 
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "../types/RequestTypes.h"
+#include "../types/ResponseTypes.h"
 #include "RestApiListener.h"
 #include "hyperliquid/config/Config.h"
 
 namespace hyperliquid {
+
+// Thrown by the sync RestApi methods on HTTP transport failure only; application-level "err" responses are returned as typed values, not thrown.
+class RestApiTransportError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
 
 class RestApi {
 public:
@@ -20,21 +28,21 @@ public:
     RestApi(const RestApi&) = delete;
     RestApi& operator=(const RestApi&) = delete;
 
-    std::string spotMeta();
-    std::string meta(const std::optional<std::string>& dex = std::nullopt);
-    std::string outcomeMeta();
-    std::string perpDexs();
-    std::string placeOrder(const std::vector<OrderRequest>& orders,
+    SpotMetaResponse spotMeta();
+    MetaResponse meta(const std::optional<std::string>& dex = std::nullopt);
+    OutcomeMetaResponse outcomeMeta();
+    PerpDexsResponse perpDexs();
+    PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
                            const std::optional<Builder>& builder = std::nullopt,
                            const std::optional<std::string>& vaultAddress = std::nullopt);
-    std::string cancelOrder(const std::vector<CancelRequest>& cancels,
+    CancelOrderResponse cancelOrder(const std::vector<CancelRequest>& cancels,
                             const std::optional<std::string>& vaultAddress = std::nullopt);
-    std::string cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels,
+    CancelOrderResponse cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels,
                                    const std::optional<std::string>& vaultAddress = std::nullopt);
-    std::string modifyOrder(const ModifyRequest& modify,
+    ModifyOrderResponse modifyOrder(const ModifyRequest& modify,
                             const std::optional<std::string>& vaultAddress = std::nullopt);
-    std::string batchModifyOrder(const std::vector<ModifyRequest>& modifies,
+    ModifyOrderResponse batchModifyOrder(const std::vector<ModifyRequest>& modifies,
                                  const std::optional<std::string>& vaultAddress = std::nullopt);
 
     void spotMetaAsync();
