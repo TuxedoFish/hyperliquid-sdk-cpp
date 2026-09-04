@@ -26,6 +26,7 @@ public:
     virtual void onPlaceOrder(const PlaceOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onCancelOrder(const CancelOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onModifyOrder(const ModifyOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onSimpleResponse(const SimpleResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
 };
 
 }

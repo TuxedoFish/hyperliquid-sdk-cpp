@@ -556,4 +556,11 @@ namespace hyperliquid
         std::string type;
         std::vector<OrderStatusResult> statuses;
     };
+
+    struct SimpleResponse
+    {
+        std::string status;
+        std::string type;
+        std::optional<std::string> error;
+    };
 }

@@ -91,6 +91,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     hyperliquid_add_test(signing_test)
     hyperliquid_add_test(rest_response_test)
     hyperliquid_add_test(rest_info_test)
+    hyperliquid_add_test(leverage_margin_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)

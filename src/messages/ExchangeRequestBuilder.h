@@ -29,6 +29,10 @@ public:
 
     nlohmann::ordered_json batchModifyOrder(const std::vector<ModifyRequest>& modifies) const;
 
+    nlohmann::ordered_json updateLeverage(const UpdateLeverageRequest& request) const;
+
+    nlohmann::ordered_json updateIsolatedMargin(const UpdateIsolatedMarginRequest& request) const;
+
 private:
     nlohmann::ordered_json buildOrderWire(const OrderRequest& order) const;
     SymbolMap symbolMap_;

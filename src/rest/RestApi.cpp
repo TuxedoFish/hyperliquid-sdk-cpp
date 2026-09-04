@@ -261,6 +261,24 @@ ModifyOrderResponse RestApi::batchModifyOrder(const std::vector<ModifyRequest>& 
                                    vaultAddress));
 }
 
+SimpleResponse RestApi::updateLeverage(const UpdateLeverageRequest& request,
+                               const std::optional<std::string>& vaultAddress)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::UpdateLeverage,
+                                   impl_->exchangeRequestBuilder.updateLeverage(request),
+                                   vaultAddress));
+}
+
+SimpleResponse RestApi::updateIsolatedMargin(const UpdateIsolatedMarginRequest& request,
+                               const std::optional<std::string>& vaultAddress)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::UpdateIsolatedMargin,
+                                   impl_->exchangeRequestBuilder.updateIsolatedMargin(request),
+                                   vaultAddress));
+}
+
 
 void RestApi::spotMetaAsync()
 {
@@ -374,6 +392,22 @@ void RestApi::batchModifyOrderAsync(const std::vector<ModifyRequest>& modifies,
 {
     impl_->signAndSend(RestEndpointType::BatchModifyOrder,
                        impl_->exchangeRequestBuilder.batchModifyOrder(modifies),
+                       vaultAddress);
+}
+
+void RestApi::updateLeverageAsync(const UpdateLeverageRequest& request,
+                                   const std::optional<std::string>& vaultAddress)
+{
+    impl_->signAndSend(RestEndpointType::UpdateLeverage,
+                       impl_->exchangeRequestBuilder.updateLeverage(request),
+                       vaultAddress);
+}
+
+void RestApi::updateIsolatedMarginAsync(const UpdateIsolatedMarginRequest& request,
+                                         const std::optional<std::string>& vaultAddress)
+{
+    impl_->signAndSend(RestEndpointType::UpdateIsolatedMargin,
+                       impl_->exchangeRequestBuilder.updateIsolatedMargin(request),
                        vaultAddress);
 }
 
