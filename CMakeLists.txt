@@ -100,6 +100,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     hyperliquid_add_test(exchange_request_builder_test)
     hyperliquid_add_test(signing_helpers_test)
     hyperliquid_add_test(symbol_map_test)
+    hyperliquid_add_test(transfers_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)

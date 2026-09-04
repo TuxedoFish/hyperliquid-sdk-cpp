@@ -37,6 +37,24 @@ public:
 
     nlohmann::ordered_json approveAgent(const ApproveAgentRequest& request) const;
 
+    nlohmann::ordered_json twapOrder(const TwapOrderRequest& request) const;
+
+    nlohmann::ordered_json twapCancel(const TwapCancelRequest& request) const;
+
+    nlohmann::ordered_json vaultTransfer(const VaultTransferRequest& request) const;
+
+    nlohmann::ordered_json usdClassTransfer(const UsdClassTransferRequest& request) const;
+
+    nlohmann::ordered_json sendAsset(const SendAssetRequest& request) const;
+
+    nlohmann::ordered_json usdSend(const UsdSendRequest& request) const;
+
+    nlohmann::ordered_json spotSend(const SpotSendRequest& request) const;
+
+    nlohmann::ordered_json withdraw3(const Withdraw3Request& request) const;
+
+    nlohmann::ordered_json approveBuilderFee(const ApproveBuilderFeeRequest& request) const;
+
 private:
     nlohmann::ordered_json buildOrderWire(const OrderRequest& order) const;
     SymbolMap symbolMap_;

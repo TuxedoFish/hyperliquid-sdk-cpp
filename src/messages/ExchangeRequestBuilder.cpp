@@ -278,4 +278,132 @@ namespace hyperliquid
         body["action"] = action;
         return body;
     }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::twapOrder(const TwapOrderRequest& request) const
+    {
+        nlohmann::ordered_json twap;
+        twap["a"] = request.assetId
+            ? *request.assetId
+            : symbolMap_.resolve(request.asset);
+        twap["b"] = request.isBuy;
+        twap["s"] = floatToWire(request.size);
+        twap["r"] = request.reduceOnly;
+        twap["m"] = request.minutes;
+        twap["t"] = request.randomize;
+
+        nlohmann::ordered_json action;
+        action["type"] = "twapOrder";
+        action["twap"] = twap;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::twapCancel(const TwapCancelRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "twapCancel";
+        action["a"] = request.assetId
+            ? *request.assetId
+            : symbolMap_.resolve(request.asset);
+        action["t"] = request.twapId;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::vaultTransfer(const VaultTransferRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "vaultTransfer";
+        action["vaultAddress"] = request.vaultAddress;
+        action["isDeposit"] = request.isDeposit;
+        // Unlike usdSend/spotSend (decimal strings), vaultTransfer is a plain L1 action whose
+        // usd field mirrors USDC's own on-chain representation: raw integer units at USDC's
+        // 6 decimals (vs. ETH's 18), so $5 is sent as 5_000_000.
+        action["usd"] = static_cast<uint64_t>(std::llround(request.usd * 1e6));
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::usdClassTransfer(const UsdClassTransferRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "usdClassTransfer";
+        action["amount"] = floatToWire(request.amount);
+        action["toPerp"] = request.toPerp;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::sendAsset(const SendAssetRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "sendAsset";
+        action["destination"] = request.destination;
+        action["sourceDex"] = request.sourceDex;
+        action["destinationDex"] = request.destinationDex;
+        action["token"] = request.token;
+        action["amount"] = floatToWire(request.amount);
+        action["fromSubAccount"] = request.fromSubAccount;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::usdSend(const UsdSendRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "usdSend";
+        action["destination"] = request.destination;
+        action["amount"] = floatToWire(request.amount);
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::spotSend(const SpotSendRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "spotSend";
+        action["destination"] = request.destination;
+        action["token"] = request.token;
+        action["amount"] = floatToWire(request.amount);
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::withdraw3(const Withdraw3Request& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "withdraw3";
+        action["destination"] = request.destination;
+        action["amount"] = floatToWire(request.amount);
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::approveBuilderFee(const ApproveBuilderFeeRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "approveBuilderFee";
+        action["maxFeeRate"] = request.maxFeeRate;
+        action["builder"] = request.builder;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
 }

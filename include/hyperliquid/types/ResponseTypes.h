@@ -945,4 +945,20 @@ namespace hyperliquid
         std::string type;
         std::optional<std::string> error;
     };
+
+    struct TwapOrderResponse
+    {
+        std::string status;
+        std::string type;
+        std::optional<uint64_t> twapId;
+        std::optional<std::string> error;
+    };
+
+    struct TwapCancelResponse
+    {
+        std::string status;
+        std::string type;
+        std::optional<std::string> success;
+        std::optional<std::string> error;
+    };
 }

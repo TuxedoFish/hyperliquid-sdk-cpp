@@ -110,6 +110,92 @@ nlohmann::ordered_json Signing::prepareApproveAgentBody(
     return body;
 }
 
+nlohmann::ordered_json Signing::prepareUserSignedActionBody(
+    const ApiConfig& config,
+    RestEndpointType type,
+    nlohmann::ordered_json action)
+{
+    nlohmann::ordered_json body;
+
+    if (!config.wallet.has_value())
+    {
+        spdlog::error("Wallet not configured, can't send authenticated request: {}", toString(type));
+        return body;
+    }
+
+    std::string primaryType;
+    std::vector<EIP712Field> payloadTypes;
+    std::string timeField = "time";
+
+    switch (type)
+    {
+    case RestEndpointType::UsdSend:
+        primaryType = "HyperliquidTransaction:UsdSend";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"destination", "string"},
+            {"amount", "string"}, {"time", "uint64"}};
+        break;
+    case RestEndpointType::Withdraw3:
+        primaryType = "HyperliquidTransaction:Withdraw";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"destination", "string"},
+            {"amount", "string"}, {"time", "uint64"}};
+        break;
+    case RestEndpointType::SpotSend:
+        primaryType = "HyperliquidTransaction:SpotSend";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"destination", "string"}, {"token", "string"},
+            {"amount", "string"}, {"time", "uint64"}};
+        break;
+    case RestEndpointType::UsdClassTransfer:
+        primaryType = "HyperliquidTransaction:UsdClassTransfer";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"amount", "string"},
+            {"toPerp", "bool"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
+    case RestEndpointType::SendAsset:
+        primaryType = "HyperliquidTransaction:SendAsset";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"destination", "string"}, {"sourceDex", "string"},
+            {"destinationDex", "string"}, {"token", "string"}, {"amount", "string"},
+            {"fromSubAccount", "string"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
+    case RestEndpointType::ApproveBuilderFee:
+        primaryType = "HyperliquidTransaction:ApproveBuilderFee";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"maxFeeRate", "string"},
+            {"builder", "address"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
+    default:
+        throw std::invalid_argument("Not a user-signed action: " + toString(type));
+    }
+
+    uint64_t nonce = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count());
+    bool isMainnet = (config.env == Environment::Mainnet);
+
+    action[timeField] = nonce;
+    action["signatureChainId"] = "0x66eee";
+    action["hyperliquidChain"] = isMainnet ? "Mainnet" : "Testnet";
+
+    auto signature = signUserSignedAction(config.wallet.value(), action, payloadTypes, primaryType, isMainnet);
+
+    body["action"] = action;
+    body["nonce"] = nonce;
+
+    nlohmann::ordered_json signatureJson;
+    signatureJson["r"] = signature.r;
+    signatureJson["s"] = signature.s;
+    signatureJson["v"] = signature.v;
+    body["signature"] = signatureJson;
+
+    return body;
+}
+
 Signature Signing::signL1Action(
     const Wallet& wallet,
     const nlohmann::ordered_json& action,

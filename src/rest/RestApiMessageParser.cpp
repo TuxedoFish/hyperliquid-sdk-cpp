@@ -102,7 +102,20 @@ namespace hyperliquid
             case RestEndpointType::UpdateIsolatedMargin:
             case RestEndpointType::ScheduleCancel:
             case RestEndpointType::ApproveAgent:
+            case RestEndpointType::VaultTransfer:
+            case RestEndpointType::UsdClassTransfer:
+            case RestEndpointType::SendAsset:
+            case RestEndpointType::UsdSend:
+            case RestEndpointType::SpotSend:
+            case RestEndpointType::Withdraw3:
+            case RestEndpointType::ApproveBuilderFee:
                 listener.onSimpleResponse(parseSimpleResponse(message), correlationId);
+                break;
+            case RestEndpointType::TwapOrder:
+                listener.onTwapOrder(parseTwapOrder(message), correlationId);
+                break;
+            case RestEndpointType::TwapCancel:
+                listener.onTwapCancel(parseTwapCancel(message), correlationId);
                 break;
             default:
                 getLogger()->error("RestMessageParser: unhandled RestEndpointType: {}", toString(type));
@@ -318,6 +331,109 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& err)
             {
                 getLogger()->error("RestMessageParser: parse error in simpleResponse: {}\n  raw: {}", err.what(), message);
+                if (response.status.empty())
+                {
+                    response.status = "err";
+                    response.error = message;
+                }
+            }
+
+            return response;
+        }
+
+        TwapOrderResponse parseTwapOrder(const std::string& message)
+        {
+            TwapOrderResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.status = std::string(doc["status"].get_string().value());
+
+                if (response.status != "ok")
+                {
+                    simdjson::ondemand::value resp;
+                    if (doc["response"].get(resp) == simdjson::SUCCESS
+                        && resp.type().value() == simdjson::ondemand::json_type::string)
+                    {
+                        response.error = std::string(resp.get_string().value());
+                    }
+                    return response;
+                }
+
+                auto resp = doc["response"].get_object().value();
+                response.type = std::string(resp["type"].get_string().value());
+
+                simdjson::ondemand::value statusVal;
+                if (resp["data"]["status"].get(statusVal) == simdjson::SUCCESS)
+                {
+                    auto statusObj = statusVal.get_object().value();
+
+                    simdjson::ondemand::value running;
+                    if (statusObj["running"].get(running) == simdjson::SUCCESS)
+                    {
+                        auto runningObj = running.get_object().value();
+                        response.twapId = runningObj["twapId"].get_uint64().value();
+                    }
+
+                    simdjson::ondemand::value error;
+                    if (statusObj["error"].get(error) == simdjson::SUCCESS)
+                        response.error = std::string(error.get_string().value());
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in twapOrder: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        TwapCancelResponse parseTwapCancel(const std::string& message)
+        {
+            TwapCancelResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.status = std::string(doc["status"].get_string().value());
+
+                if (response.status != "ok")
+                {
+                    simdjson::ondemand::value resp;
+                    if (doc["response"].get(resp) == simdjson::SUCCESS
+                        && resp.type().value() == simdjson::ondemand::json_type::string)
+                    {
+                        response.error = std::string(resp.get_string().value());
+                    }
+                    return response;
+                }
+
+                auto resp = doc["response"].get_object().value();
+                response.type = std::string(resp["type"].get_string().value());
+
+                simdjson::ondemand::value statusVal;
+                if (resp["data"]["status"].get(statusVal) == simdjson::SUCCESS)
+                {
+                    auto statusType = statusVal.type().value();
+                    if (statusType == simdjson::ondemand::json_type::string)
+                    {
+                        response.success = std::string(statusVal.get_string().value());
+                    }
+                    else if (statusType == simdjson::ondemand::json_type::object)
+                    {
+                        auto statusObj = statusVal.get_object().value();
+                        simdjson::ondemand::value error;
+                        if (statusObj["error"].get(error) == simdjson::SUCCESS)
+                            response.error = std::string(error.get_string().value());
+                    }
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in twapCancel: {}\n  raw: {}", err.what(), message);
             }
 
             return response;
@@ -1506,5 +1622,15 @@ namespace hyperliquid
     SimpleResponse RestApiMessageParser::parseSimpleResponse(const std::string& message)
     {
         return impl_->parseSimpleResponse(message);
+    }
+
+    TwapOrderResponse RestApiMessageParser::parseTwapOrder(const std::string& message)
+    {
+        return impl_->parseTwapOrder(message);
+    }
+
+    TwapCancelResponse RestApiMessageParser::parseTwapCancel(const std::string& message)
+    {
+        return impl_->parseTwapCancel(message);
     }
 } // namespace hyperliquid

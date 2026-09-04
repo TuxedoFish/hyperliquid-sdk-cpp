@@ -59,9 +59,10 @@ struct RestApi::Impl {
         if (thread.joinable()) thread.join();
     }
 
-    // approveAgent is a user-signed action rather than an L1 action (see Signing.h), so it is
-    // routed to Signing::prepareApproveAgentBody instead of the generic vaultAddress/expiresAfter
-    // path used by the other (L1) exchange endpoints.
+    // approveAgent and the other EIP-712 user-signed actions (usdClassTransfer/sendAsset/usdSend/
+    // spotSend/withdraw3/approveBuilderFee; see isUserSignedAction) are routed to
+    // Signing::prepareApproveAgentBody / Signing::prepareUserSignedActionBody instead of the
+    // generic vaultAddress/expiresAfter path used by the other (L1) exchange endpoints.
     nlohmann::ordered_json prepareBodyForType(RestEndpointType type, nlohmann::ordered_json body,
                                               const std::optional<std::string>& vaultAddress,
                                               const std::optional<uint64_t>& expiresAfter)
@@ -74,6 +75,9 @@ struct RestApi::Impl {
                 agentName = body["action"].at("agentName").get<std::string>();
             return Signing::prepareApproveAgentBody(config, agentAddress, agentName);
         }
+
+        if (isUserSignedAction(type))
+            return Signing::prepareUserSignedActionBody(config, type, body.at("action"));
 
         auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
         return Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
@@ -392,6 +396,73 @@ SimpleResponse RestApi::approveAgent(const ApproveAgentRequest& request)
                                    impl_->exchangeRequestBuilder.approveAgent(request)));
 }
 
+TwapOrderResponse RestApi::twapOrder(const TwapOrderRequest& request,
+                               const std::optional<std::string>& vaultAddress)
+{
+    return RestApiMessageParser().parseTwapOrder(
+        impl_->signAndSendSync(RestEndpointType::TwapOrder,
+                                   impl_->exchangeRequestBuilder.twapOrder(request),
+                                   vaultAddress));
+}
+
+TwapCancelResponse RestApi::twapCancel(const TwapCancelRequest& request,
+                               const std::optional<std::string>& vaultAddress)
+{
+    return RestApiMessageParser().parseTwapCancel(
+        impl_->signAndSendSync(RestEndpointType::TwapCancel,
+                                   impl_->exchangeRequestBuilder.twapCancel(request),
+                                   vaultAddress));
+}
+
+SimpleResponse RestApi::vaultTransfer(const VaultTransferRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::VaultTransfer,
+                                   impl_->exchangeRequestBuilder.vaultTransfer(request)));
+}
+
+SimpleResponse RestApi::usdClassTransfer(const UsdClassTransferRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::UsdClassTransfer,
+                                   impl_->exchangeRequestBuilder.usdClassTransfer(request)));
+}
+
+SimpleResponse RestApi::sendAsset(const SendAssetRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SendAsset,
+                                   impl_->exchangeRequestBuilder.sendAsset(request)));
+}
+
+SimpleResponse RestApi::usdSend(const UsdSendRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::UsdSend,
+                                   impl_->exchangeRequestBuilder.usdSend(request)));
+}
+
+SimpleResponse RestApi::spotSend(const SpotSendRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SpotSend,
+                                   impl_->exchangeRequestBuilder.spotSend(request)));
+}
+
+SimpleResponse RestApi::withdraw3(const Withdraw3Request& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::Withdraw3,
+                                   impl_->exchangeRequestBuilder.withdraw3(request)));
+}
+
+SimpleResponse RestApi::approveBuilderFee(const ApproveBuilderFeeRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::ApproveBuilderFee,
+                                   impl_->exchangeRequestBuilder.approveBuilderFee(request)));
+}
+
 
 void RestApi::spotMetaAsync()
 {
@@ -591,6 +662,64 @@ void RestApi::approveAgentAsync(const ApproveAgentRequest& request)
 {
     impl_->signAndSend(RestEndpointType::ApproveAgent,
                        impl_->exchangeRequestBuilder.approveAgent(request));
+}
+
+void RestApi::twapOrderAsync(const TwapOrderRequest& request,
+                              const std::optional<std::string>& vaultAddress)
+{
+    impl_->signAndSend(RestEndpointType::TwapOrder,
+                       impl_->exchangeRequestBuilder.twapOrder(request),
+                       vaultAddress);
+}
+
+void RestApi::twapCancelAsync(const TwapCancelRequest& request,
+                               const std::optional<std::string>& vaultAddress)
+{
+    impl_->signAndSend(RestEndpointType::TwapCancel,
+                       impl_->exchangeRequestBuilder.twapCancel(request),
+                       vaultAddress);
+}
+
+void RestApi::vaultTransferAsync(const VaultTransferRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::VaultTransfer,
+                       impl_->exchangeRequestBuilder.vaultTransfer(request));
+}
+
+void RestApi::usdClassTransferAsync(const UsdClassTransferRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::UsdClassTransfer,
+                       impl_->exchangeRequestBuilder.usdClassTransfer(request));
+}
+
+void RestApi::sendAssetAsync(const SendAssetRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::SendAsset,
+                       impl_->exchangeRequestBuilder.sendAsset(request));
+}
+
+void RestApi::usdSendAsync(const UsdSendRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::UsdSend,
+                       impl_->exchangeRequestBuilder.usdSend(request));
+}
+
+void RestApi::spotSendAsync(const SpotSendRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::SpotSend,
+                       impl_->exchangeRequestBuilder.spotSend(request));
+}
+
+void RestApi::withdraw3Async(const Withdraw3Request& request)
+{
+    impl_->signAndSend(RestEndpointType::Withdraw3,
+                       impl_->exchangeRequestBuilder.withdraw3(request));
+}
+
+void RestApi::approveBuilderFeeAsync(const ApproveBuilderFeeRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::ApproveBuilderFee,
+                       impl_->exchangeRequestBuilder.approveBuilderFee(request));
 }
 
 }

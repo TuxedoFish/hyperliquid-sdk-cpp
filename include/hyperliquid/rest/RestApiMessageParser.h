@@ -49,6 +49,8 @@ namespace hyperliquid
         CancelOrderResponse parseCancelOrder(const std::string& message);
         ModifyOrderResponse parseModifyOrder(const std::string& message);
         SimpleResponse parseSimpleResponse(const std::string& message);
+        TwapOrderResponse parseTwapOrder(const std::string& message);
+        TwapCancelResponse parseTwapCancel(const std::string& message);
 
     private:
         struct Impl;
