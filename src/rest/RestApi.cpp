@@ -72,6 +72,7 @@ struct RestApi::Impl {
             [this, type](const std::string& responseBody, beast::error_code ec) {
                 if (ec) {
                     getLogger()->error("RestApi: error for {}: {}", toString(type), ec.message());
+                    listener.onError(type, ec.message());
                     return;
                 }
                 listener.onMessage(responseBody, type);
