@@ -67,6 +67,7 @@ namespace hyperliquid
                 break;
             case RestEndpointType::UpdateLeverage:
             case RestEndpointType::UpdateIsolatedMargin:
+            case RestEndpointType::ScheduleCancel:
                 listener.onSimpleResponse(parseSimpleResponse(message), correlationId);
                 break;
             default:
@@ -820,6 +821,7 @@ namespace hyperliquid
 
             return response;
         }
+
     };
 
     static RestEndpointListener defaultEndpointListener;

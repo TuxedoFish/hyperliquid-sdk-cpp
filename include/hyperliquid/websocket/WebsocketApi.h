@@ -40,6 +40,11 @@ namespace hyperliquid
         void cancelOrderByCloid(const std::vector<CancelByCloidRequest>& cancels,
                                 std::optional<uint64_t> correlationId = std::nullopt,
                                 const std::optional<std::string>& vaultAddress = std::nullopt);
+        // Schedules an exchange-side cancel-all ("dead man's switch"). Passing no time (or std::nullopt)
+        // disarms any previously scheduled cancel; a future unix-ms timestamp arms it.
+        void scheduleCancel(const std::optional<uint64_t>& time = std::nullopt,
+                            std::optional<uint64_t> correlationId = std::nullopt,
+                            const std::optional<std::string>& vaultAddress = std::nullopt);
         void modifyOrder(const ModifyRequest& modify,
                          std::optional<uint64_t> correlationId = std::nullopt,
                          const std::optional<std::string>& vaultAddress = std::nullopt);

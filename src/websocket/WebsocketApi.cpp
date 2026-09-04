@@ -269,6 +269,15 @@ namespace hyperliquid
                                   vaultAddress, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::scheduleCancel(const std::optional<uint64_t>& time,
+                                      std::optional<uint64_t> correlationId,
+                                      const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::ScheduleCancel,
+                                  impl_->exchangeRequestBuilder.scheduleCancel(time),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::modifyOrder(const ModifyRequest& modify,
                                    std::optional<uint64_t> correlationId,
                                    const std::optional<std::string>& vaultAddress)

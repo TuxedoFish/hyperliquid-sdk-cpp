@@ -184,6 +184,17 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::scheduleCancel(const std::optional<uint64_t>& time) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "scheduleCancel";
+        if (time) action["time"] = *time;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     static void setModifyOid(nlohmann::ordered_json& json, const ModifyRequest& modify)
     {
         if (modify.oid)
