@@ -188,8 +188,6 @@ namespace hyperliquid
     {
         nlohmann::ordered_json action;
         action["type"] = "scheduleCancel";
-        // Omitting "time" disarms any previously scheduled cancel-all (dead man's switch).
-        // Providing a future unix-ms timestamp arms it.
         if (time) action["time"] = *time;
 
         nlohmann::ordered_json body;

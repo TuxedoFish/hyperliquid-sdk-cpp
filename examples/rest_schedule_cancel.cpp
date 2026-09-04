@@ -1,11 +1,3 @@
-// Demonstrates the "dead man's switch": scheduleCancel arms an exchange-side
-// cancel-all that fires at a future time, and can be disarmed by calling it
-// again with no timestamp.
-//
-// NOTE: This is a REAL, signed, state-changing exchange action even on testnet.
-// Building this example is sufficient to verify it compiles - do not run it
-// unless you intend to actually arm/disarm a scheduled cancel-all on the
-// configured account.
 #include "test_config.h"
 
 #include <chrono>
