@@ -56,6 +56,9 @@ namespace hyperliquid
         PortfolioResponse parsePortfolio(const std::string& message);
         ReferralResponse parseReferral(const std::string& message);
         UserRoleResponse parseUserRole(const std::string& message);
+        BorrowLendUserStateResponse parseBorrowLendUserState(const std::string& message);
+        BorrowLendReserveState parseBorrowLendReserveState(const std::string& message);
+        AllBorrowLendReserveStatesResponse parseAllBorrowLendReserveStates(const std::string& message);
         PlaceOrderResponse parsePlaceOrder(const std::string& message);
         CancelOrderResponse parseCancelOrder(const std::string& message);
         ModifyOrderResponse parseModifyOrder(const std::string& message);

@@ -189,6 +189,11 @@ namespace hyperliquid
         DelegatorHistory,
         DelegatorRewards,
 
+        // Info endpoints (Borrow/lend)
+        BorrowLendUserState,
+        BorrowLendReserveState,
+        AllBorrowLendReserveStates,
+
         // Exchange endpoints (signed, L1 action)
         PlaceOrder,
         CancelOrder,
@@ -267,6 +272,9 @@ namespace hyperliquid
         case RestEndpointType::DelegatorSummary: return "delegatorSummary";
         case RestEndpointType::DelegatorHistory: return "delegatorHistory";
         case RestEndpointType::DelegatorRewards: return "delegatorRewards";
+        case RestEndpointType::BorrowLendUserState: return "borrowLendUserState";
+        case RestEndpointType::BorrowLendReserveState: return "borrowLendReserveState";
+        case RestEndpointType::AllBorrowLendReserveStates: return "allBorrowLendReserveStates";
 
         case RestEndpointType::PlaceOrder: return "order";
         case RestEndpointType::CancelOrder: return "cancel";
@@ -346,6 +354,9 @@ namespace hyperliquid
         case RestEndpointType::DelegatorSummary: return false;
         case RestEndpointType::DelegatorHistory: return false;
         case RestEndpointType::DelegatorRewards: return false;
+        case RestEndpointType::BorrowLendUserState: return false;
+        case RestEndpointType::BorrowLendReserveState: return false;
+        case RestEndpointType::AllBorrowLendReserveStates: return false;
 
         case RestEndpointType::PlaceOrder: return true;
         case RestEndpointType::CancelOrder: return true;

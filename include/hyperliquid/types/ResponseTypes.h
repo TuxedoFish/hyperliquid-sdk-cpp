@@ -1399,4 +1399,51 @@ namespace hyperliquid
     {
         std::vector<DelegatorReward> rewards;
     };
+
+    // --- Borrow/lend ---
+    // Field names/shapes below are verified against real testnet responses (not inferred from
+    // naming conventions) - see #44 for the corrected version of an earlier guess.
+
+    struct BorrowLendReserveState
+    {
+        double borrowYearlyRate;
+        double supplyYearlyRate;
+        double balance;
+        double utilization;
+        double oraclePx;
+        double ltv;
+        double totalSupplied;
+        double totalBorrowed;
+    };
+
+    struct BorrowLendReserveEntry
+    {
+        int token;
+        BorrowLendReserveState state;
+    };
+
+    struct AllBorrowLendReserveStatesResponse
+    {
+        std::vector<BorrowLendReserveEntry> reserves;
+    };
+
+    struct BorrowLendPositionSide
+    {
+        double basis;
+        double value;
+    };
+
+    struct BorrowLendUserPosition
+    {
+        int token;
+        BorrowLendPositionSide borrow;
+        BorrowLendPositionSide supply;
+    };
+
+    struct BorrowLendUserStateResponse
+    {
+        std::vector<BorrowLendUserPosition> tokenToState;
+        std::string health;
+        std::optional<double> healthFactor;
+    };
 }

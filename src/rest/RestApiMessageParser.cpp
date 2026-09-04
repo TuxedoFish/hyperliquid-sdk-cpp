@@ -120,6 +120,15 @@ namespace hyperliquid
             case RestEndpointType::UserRole:
                 listener.onUserRole(parseUserRole(message), correlationId);
                 break;
+            case RestEndpointType::BorrowLendUserState:
+                listener.onBorrowLendUserState(parseBorrowLendUserState(message), correlationId);
+                break;
+            case RestEndpointType::BorrowLendReserveState:
+                listener.onBorrowLendReserveState(parseBorrowLendReserveState(message), correlationId);
+                break;
+            case RestEndpointType::AllBorrowLendReserveStates:
+                listener.onAllBorrowLendReserveStates(parseAllBorrowLendReserveStates(message), correlationId);
+                break;
             case RestEndpointType::PlaceOrder:
                 listener.onPlaceOrder(parsePlaceOrder(message), correlationId);
                 break;
@@ -1273,6 +1282,123 @@ namespace hyperliquid
             return parseUserFills(message);
         }
 
+        static BorrowLendReserveState parseBorrowLendReserveStateFields(simdjson::ondemand::object& obj)
+        {
+            BorrowLendReserveState reserve{};
+            reserve.borrowYearlyRate = parseNumberField(obj, "borrowYearlyRate");
+            reserve.supplyYearlyRate = parseNumberField(obj, "supplyYearlyRate");
+            reserve.balance = parseNumberField(obj, "balance");
+            reserve.utilization = parseNumberField(obj, "utilization");
+            reserve.oraclePx = parseNumberField(obj, "oraclePx");
+            reserve.ltv = parseNumberField(obj, "ltv");
+            reserve.totalSupplied = parseNumberField(obj, "totalSupplied");
+            reserve.totalBorrowed = parseNumberField(obj, "totalBorrowed");
+            return reserve;
+        }
+
+        BorrowLendReserveState parseBorrowLendReserveState(const std::string& message)
+        {
+            BorrowLendReserveState response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+                response = parseBorrowLendReserveStateFields(obj);
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in borrowLendReserveState: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        AllBorrowLendReserveStatesResponse parseAllBorrowLendReserveStates(const std::string& message)
+        {
+            AllBorrowLendReserveStatesResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                // Top level is an array of [tokenId, reserveStateObj] pairs, not a flat array of
+                // objects - verified against real testnet responses.
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto pair = entry.get_array().value();
+                    auto iter = pair.begin();
+
+                    BorrowLendReserveEntry reserveEntry;
+                    reserveEntry.token = static_cast<int>((*iter).get_int64().value());
+                    ++iter;
+
+                    auto obj = (*iter).get_object().value();
+                    reserveEntry.state = parseBorrowLendReserveStateFields(obj);
+
+                    response.reserves.push_back(std::move(reserveEntry));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in allBorrowLendReserveStates: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        BorrowLendUserStateResponse parseBorrowLendUserState(const std::string& message)
+        {
+            BorrowLendUserStateResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+
+                auto tokenToState = obj["tokenToState"].get_array().value();
+                for (auto entry : tokenToState)
+                {
+                    auto pair = entry.get_array().value();
+                    auto iter = pair.begin();
+
+                    BorrowLendUserPosition position{};
+                    position.token = static_cast<int>((*iter).get_int64().value());
+                    ++iter;
+
+                    auto posObj = (*iter).get_object().value();
+
+                    auto borrowObj = posObj["borrow"].get_object().value();
+                    position.borrow.basis = parseNumberField(borrowObj, "basis");
+                    position.borrow.value = parseNumberField(borrowObj, "value");
+
+                    auto supplyObj = posObj["supply"].get_object().value();
+                    position.supply.basis = parseNumberField(supplyObj, "basis");
+                    position.supply.value = parseNumberField(supplyObj, "value");
+
+                    response.tokenToState.push_back(position);
+                }
+
+                response.health = std::string(obj["health"].get_string().value());
+
+                simdjson::ondemand::value healthFactorVal;
+                if (obj["healthFactor"].get(healthFactorVal) == simdjson::SUCCESS && !healthFactorVal.is_null())
+                {
+                    std::string_view sv;
+                    response.healthFactor = !healthFactorVal.get_string().get(sv) ? toDouble(sv) : healthFactorVal.get_double().value();
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in borrowLendUserState: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
         ClearinghouseState parseClearinghouseStateObj(simdjson::ondemand::object& doc)
         {
             ClearinghouseState response{};
@@ -2399,6 +2525,21 @@ namespace hyperliquid
     UserRoleResponse RestApiMessageParser::parseUserRole(const std::string& message)
     {
         return impl_->parseUserRole(message);
+    }
+
+    BorrowLendUserStateResponse RestApiMessageParser::parseBorrowLendUserState(const std::string& message)
+    {
+        return impl_->parseBorrowLendUserState(message);
+    }
+
+    BorrowLendReserveState RestApiMessageParser::parseBorrowLendReserveState(const std::string& message)
+    {
+        return impl_->parseBorrowLendReserveState(message);
+    }
+
+    AllBorrowLendReserveStatesResponse RestApiMessageParser::parseAllBorrowLendReserveStates(const std::string& message)
+    {
+        return impl_->parseAllBorrowLendReserveStates(message);
     }
 
     PlaceOrderResponse RestApiMessageParser::parsePlaceOrder(const std::string& message)

@@ -383,6 +383,27 @@ UserRoleResponse RestApi::userRole(const std::string& user)
         impl_->signAndSendSync(RestEndpointType::UserRole, InfoRequestBuilder::userRole(user)));
 }
 
+BorrowLendUserStateResponse RestApi::borrowLendUserState(const std::string& user)
+{
+    return RestApiMessageParser().parseBorrowLendUserState(
+        impl_->signAndSendSync(RestEndpointType::BorrowLendUserState,
+                               InfoRequestBuilder::borrowLendUserState(user)));
+}
+
+BorrowLendReserveState RestApi::borrowLendReserveState(int token)
+{
+    return RestApiMessageParser().parseBorrowLendReserveState(
+        impl_->signAndSendSync(RestEndpointType::BorrowLendReserveState,
+                               InfoRequestBuilder::borrowLendReserveState(token)));
+}
+
+AllBorrowLendReserveStatesResponse RestApi::allBorrowLendReserveStates()
+{
+    return RestApiMessageParser().parseAllBorrowLendReserveStates(
+        impl_->signAndSendSync(RestEndpointType::AllBorrowLendReserveStates,
+                               InfoRequestBuilder::allBorrowLendReserveStates()));
+}
+
 PlaceOrderResponse RestApi::placeOrder(const std::vector<OrderRequest>& orders,
                                 Grouping grouping,
                                 const std::optional<Builder>& builder,
@@ -788,6 +809,21 @@ void RestApi::referralAsync(const std::string& user)
 void RestApi::userRoleAsync(const std::string& user)
 {
     impl_->signAndSend(RestEndpointType::UserRole, InfoRequestBuilder::userRole(user));
+}
+
+void RestApi::borrowLendUserStateAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::BorrowLendUserState, InfoRequestBuilder::borrowLendUserState(user));
+}
+
+void RestApi::borrowLendReserveStateAsync(int token)
+{
+    impl_->signAndSend(RestEndpointType::BorrowLendReserveState, InfoRequestBuilder::borrowLendReserveState(token));
+}
+
+void RestApi::allBorrowLendReserveStatesAsync()
+{
+    impl_->signAndSend(RestEndpointType::AllBorrowLendReserveStates, InfoRequestBuilder::allBorrowLendReserveStates());
 }
 
 void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,

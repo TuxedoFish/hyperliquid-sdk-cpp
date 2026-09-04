@@ -177,6 +177,14 @@ nlohmann::ordered_json InfoRequestBuilder::userRateLimit(const std::string& user
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::borrowLendUserState(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::BorrowLendUserState);
+    body["user"] = user;
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::metaAndAssetCtxs(const std::optional<std::string>& dex)
 {
     nlohmann::ordered_json body;
@@ -333,6 +341,21 @@ nlohmann::ordered_json InfoRequestBuilder::userRole(const std::string& user)
     nlohmann::ordered_json body;
     body["type"] = toString(RestEndpointType::UserRole);
     body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::borrowLendReserveState(int token)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::BorrowLendReserveState);
+    body["token"] = token;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::allBorrowLendReserveStates()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::AllBorrowLendReserveStates);
     return body;
 }
 

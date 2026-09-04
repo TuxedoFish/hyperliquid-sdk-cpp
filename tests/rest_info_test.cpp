@@ -697,3 +697,126 @@ TEST(RestApiMessageParserInfoTest, ParseDelegatorRewards)
     EXPECT_EQ(response.rewards[1].source, DelegatorRewardSource::Commission);
     EXPECT_DOUBLE_EQ(response.rewards[1].totalAmount, 0.45);
 }
+
+// --- Borrow/lend ---
+// Field names/shapes below are verified against real testnet responses (not inferred from
+// naming conventions) - see #44 for context on the earlier incorrect version.
+
+TEST(InfoRequestBuilderTest, BorrowLendUserState)
+{
+    auto body = InfoRequestBuilder::borrowLendUserState("0xabc");
+    EXPECT_EQ(body["type"], "borrowLendUserState");
+    EXPECT_EQ(body["user"], "0xabc");
+}
+
+TEST(InfoRequestBuilderTest, BorrowLendReserveState)
+{
+    auto body = InfoRequestBuilder::borrowLendReserveState(0);
+    EXPECT_EQ(body["type"], "borrowLendReserveState");
+    EXPECT_EQ(body["token"], 0);
+}
+
+TEST(InfoRequestBuilderTest, AllBorrowLendReserveStates)
+{
+    auto body = InfoRequestBuilder::allBorrowLendReserveStates();
+    EXPECT_EQ(body["type"], "allBorrowLendReserveStates");
+}
+
+TEST(RestApiMessageParserInfoTest, ParseBorrowLendReserveState)
+{
+    // Real testnet payload for token 0.
+    std::string message = R"({
+        "borrowYearlyRate": "0.05",
+        "supplyYearlyRate": "0.0035124541",
+        "balance": "4000064.8929032399",
+        "utilization": "0.078054536",
+        "oraclePx": "1.0",
+        "ltv": "0.0",
+        "totalSupplied": "4338721.1769786999",
+        "totalBorrowed": "338656.86839526"
+    })";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseBorrowLendReserveState(message);
+
+    EXPECT_DOUBLE_EQ(response.borrowYearlyRate, 0.05);
+    EXPECT_DOUBLE_EQ(response.supplyYearlyRate, 0.0035124541);
+    EXPECT_DOUBLE_EQ(response.balance, 4000064.8929032399);
+    EXPECT_DOUBLE_EQ(response.utilization, 0.078054536);
+    EXPECT_DOUBLE_EQ(response.oraclePx, 1.0);
+    EXPECT_DOUBLE_EQ(response.ltv, 0.0);
+    EXPECT_DOUBLE_EQ(response.totalSupplied, 4338721.1769786999);
+    EXPECT_DOUBLE_EQ(response.totalBorrowed, 338656.86839526);
+}
+
+TEST(RestApiMessageParserInfoTest, ParseAllBorrowLendReserveStates)
+{
+    // Real testnet payload (trimmed to 2 of the ~30 reserves) - top level is an array of
+    // [tokenId, reserveStateObj] pairs, not a flat array of objects.
+    std::string message = R"([
+        [0, {"borrowYearlyRate": "0.05", "supplyYearlyRate": "0.0035124548", "balance": "4000064.8172154501", "utilization": "0.078054552", "oraclePx": "1.0", "ltv": "0.0", "totalSupplied": "4338721.1701327004", "totalBorrowed": "338656.93723639"}],
+        [1, {"borrowYearlyRate": "0.05", "supplyYearlyRate": "0.0", "balance": "6945.8974", "utilization": "0.0", "oraclePx": "4.6252", "ltv": "0.5", "totalSupplied": "6927.0173", "totalBorrowed": "0.0"}]
+    ])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseAllBorrowLendReserveStates(message);
+
+    ASSERT_EQ(response.reserves.size(), 2u);
+    EXPECT_EQ(response.reserves[0].token, 0);
+    EXPECT_DOUBLE_EQ(response.reserves[0].state.totalSupplied, 4338721.1701327004);
+    EXPECT_EQ(response.reserves[1].token, 1);
+    EXPECT_DOUBLE_EQ(response.reserves[1].state.ltv, 0.5);
+}
+
+TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateEmpty)
+{
+    // Real testnet payload for an account with no borrow/lend activity.
+    std::string message = R"({"tokenToState":[],"health":"healthy","healthFactor":null})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseBorrowLendUserState(message);
+
+    EXPECT_TRUE(response.tokenToState.empty());
+    EXPECT_EQ(response.health, "healthy");
+    EXPECT_FALSE(response.healthFactor.has_value());
+}
+
+TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateWithPosition)
+{
+    // Real testnet payload for an account with an active supply position (created live for
+    // this PR - see PR evidence). tokenToState is an array of [tokenId, {borrow, supply}]
+    // pairs, not a flat array of {token, deposited, borrowed} objects.
+    std::string message = R"({
+        "tokenToState": [
+            [0, {"borrow": {"basis": "0.0", "value": "0.0"}, "supply": {"basis": "2.0", "value": "1.99999999"}}]
+        ],
+        "health": "healthy",
+        "healthFactor": null
+    })";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseBorrowLendUserState(message);
+
+    ASSERT_EQ(response.tokenToState.size(), 1u);
+    EXPECT_EQ(response.tokenToState[0].token, 0);
+    EXPECT_DOUBLE_EQ(response.tokenToState[0].borrow.value, 0.0);
+    EXPECT_DOUBLE_EQ(response.tokenToState[0].supply.basis, 2.0);
+    EXPECT_DOUBLE_EQ(response.tokenToState[0].supply.value, 1.99999999);
+    EXPECT_EQ(response.health, "healthy");
+    EXPECT_FALSE(response.healthFactor.has_value());
+}
+
+TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateHealthFactorPresent)
+{
+    // Synthetic, not a captured payload - testnet never returned a non-null healthFactor
+    // during manual testing (every borrow attempt hit a business-rule rejection before one
+    // could be observed). This only verifies the "has a value" branch of the nullable-double
+    // parsing actually works.
+    std::string message = R"({"tokenToState":[],"health":"healthy","healthFactor":1.5})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseBorrowLendUserState(message);
+
+    ASSERT_TRUE(response.healthFactor.has_value());
+    EXPECT_DOUBLE_EQ(*response.healthFactor, 1.5);
+}
