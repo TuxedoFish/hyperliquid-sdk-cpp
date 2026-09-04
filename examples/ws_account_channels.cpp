@@ -1,7 +1,3 @@
-// Demonstrates subscribing to the account-read websocket channels added for
-// issue #7: userFundings, userNonFundingLedgerUpdates, webData3,
-// clearinghouseState, and openOrders. This example is read-only — it does
-// not place, modify, or cancel any orders.
 #include <thread>
 #include <chrono>
 

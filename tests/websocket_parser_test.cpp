@@ -166,7 +166,7 @@ TEST(WebsocketParser, UserNonFundingLedgerUpdatesLiquidation)
     const auto& update = handler.ledgerUpdates[0];
     EXPECT_EQ(update.type, LedgerUpdateType::Liquidation);
     EXPECT_DOUBLE_EQ(update.accountValue, 123.45);
-    EXPECT_EQ(update.leverageType, "Cross");
+    EXPECT_EQ(update.leverageType, LeverageType::Cross);
     ASSERT_EQ(update.liquidatedPositions.size(), 2u);
     EXPECT_EQ(update.liquidatedPositions[0].coin, "ETH");
     EXPECT_DOUBLE_EQ(update.liquidatedPositions[0].szi, -1.5);
@@ -330,7 +330,7 @@ TEST(WebsocketParser, ClearinghouseState)
     EXPECT_DOUBLE_EQ(pos.liquidationPx, 1500.0);
     EXPECT_DOUBLE_EQ(pos.marginUsed, 300.0);
     EXPECT_EQ(pos.maxLeverage, 20);
-    EXPECT_EQ(pos.leverageType, "cross");
+    EXPECT_EQ(pos.leverageType, LeverageType::Cross);
 
     EXPECT_DOUBLE_EQ(update.state.marginSummary.accountValue, 10000.0);
     EXPECT_DOUBLE_EQ(update.state.crossMarginSummary.totalMarginUsed, 300.0);

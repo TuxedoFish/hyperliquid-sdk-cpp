@@ -177,6 +177,25 @@ namespace hyperliquid
         }
     }
 
+    enum class LeverageType { Cross, Isolated, Unknown };
+
+    inline LeverageType stringToLeverageType(std::string_view s)
+    {
+        if (s == "cross" || s == "Cross") return LeverageType::Cross;
+        if (s == "isolated" || s == "Isolated") return LeverageType::Isolated;
+        return LeverageType::Unknown;
+    }
+
+    inline std::string toString(LeverageType type)
+    {
+        switch (type)
+        {
+        case LeverageType::Cross: return "Cross";
+        case LeverageType::Isolated: return "Isolated";
+        default: return "Unknown";
+        }
+    }
+
     struct Fill
     {
         std::string coin;
@@ -261,7 +280,7 @@ namespace hyperliquid
         bool hasLiquidationPx;
         double marginUsed;
         int maxLeverage;
-        std::string leverageType; // "Cross" or "Isolated"
+        LeverageType leverageType;
     };
 
     struct ClearinghouseState
@@ -420,7 +439,7 @@ namespace hyperliquid
         bool toPerp;
         // liquidation-only fields
         double accountValue;
-        std::string leverageType; // "Cross" or "Isolated"
+        LeverageType leverageType;
         std::vector<LiquidatedPosition> liquidatedPositions;
         // vaultWithdraw-only fields
         double requestedUsd;

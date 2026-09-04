@@ -671,8 +671,6 @@ namespace hyperliquid
             }
         }
 
-        // channel: "userFundings"
-        // { isSnapshot?: bool, user: string, fundings: WsUserFunding[] }
         void crackUserFundings(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             bool isSnapshot = false;
@@ -730,7 +728,7 @@ namespace hyperliquid
                 break;
             case LedgerUpdateType::Liquidation:
                 update.accountValue = toDoubleField(delta, "accountValue");
-                update.leverageType = std::string(delta["leverageType"].get_string().value());
+                update.leverageType = stringToLeverageType(delta["leverageType"].get_string().value());
                 {
                     simdjson::ondemand::array positions;
                     if (!delta["liquidatedPositions"].get_array().get(positions))
@@ -790,8 +788,6 @@ namespace hyperliquid
             }
         }
 
-        // channel: "userNonFundingLedgerUpdates"
-        // { isSnapshot?: bool, user: string, nonFundingLedgerUpdates: {time, hash, delta}[] }
         void crackUserNonFundingLedgerUpdates(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             bool isSnapshot = false;
@@ -820,8 +816,6 @@ namespace hyperliquid
             }
         }
 
-        // channel: "webData3"
-        // { userState: {...}, perpDexStates: [...] } — see docs for full (evolving) shape.
         void crackWebData3(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             WebData3Update update;
@@ -927,7 +921,7 @@ namespace hyperliquid
 
                         simdjson::ondemand::object leverage;
                         if (!position["leverage"].get_object().get(leverage))
-                            pos.leverageType = std::string(leverage["type"].get_string().value());
+                            pos.leverageType = stringToLeverageType(leverage["type"].get_string().value());
 
                         state.assetPositions.push_back(std::move(pos));
                     }
@@ -954,8 +948,6 @@ namespace hyperliquid
             state.withdrawable = toDoubleField(obj, "withdrawable");
         }
 
-        // channel: "clearinghouseState"
-        // { dex: string, user: string, clearinghouseState: InnerClearinghouseState }
         void crackClearinghouseState(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             ClearinghouseStateUpdate update;
@@ -970,8 +962,6 @@ namespace hyperliquid
             listener.onClearinghouseState(update);
         }
 
-        // channel: "openOrders"
-        // { dex: string, user: string, orders: WsBasicOrder[] }
         void crackOpenOrders(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
         {
             OpenOrdersUpdate update;
