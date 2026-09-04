@@ -557,10 +557,6 @@ namespace hyperliquid
         std::vector<OrderStatusResult> statuses;
     };
 
-    // Generic ack response for exchange actions with no type-specific payload on success
-    // (e.g. updateLeverage, updateIsolatedMargin, and future simple-ack endpoints like scheduleCancel).
-    // On success: status == "ok", type is usually "default". On failure: status == "err" and error holds
-    // the raw error message returned in the top-level "response" field.
     struct SimpleResponse
     {
         std::string status;
