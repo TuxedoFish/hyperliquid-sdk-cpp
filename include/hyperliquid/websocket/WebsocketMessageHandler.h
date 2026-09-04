@@ -21,6 +21,12 @@ public:
     virtual void onUserFunding(const UserFunding& funding) {}
     virtual void onLiquidation(const Liquidation& liquidation) {}
     virtual void onNonUserCancel(const NonUserCancel& cancel) {}
+
+    virtual void onUserFundingUpdate(const UserFunding& funding) {}
+    virtual void onLedgerUpdate(const LedgerUpdate& update) {}
+    virtual void onWebData3(const WebData3Update& update) {}
+    virtual void onClearinghouseState(const ClearinghouseStateUpdate& update) {}
+    virtual void onOpenOrdersSnapshot(const OpenOrdersUpdate& update) {}
 };
 
 }

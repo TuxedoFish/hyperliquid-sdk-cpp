@@ -93,6 +93,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     hyperliquid_add_test(rest_info_test)
     hyperliquid_add_test(leverage_margin_test)
     hyperliquid_add_test(schedule_cancel_test)
+    hyperliquid_add_test(websocket_parser_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)

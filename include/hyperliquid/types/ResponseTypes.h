@@ -177,6 +177,25 @@ namespace hyperliquid
         }
     }
 
+    enum class LeverageType { Cross, Isolated, Unknown };
+
+    inline LeverageType stringToLeverageType(std::string_view s)
+    {
+        if (s == "cross" || s == "Cross") return LeverageType::Cross;
+        if (s == "isolated" || s == "Isolated") return LeverageType::Isolated;
+        return LeverageType::Unknown;
+    }
+
+    inline std::string toString(LeverageType type)
+    {
+        switch (type)
+        {
+        case LeverageType::Cross: return "Cross";
+        case LeverageType::Isolated: return "Isolated";
+        default: return "Unknown";
+        }
+    }
+
     struct Fill
     {
         std::string coin;
@@ -223,6 +242,7 @@ namespace hyperliquid
         double usdc;
         double szi;
         double fundingRate;
+        bool isSnapshot = false;
     };
 
     struct Liquidation
@@ -258,16 +278,28 @@ namespace hyperliquid
         double returnOnEquity;
         double liquidationPx;
         bool hasLiquidationPx;
+        double marginUsed;
+        int maxLeverage;
+        LeverageType leverageType;
     };
 
     struct ClearinghouseState
     {
+        std::vector<AssetPosition> assetPositions;
         MarginSummary marginSummary;
         MarginSummary crossMarginSummary;
         double crossMaintenanceMarginUsed;
         double withdrawable;
         uint64_t time;
-        std::vector<AssetPosition> assetPositions;
+    };
+
+    // Websocket `clearinghouseState` channel wraps the same InnerClearinghouseState
+    // shape as the REST clearinghouseState endpoint, plus dex/user context.
+    struct ClearinghouseStateUpdate
+    {
+        std::string dex;
+        std::string user;
+        ClearinghouseState state;
     };
 
     struct OpenOrder
@@ -280,6 +312,14 @@ namespace hyperliquid
         uint64_t timestamp;
         double origSz;
         std::string cloid;
+    };
+
+    // Websocket `openOrders` channel: a snapshot array of an account's resting orders.
+    struct OpenOrdersUpdate
+    {
+        std::string dex;
+        std::string user;
+        std::vector<OpenOrder> orders;
     };
 
     struct TwapState
@@ -326,9 +366,65 @@ namespace hyperliquid
         SpotTransfer,
         AccountClassTransfer,
         SpotGenesis,
-        RewardsClaim
+        RewardsClaim,
+        Send,
+        Unknown
     };
 
+    inline LedgerUpdateType stringToLedgerUpdateType(std::string_view s)
+    {
+        if (s == "deposit") return LedgerUpdateType::Deposit;
+        if (s == "withdraw") return LedgerUpdateType::Withdraw;
+        if (s == "internalTransfer") return LedgerUpdateType::InternalTransfer;
+        if (s == "subAccountTransfer") return LedgerUpdateType::SubAccountTransfer;
+        if (s == "liquidation") return LedgerUpdateType::Liquidation;
+        if (s == "vaultCreate") return LedgerUpdateType::VaultCreate;
+        if (s == "vaultDeposit") return LedgerUpdateType::VaultDeposit;
+        if (s == "vaultDistribution") return LedgerUpdateType::VaultDistribution;
+        if (s == "vaultWithdraw") return LedgerUpdateType::VaultWithdraw;
+        if (s == "vaultLeaderCommission") return LedgerUpdateType::VaultLeaderCommission;
+        if (s == "spotTransfer") return LedgerUpdateType::SpotTransfer;
+        if (s == "accountClassTransfer") return LedgerUpdateType::AccountClassTransfer;
+        if (s == "spotGenesis") return LedgerUpdateType::SpotGenesis;
+        if (s == "rewardsClaim") return LedgerUpdateType::RewardsClaim;
+        if (s == "send") return LedgerUpdateType::Send;
+        return LedgerUpdateType::Unknown;
+    }
+
+    inline std::string toString(LedgerUpdateType type)
+    {
+        switch (type)
+        {
+        case LedgerUpdateType::Deposit: return "deposit";
+        case LedgerUpdateType::Withdraw: return "withdraw";
+        case LedgerUpdateType::InternalTransfer: return "internalTransfer";
+        case LedgerUpdateType::SubAccountTransfer: return "subAccountTransfer";
+        case LedgerUpdateType::Liquidation: return "liquidation";
+        case LedgerUpdateType::VaultCreate: return "vaultCreate";
+        case LedgerUpdateType::VaultDeposit: return "vaultDeposit";
+        case LedgerUpdateType::VaultDistribution: return "vaultDistribution";
+        case LedgerUpdateType::VaultWithdraw: return "vaultWithdraw";
+        case LedgerUpdateType::VaultLeaderCommission: return "vaultLeaderCommission";
+        case LedgerUpdateType::SpotTransfer: return "spotTransfer";
+        case LedgerUpdateType::AccountClassTransfer: return "accountClassTransfer";
+        case LedgerUpdateType::SpotGenesis: return "spotGenesis";
+        case LedgerUpdateType::RewardsClaim: return "rewardsClaim";
+        case LedgerUpdateType::Send: return "send";
+        default: return "unknown";
+        }
+    }
+
+    struct LiquidatedPosition
+    {
+        std::string coin;
+        double szi;
+    };
+
+    // Flattened representation of the WsLedgerUpdate discriminated union
+    // (deposit/withdraw/internalTransfer/.../rewardsClaim). `type` indicates
+    // which delta this was; fields not applicable to that delta are left at
+    // their default (zero/empty) value. See docs:
+    // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
     struct LedgerUpdate
     {
         uint64_t time;
@@ -341,8 +437,24 @@ namespace hyperliquid
         std::string token;
         double fee;
         double amount;
+        double usdcValue;
         uint64_t nonce;
         bool toPerp;
+        std::string sourceDex;
+        std::string destinationDex;
+        double nativeTokenFee;
+        std::string feeToken;
+        // liquidation-only fields
+        double accountValue;
+        LeverageType leverageType;
+        std::vector<LiquidatedPosition> liquidatedPositions;
+        // vaultWithdraw-only fields
+        double requestedUsd;
+        double commission;
+        double closingCost;
+        double basis;
+        double netWithdrawnUsd;
+        bool isSnapshot = false;
     };
 
     struct ActiveAssetData
@@ -358,6 +470,43 @@ namespace hyperliquid
     struct Notification
     {
         std::string notification;
+    };
+
+    struct LeadingVault
+    {
+        std::string address;
+        std::string name;
+    };
+
+    struct PerpDexState
+    {
+        double totalVaultEquity;
+        std::vector<std::string> perpsAtOpenInterestCap;
+        std::vector<LeadingVault> leadingVaults;
+    };
+
+    struct WebData3UserState
+    {
+        std::optional<std::string> agentAddress;
+        std::optional<uint64_t> agentValidUntil;
+        uint64_t serverTime;
+        double cumLedger;
+        bool isVault;
+        std::string user;
+        bool optOutOfSpotDusting;
+        bool dexAbstractionEnabled;
+    };
+
+    // webData3 is a large, evolving "frontend" aggregate payload. Only the
+    // documented, stable sub-fields (userState, perpDexStates) are modeled
+    // as typed members; `raw` retains the full JSON of the `data` object as
+    // an escape hatch so no information is silently dropped for the many
+    // less-critical/undocumented sub-fields the docs note may change.
+    struct WebData3Update
+    {
+        WebData3UserState userState;
+        std::vector<PerpDexState> perpDexStates;
+        std::string raw;
     };
 
     // --- Outcome market types ---
