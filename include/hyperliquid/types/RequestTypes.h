@@ -6,6 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace hyperliquid
@@ -140,6 +141,7 @@ namespace hyperliquid
         UserFills,
         UserFillsByTime,
         OrderStatus,
+        ClearinghouseState,
         UserRateLimit,
         PerpDexs,
         // Info endpoints (Outcomes)
@@ -174,6 +176,7 @@ namespace hyperliquid
         case RestEndpointType::UserFills: return "userFills";
         case RestEndpointType::UserFillsByTime: return "userFillsByTime";
         case RestEndpointType::OrderStatus: return "orderStatus";
+        case RestEndpointType::ClearinghouseState: return "clearinghouseState";
         case RestEndpointType::UserRateLimit: return "userRateLimit";
         case RestEndpointType::PerpDexs: return "perpDexs";
 
@@ -209,6 +212,7 @@ namespace hyperliquid
         case RestEndpointType::UserFills: return false;
         case RestEndpointType::UserFillsByTime: return false;
         case RestEndpointType::OrderStatus: return false;
+        case RestEndpointType::ClearinghouseState: return false;
         case RestEndpointType::UserRateLimit: return false;
         case RestEndpointType::PerpDexs: return false;
 
@@ -325,6 +329,8 @@ namespace hyperliquid
         std::string address;
         int fee;
     };
+
+    using OrderId = std::variant<uint64_t, std::string>;
 
     inline int outcomeEncoding(int outcomeIndex, int side)
     {

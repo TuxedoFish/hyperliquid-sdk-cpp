@@ -32,6 +32,27 @@ public:
     MetaResponse meta(const std::optional<std::string>& dex = std::nullopt);
     OutcomeMetaResponse outcomeMeta();
     PerpDexsResponse perpDexs();
+    L2BookResponse l2Book(const std::string& coin,
+                          const std::optional<int>& nSigFigs = std::nullopt,
+                          const std::optional<int>& mantissa = std::nullopt);
+    CandleSnapshotResponse candleSnapshot(const std::string& coin,
+                                          const std::string& interval,
+                                          uint64_t startTime,
+                                          uint64_t endTime);
+    AllMidsResponse allMids(const std::optional<std::string>& dex = std::nullopt);
+    OpenOrdersResponse openOrders(const std::string& user,
+                                  const std::optional<std::string>& dex = std::nullopt);
+    OrderStatusResponse orderStatus(const std::string& user, const OrderId& oid);
+    UserFillsResponse userFills(const std::string& user,
+                                const std::optional<bool>& aggregateByTime = std::nullopt,
+                                const std::optional<std::string>& dex = std::nullopt);
+    UserFillsResponse userFillsByTime(const std::string& user,
+                                      uint64_t startTime,
+                                      const std::optional<uint64_t>& endTime = std::nullopt,
+                                      const std::optional<bool>& aggregateByTime = std::nullopt,
+                                      const std::optional<std::string>& dex = std::nullopt);
+    ClearinghouseState clearinghouseState(const std::string& user,
+                                          const std::optional<std::string>& dex = std::nullopt);
     PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
                            const std::optional<Builder>& builder = std::nullopt,
@@ -49,6 +70,27 @@ public:
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
     void outcomeMetaAsync();
     void perpDexsAsync();
+    void l2BookAsync(const std::string& coin,
+                     const std::optional<int>& nSigFigs = std::nullopt,
+                     const std::optional<int>& mantissa = std::nullopt);
+    void candleSnapshotAsync(const std::string& coin,
+                             const std::string& interval,
+                             uint64_t startTime,
+                             uint64_t endTime);
+    void allMidsAsync(const std::optional<std::string>& dex = std::nullopt);
+    void openOrdersAsync(const std::string& user,
+                         const std::optional<std::string>& dex = std::nullopt);
+    void orderStatusAsync(const std::string& user, const OrderId& oid);
+    void userFillsAsync(const std::string& user,
+                        const std::optional<bool>& aggregateByTime = std::nullopt,
+                        const std::optional<std::string>& dex = std::nullopt);
+    void userFillsByTimeAsync(const std::string& user,
+                              uint64_t startTime,
+                              const std::optional<uint64_t>& endTime = std::nullopt,
+                              const std::optional<bool>& aggregateByTime = std::nullopt,
+                              const std::optional<std::string>& dex = std::nullopt);
+    void clearinghouseStateAsync(const std::string& user,
+                                 const std::optional<std::string>& dex = std::nullopt);
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
                          const std::optional<Builder>& builder = std::nullopt,

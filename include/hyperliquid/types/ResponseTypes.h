@@ -266,6 +266,8 @@ namespace hyperliquid
         MarginSummary crossMarginSummary;
         double crossMaintenanceMarginUsed;
         double withdrawable;
+        uint64_t time;
+        std::vector<AssetPosition> assetPositions;
     };
 
     struct OpenOrder
@@ -455,6 +457,54 @@ namespace hyperliquid
     struct PerpDexsResponse
     {
         std::vector<PerpDex> dexes;
+    };
+
+    struct RestBookLevel
+    {
+        std::string px;
+        std::string sz;
+        int n;
+    };
+
+    struct L2BookResponse
+    {
+        std::string coin;
+        uint64_t time;
+        std::vector<RestBookLevel> bids;
+        std::vector<RestBookLevel> asks;
+    };
+
+    struct CandleSnapshotResponse
+    {
+        std::vector<Candle> candles;
+    };
+
+    struct AllMidsResponse
+    {
+        std::vector<AllMidsEntry> mids;
+    };
+
+    struct OpenOrdersResponse
+    {
+        std::vector<OpenOrder> orders;
+    };
+
+    struct OrderStatusOrder
+    {
+        OpenOrder order;
+        OrderStatus status;
+        uint64_t statusTimestamp;
+    };
+
+    struct OrderStatusResponse
+    {
+        std::string status; // "order" or "unknownOid"
+        std::optional<OrderStatusOrder> order;
+    };
+
+    struct UserFillsResponse
+    {
+        std::vector<Fill> fills;
     };
 
     // --- Rest endpoint types (authenticated) ---
