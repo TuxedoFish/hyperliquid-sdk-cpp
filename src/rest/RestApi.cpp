@@ -178,6 +178,12 @@ OutcomeMetaResponse RestApi::outcomeMeta()
         impl_->signAndSendSync(RestEndpointType::OutcomeMeta, InfoRequestBuilder::outcomeMeta()));
 }
 
+SettledOutcomeResponse RestApi::settledOutcome(int outcome)
+{
+    return RestApiMessageParser().parseSettledOutcome(
+        impl_->signAndSendSync(RestEndpointType::SettledOutcome, InfoRequestBuilder::settledOutcome(outcome)));
+}
+
 PerpDexsResponse RestApi::perpDexs()
 {
     return RestApiMessageParser().parsePerpDexs(
@@ -641,6 +647,11 @@ void RestApi::metaAsync(const std::optional<std::string>& dex)
 void RestApi::outcomeMetaAsync()
 {
     impl_->signAndSend(RestEndpointType::OutcomeMeta, InfoRequestBuilder::outcomeMeta());
+}
+
+void RestApi::settledOutcomeAsync(int outcome)
+{
+    impl_->signAndSend(RestEndpointType::SettledOutcome, InfoRequestBuilder::settledOutcome(outcome));
 }
 
 void RestApi::perpDexsAsync()

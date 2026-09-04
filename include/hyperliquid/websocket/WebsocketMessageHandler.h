@@ -37,6 +37,7 @@ public:
     virtual void onAllDexsClearinghouseState(const AllDexsClearinghouseStateUpdate&) {}
     virtual void onAllDexsAssetCtxs(const AllDexsAssetCtxsUpdate&) {}
     virtual void onFastAssetCtx(const FastAssetCtx&) {}
+    virtual void onOutcomeMetaUpdate(const OutcomeMetaUpdate&) {}
 };
 
 }

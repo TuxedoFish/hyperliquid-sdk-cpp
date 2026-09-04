@@ -14,6 +14,7 @@ public:
     virtual void onSpotMeta(const SpotMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onMeta(const MetaResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onOutcomeMeta(const OutcomeMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onSettledOutcome(const SettledOutcomeResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpDexs(const PerpDexsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpsAtOpenInterestCap(const PerpsAtOpenInterestCapResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPredictedFundings(const PredictedFundingsResponse&, std::optional<uint64_t> = std::nullopt) {}

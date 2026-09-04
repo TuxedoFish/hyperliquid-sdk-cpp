@@ -15,6 +15,7 @@ public:
     static nlohmann::ordered_json spotMeta();
     static nlohmann::ordered_json meta(const std::optional<std::string>& dex = std::nullopt);
     static nlohmann::ordered_json outcomeMeta();
+    static nlohmann::ordered_json settledOutcome(int outcome);
     static nlohmann::ordered_json perpDexs();
     static nlohmann::ordered_json perpsAtOpenInterestCap(const std::optional<std::string>& dex = std::nullopt);
     static nlohmann::ordered_json predictedFundings();

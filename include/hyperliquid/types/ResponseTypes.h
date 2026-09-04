@@ -593,6 +593,7 @@ namespace hyperliquid
     struct OutcomeSideSpec
     {
         std::string name;
+        std::optional<int> token;
     };
 
     // Parses "20260503-0600" -> time_point (UTC)
@@ -620,6 +621,33 @@ namespace hyperliquid
         std::string period;
     };
 
+    // Parses the pipe-delimited "class:X|underlying:Y|expiry:.../targetPrice:.../period:..." format
+    // shared by outcomeMeta, settledOutcome, and outcomeMetaUpdates outcome descriptions.
+    inline OutcomeDescription parseOutcomeDescription(const std::string& desc)
+    {
+        OutcomeDescription result;
+        size_t pos = 0;
+        while (pos < desc.size())
+        {
+            size_t sep = desc.find('|', pos);
+            std::string_view segment(desc.data() + pos, (sep == std::string::npos ? desc.size() : sep) - pos);
+            size_t colon = segment.find(':');
+            if (colon != std::string_view::npos)
+            {
+                std::string_view key = segment.substr(0, colon);
+                std::string_view val = segment.substr(colon + 1);
+                if (key == "class") result.outcomeClass = std::string(val);
+                else if (key == "underlying") result.underlying = std::string(val);
+                else if (key == "expiry") result.expiry = parseOutcomeExpiry(std::string(val));
+                else if (key == "targetPrice") result.targetPrice = std::string(val);
+                else if (key == "period") result.period = std::string(val);
+            }
+            if (sep == std::string::npos) break;
+            pos = sep + 1;
+        }
+        return result;
+    }
+
     struct Outcome
     {
         int outcome;
@@ -627,11 +655,84 @@ namespace hyperliquid
         std::string descriptionRaw;
         OutcomeDescription description;
         std::vector<OutcomeSideSpec> sideSpecs;
+        std::string quoteToken;
+        std::optional<std::string> deployer;
     };
 
     struct OutcomeMetaResponse
     {
         std::vector<Outcome> outcomes;
+    };
+
+    struct QuestionSpec
+    {
+        int question;
+        std::string name;
+        std::string description;
+        int fallbackOutcome;
+        std::vector<int> namedOutcomes;
+        std::vector<int> settledNamedOutcomes;
+    };
+
+    // Flattened representation of settledOutcome's optional `question` field, whose
+    // `question.question` key is `active` or `settled` depending on question state.
+    struct SettledOutcomeQuestion
+    {
+        bool isSettled = false;
+        int questionId = 0;
+        std::string name;
+        std::string description;
+    };
+
+    struct SettledOutcomeResponse
+    {
+        bool isSettled = false;
+        Outcome spec;
+        double settleFraction = 0.0;
+        std::string details;
+        std::optional<SettledOutcomeQuestion> question;
+    };
+
+    enum class OutcomeMetaUpdateType
+    {
+        OutcomeCreated,
+        OutcomeSettled,
+        QuestionUpdated,
+        QuestionSettled,
+        Unknown
+    };
+
+    inline std::string toString(OutcomeMetaUpdateType type)
+    {
+        switch (type)
+        {
+        case OutcomeMetaUpdateType::OutcomeCreated: return "outcomeCreated";
+        case OutcomeMetaUpdateType::OutcomeSettled: return "outcomeSettled";
+        case OutcomeMetaUpdateType::QuestionUpdated: return "questionUpdated";
+        case OutcomeMetaUpdateType::QuestionSettled: return "questionSettled";
+        default: return "unknown";
+        }
+    }
+
+    inline OutcomeMetaUpdateType stringToOutcomeMetaUpdateType(std::string_view s)
+    {
+        if (s == "outcomeCreated") return OutcomeMetaUpdateType::OutcomeCreated;
+        if (s == "outcomeSettled") return OutcomeMetaUpdateType::OutcomeSettled;
+        if (s == "questionUpdated") return OutcomeMetaUpdateType::QuestionUpdated;
+        if (s == "questionSettled") return OutcomeMetaUpdateType::QuestionSettled;
+        return OutcomeMetaUpdateType::Unknown;
+    }
+
+    // Flattened representation of the WsOutcomeMetaUpdate discriminated union
+    // (outcomeCreated/outcomeSettled/questionUpdated/questionSettled). `type`
+    // indicates which variant this was; fields not applicable are left default.
+    struct OutcomeMetaUpdate
+    {
+        OutcomeMetaUpdateType type;
+        Outcome outcome;
+        int settledOutcome = 0;
+        QuestionSpec question;
+        int settledQuestion = 0;
     };
 
     // --- Rest endpoint types (unauthenticated) ---

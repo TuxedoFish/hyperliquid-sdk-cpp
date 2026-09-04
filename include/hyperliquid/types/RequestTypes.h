@@ -77,6 +77,7 @@ namespace hyperliquid
         AllDexsClearinghouseState,
         AllDexsAssetCtxs,
         FastAssetCtxs,
+        OutcomeMetaUpdates,
         Unknown,
     };
 
@@ -107,6 +108,7 @@ namespace hyperliquid
         case SubscriptionType::AllDexsClearinghouseState: return "allDexsClearinghouseState";
         case SubscriptionType::AllDexsAssetCtxs: return "allDexsAssetCtxs";
         case SubscriptionType::FastAssetCtxs: return "fastAssetCtxs";
+        case SubscriptionType::OutcomeMetaUpdates: return "outcomeMetaUpdates";
         default: throw std::invalid_argument("Unknown SubscriptionType");
         }
     }
@@ -136,6 +138,7 @@ namespace hyperliquid
         if (type == "allDexsClearinghouseState") return SubscriptionType::AllDexsClearinghouseState;
         if (type == "allDexsAssetCtxs") return SubscriptionType::AllDexsAssetCtxs;
         if (type == "fastAssetCtxs") return SubscriptionType::FastAssetCtxs;
+        if (type == "outcomeMetaUpdates") return SubscriptionType::OutcomeMetaUpdates;
         return SubscriptionType::Unknown;
     }
 
@@ -176,6 +179,7 @@ namespace hyperliquid
         AllPerpMetas,
         // Info endpoints (Outcomes)
         OutcomeMeta,
+        SettledOutcome,
         // Info endpoints (Spot)
         SpotMeta,
         SpotMetaAndAssetCtxs,
@@ -259,6 +263,7 @@ namespace hyperliquid
         case RestEndpointType::AllPerpMetas: return "allPerpMetas";
 
         case RestEndpointType::OutcomeMeta: return "outcomeMeta";
+        case RestEndpointType::SettledOutcome: return "settledOutcome";
 
         case RestEndpointType::SpotMeta: return "spotMeta";
         case RestEndpointType::SpotMetaAndAssetCtxs: return "spotMetaAndAssetCtxs";
@@ -341,6 +346,7 @@ namespace hyperliquid
         case RestEndpointType::AllPerpMetas: return false;
 
         case RestEndpointType::OutcomeMeta: return false;
+        case RestEndpointType::SettledOutcome: return false;
 
         case RestEndpointType::SpotMeta: return false;
         case RestEndpointType::SpotMetaAndAssetCtxs: return false;

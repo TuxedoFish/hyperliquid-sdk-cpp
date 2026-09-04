@@ -27,6 +27,9 @@ namespace hyperliquid
             case RestEndpointType::OutcomeMeta:
                 listener.onOutcomeMeta(parseOutcomeMeta(message), correlationId);
                 break;
+            case RestEndpointType::SettledOutcome:
+                listener.onSettledOutcome(parseSettledOutcome(message), correlationId);
+                break;
             case RestEndpointType::PerpDexs:
                 listener.onPerpDexs(parsePerpDexs(message), correlationId);
                 break;
@@ -500,29 +503,32 @@ namespace hyperliquid
             return response;
         }
 
-        static OutcomeDescription parseOutcomeDescription(const std::string& desc)
+        static void parseOutcomeSpec(simdjson::ondemand::object& obj, Outcome& outcome)
         {
-            OutcomeDescription result;
-            size_t pos = 0;
-            while (pos < desc.size())
+            outcome.outcome = static_cast<int>(obj["outcome"].get_int64().value());
+            outcome.name = std::string(obj["name"].get_string().value());
+            outcome.descriptionRaw = std::string(obj["description"].get_string().value());
+            outcome.description = parseOutcomeDescription(outcome.descriptionRaw);
+
+            auto sideSpecs = obj["sideSpecs"].get_array().value();
+            for (auto sideEntry : sideSpecs)
             {
-                size_t sep = desc.find('|', pos);
-                std::string_view segment(desc.data() + pos, (sep == std::string::npos ? desc.size() : sep) - pos);
-                size_t colon = segment.find(':');
-                if (colon != std::string_view::npos)
-                {
-                    std::string_view key = segment.substr(0, colon);
-                    std::string_view val = segment.substr(colon + 1);
-                    if (key == "class") result.outcomeClass = std::string(val);
-                    else if (key == "underlying") result.underlying = std::string(val);
-                    else if (key == "expiry") result.expiry = parseOutcomeExpiry(std::string(val));
-                    else if (key == "targetPrice") result.targetPrice = std::string(val);
-                    else if (key == "period") result.period = std::string(val);
-                }
-                if (sep == std::string::npos) break;
-                pos = sep + 1;
+                auto sideObj = sideEntry.get_object().value();
+                OutcomeSideSpec spec;
+                spec.name = std::string(sideObj["name"].get_string().value());
+                int64_t token;
+                if (!sideObj["token"].get_int64().get(token))
+                    spec.token = static_cast<int>(token);
+                outcome.sideSpecs.push_back(std::move(spec));
             }
-            return result;
+
+            std::string_view quoteToken;
+            if (!obj["quoteToken"].get_string().get(quoteToken))
+                outcome.quoteToken = std::string(quoteToken);
+
+            std::string_view deployer;
+            if (!obj["deployer"].get_string().get(deployer))
+                outcome.deployer = std::string(deployer);
         }
 
         OutcomeMetaResponse parseOutcomeMeta(const std::string& message)
@@ -538,26 +544,64 @@ namespace hyperliquid
                 {
                     auto obj = entry.get_object().value();
                     Outcome outcome;
-                    outcome.outcome = static_cast<int>(obj["outcome"].get_int64().value());
-                    outcome.name = std::string(obj["name"].get_string().value());
-                    outcome.descriptionRaw = std::string(obj["description"].get_string().value());
-                    outcome.description = parseOutcomeDescription(outcome.descriptionRaw);
-
-                    auto sideSpecs = obj["sideSpecs"].get_array().value();
-                    for (auto sideEntry : sideSpecs)
-                    {
-                        auto sideObj = sideEntry.get_object().value();
-                        OutcomeSideSpec spec;
-                        spec.name = std::string(sideObj["name"].get_string().value());
-                        outcome.sideSpecs.push_back(std::move(spec));
-                    }
-
+                    parseOutcomeSpec(obj, outcome);
                     response.outcomes.push_back(std::move(outcome));
                 }
             }
             catch (const simdjson::simdjson_error& e)
             {
                 getLogger()->error("RestMessageParser: parse error in outcomeMeta: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        SettledOutcomeResponse parseSettledOutcome(const std::string& message)
+        {
+            SettledOutcomeResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                if (doc.type().value() == simdjson::ondemand::json_type::null)
+                    return response;
+
+                auto root = doc.get_object().value();
+                response.isSettled = true;
+
+                auto spec = root["spec"].get_object().value();
+                parseOutcomeSpec(spec, response.spec);
+
+                response.settleFraction = toDouble(root["settleFraction"].get_string().value());
+                response.details = std::string(root["details"].get_string().value());
+
+                simdjson::ondemand::object questionObj;
+                if (!root["question"].get_object().get(questionObj))
+                {
+                    SettledOutcomeQuestion question;
+                    auto questionId = questionObj["question"].get_object().value();
+
+                    int64_t active;
+                    if (!questionId["active"].get_int64().get(active))
+                    {
+                        question.isSettled = false;
+                        question.questionId = static_cast<int>(active);
+                    }
+                    else
+                    {
+                        question.isSettled = true;
+                        question.questionId = static_cast<int>(questionId["settled"].get_int64().value());
+                    }
+
+                    question.name = std::string(questionObj["name"].get_string().value());
+                    question.description = std::string(questionObj["description"].get_string().value());
+                    response.question = std::move(question);
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in settledOutcome: {}\n  raw: {}", e.what(), message);
             }
 
             return response;
@@ -2369,6 +2413,11 @@ namespace hyperliquid
     OutcomeMetaResponse RestApiMessageParser::parseOutcomeMeta(const std::string& message)
     {
         return impl_->parseOutcomeMeta(message);
+    }
+
+    SettledOutcomeResponse RestApiMessageParser::parseSettledOutcome(const std::string& message)
+    {
+        return impl_->parseSettledOutcome(message);
     }
 
     PerpDexsResponse RestApiMessageParser::parsePerpDexs(const std::string& message)
