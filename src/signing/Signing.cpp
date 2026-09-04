@@ -23,9 +23,6 @@ nlohmann::ordered_json Signing::prepareBody(
             spdlog::error("Wallet not configured, can't send authenticated request: {}", toString(type));
             return body;
         }
-        // Nonce: current unix time in ms. Must be strictly increasing per-user (and within the
-        // exchange's accepted clock window), so this relies on the local clock being reasonably
-        // accurate and monotonic across requests - don't override it with a custom generator.
         uint64_t nonce = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count());
@@ -84,9 +81,6 @@ nlohmann::ordered_json Signing::prepareApproveAgentBody(
     nlohmann::ordered_json action;
     action["type"] = "approveAgent";
     action["agentAddress"] = agentAddress;
-    // Signed with an empty string when no name is given (matching the reference SDKs), then
-    // stripped from the outgoing body below - the exchange treats a missing agentName the same
-    // as an empty one when it recomputes the signed struct hash for verification.
     action["agentName"] = agentName.value_or("");
     action["nonce"] = nonce;
     action["signatureChainId"] = "0x66eee";

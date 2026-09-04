@@ -5,13 +5,6 @@
 #include <hyperliquid/signing/Keys.h>
 #include <spdlog/spdlog.h>
 
-// Demonstrates approving a new agent (API) wallet: generate a throwaway keypair locally,
-// then authorize its address to trade on behalf of the main account via approveAgent.
-//
-// The printed private key below belongs to the freshly generated agent wallet, not the
-// main account - it must be saved by the caller to actually use the agent afterwards.
-// NOTE: this example is not executed as part of the build/test verification for this PR;
-// approving an agent is a real, consequential action even on testnet.
 int main()
 {
     auto wallet = loadWalletFromConfig();

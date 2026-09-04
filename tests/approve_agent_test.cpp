@@ -7,7 +7,6 @@
 
 using namespace hyperliquid;
 
-// Dummy, throwaway key used only for signing shape assertions - never a real wallet.
 static const std::string kDummyPrivateKey =
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 static const std::string kDummyAgentAddress = "0x0000000000000000000000000000000000000001";
@@ -91,8 +90,6 @@ TEST(ApproveAgentSigning, UnnamedApprovalOmitsAgentNameFromOutgoingBodyButSignsW
 
     auto body = Signing::prepareApproveAgentBody(config, kDummyAgentAddress, std::nullopt);
 
-    // Matches the reference SDK behaviour: agentName is signed as "" but not sent on the wire
-    // when the caller didn't provide a name.
     EXPECT_FALSE(body["action"].contains("agentName"));
 
     uint64_t nonce = body["nonce"].get<uint64_t>();
@@ -125,7 +122,6 @@ TEST(ApproveAgentSigning, MissingWalletReturnsBodyWithoutSignature)
     ApiConfig config;
     config.env = Environment::Testnet;
     config.skipBuildingSymbolMap = true;
-    // No wallet configured.
 
     auto body = Signing::prepareApproveAgentBody(config, kDummyAgentAddress, std::nullopt);
 
@@ -135,14 +131,12 @@ TEST(ApproveAgentSigning, MissingWalletReturnsBodyWithoutSignature)
 
 TEST(SigningHelpersTest, GeneratedKeypairAddressRoundTrips)
 {
-    // Exercises the agent keypair-generation helper used by the approveAgent example: a freshly
-    // generated key should deterministically derive to the same address every time.
     auto privateKey = SigningHelpers::generatePrivateKeyHex();
     auto address1 = SigningHelpers::privateKeyToAddress(privateKey);
     auto address2 = SigningHelpers::privateKeyToAddress(privateKey);
 
     EXPECT_EQ(address1, address2);
-    EXPECT_EQ(address1.size(), 42u); // "0x" + 40 hex chars
+    EXPECT_EQ(address1.size(), 42u);
     EXPECT_EQ(address1.substr(0, 2), "0x");
 }
 

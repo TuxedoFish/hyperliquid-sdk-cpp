@@ -43,11 +43,6 @@ public:
         const std::string& primaryType,
         bool isMainnet);
 
-    // vaultAddress/expiresAfter are folded into the L1 action hash (see SigningHelpers::actionHash)
-    // for endpoints signed with signL1Action; nonce is the current unix-ms timestamp and must be
-    // strictly increasing per-user, so don't reuse or backdate it. expiresAfter is an optional
-    // unix-ms deadline after which the exchange should reject the action even if it arrives late;
-    // omit it (the default) unless you specifically need that guarantee.
     static nlohmann::ordered_json prepareBody(
         const ApiConfig& config,
         RestEndpointType type,
@@ -55,8 +50,6 @@ public:
         const std::optional<std::string>& vaultAddress = std::nullopt,
         const std::optional<uint64_t>& expiresAfter = std::nullopt);
 
-    // approveAgent is a "user-signed action" (EIP-712 typed data via signUserSignedAction), not
-    // an L1 action, so it doesn't go through prepareBody's vaultAddress/expiresAfter handling.
     static nlohmann::ordered_json prepareApproveAgentBody(
         const ApiConfig& config,
         const std::string& agentAddress,

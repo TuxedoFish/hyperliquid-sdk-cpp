@@ -362,9 +362,6 @@ namespace hyperliquid
     struct ApproveAgentRequest
     {
         std::string agentAddress;
-        // If omitted, the approval is unnamed (max 1 per account); named agents (max 3
-        // per account, plus 2 per subaccount) can carry a `valid_until {timestampMs}`
-        // suffix per the Hyperliquid docs to set a custom expiry.
         std::optional<std::string> agentName;
     };
 

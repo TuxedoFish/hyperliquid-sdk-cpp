@@ -71,9 +71,6 @@ public:
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     SimpleResponse updateIsolatedMargin(const UpdateIsolatedMarginRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
-    // Authorizes a new agent (API) wallet to trade on behalf of the main account. This is a
-    // user-signed action tied to the main wallet, so unlike the other exchange methods it does
-    // not accept a vaultAddress.
     SimpleResponse approveAgent(const ApproveAgentRequest& request);
 
     void spotMetaAsync();
