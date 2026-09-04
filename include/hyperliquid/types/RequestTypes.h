@@ -327,7 +327,7 @@ namespace hyperliquid
 
     // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee and the staking
     // actions (cDeposit/cWithdraw/tokenDelegate) are EIP-712 user-signed actions (see
-    // Signing::prepareUserSignedActionBody / Signing::prepareUserSignedBody), not L1 actions.
+    // Signing::prepareUserSignedActionBody), not L1 actions.
     inline bool isUserSignedAction(RestEndpointType type)
     {
         switch (type)
