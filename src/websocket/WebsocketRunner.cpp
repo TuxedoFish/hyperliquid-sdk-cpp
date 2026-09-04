@@ -122,6 +122,11 @@ void WebsocketRunner::onWsHandshake(beast::error_code ec) {
 
     getLogger()->info("WebSocket connected successfully");
 
+    if (reconnectTimer_) {
+        reconnectTimer_->cancel();
+        reconnectTimer_.reset();
+    }
+
     setupControlCallback();
     lastPongTime_ = std::chrono::steady_clock::now();
     pendingPong_ = false;
@@ -146,6 +151,9 @@ void WebsocketRunner::doRead() {
 }
 
 void WebsocketRunner::onRead(beast::error_code errorCode, std::size_t) {
+    // Stale callback from a cancelled/replaced stream — ignore
+    if (!connected_ && !stopping_) return;
+
     if (errorCode) {
         if (stopping_) {
             // read cancelled, now safe to close
@@ -198,6 +206,8 @@ void WebsocketRunner::doWrite() {
 }
 
 void WebsocketRunner::onWrite(beast::error_code ec, std::size_t) {
+    if (!connected_) return;
+
     if (ec) {
         getLogger()->error("write error: {} (connected={} queueSize={})", ec.message(), connected_.load(), writeQueue_.size());
         writing_ = false;
@@ -218,6 +228,8 @@ void WebsocketRunner::doClose() {
 
 void WebsocketRunner::scheduleReconnect() {
     if (stopping_) return;
+    if (pingTimer_) pingTimer_->cancel();
+    if (reconnectTimer_) reconnectTimer_->cancel();
 
     reconnectAttempts_++;
     int delaySecs = std::min(1 << reconnectAttempts_, MAX_BACKOFF_SECS);
@@ -232,7 +244,19 @@ void WebsocketRunner::scheduleReconnect() {
 }
 
 void WebsocketRunner::doReconnect() {
+    if (connected_) return;
+
+    if (reconnectTimer_) {
+        reconnectTimer_->cancel();
+        reconnectTimer_.reset();
+    }
+
     getLogger()->info("doReconnect: clearing state (writing={} queueSize={})", writing_, writeQueue_.size());
+
+    // Cancel pending async operations on the old stream before destroying it.
+    // This causes in-flight async_read/async_write to complete with operation_aborted.
+    beast::error_code ec;
+    beast::get_lowest_layer(*ws_).socket().close(ec);
 
     // Clear all pending state from previous connection
     pendingPong_ = false;
