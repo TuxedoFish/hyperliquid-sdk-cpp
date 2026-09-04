@@ -46,22 +46,35 @@ int main()
     auto rewards = api.delegatorRewards(userAddress);
     spdlog::info("{} reward entries", rewards.rewards.size());
 
-    // cDeposit/cWithdraw/tokenDelegate are real staking exchange actions - this account has no
-    // HYPE balance on testnet, so these are expected to fail with an insufficient-balance style
-    // business-logic error. That's still useful evidence: it confirms the request is built,
-    // signed, and submitted correctly (a malformed request would fail before reaching that check).
-    spdlog::info("=== cDeposit (expect insufficient-balance rejection) ===");
-    logSimpleResponse("cDeposit", api.cDeposit(1));
+    // This account holds real testnet HYPE (weiDecimals=8), so cDeposit/tokenDelegate below are
+    // exercised as genuine successes, not just correctly-signed rejections.
+    spdlog::info("=== cDeposit: 3 HYPE into staking ===");
+    logSimpleResponse("cDeposit", api.cDeposit(3ULL * 100000000ULL));
 
-    spdlog::info("=== cWithdraw (expect insufficient-balance rejection) ===");
-    logSimpleResponse("cWithdraw", api.cWithdraw(1));
+    spdlog::info("=== delegatorSummary after deposit ===");
+    summary = api.delegatorSummary(userAddress);
+    spdlog::info("delegated={} undelegated={} totalPendingWithdrawal={} nPendingWithdrawals={}",
+                 summary.delegated, summary.undelegated, summary.totalPendingWithdrawal, summary.nPendingWithdrawals);
 
-    spdlog::info("=== tokenDelegate (expect insufficient-balance rejection) ===");
+    spdlog::info("=== tokenDelegate: delegate 2 HYPE to validator ===");
     hyperliquid::TokenDelegateRequest delegateReq;
     delegateReq.validator = "0x0000472d488d33b7329ca53bfcc3918961d55f8e"; // "Puffer Node", from validatorSummaries
-    delegateReq.wei = 1;
+    delegateReq.wei = 2ULL * 100000000ULL;
     delegateReq.isUndelegate = false;
     logSimpleResponse("tokenDelegate", api.tokenDelegate(delegateReq));
+
+    spdlog::info("=== delegations after delegating ===");
+    delegations = api.delegations(userAddress);
+    spdlog::info("{} delegations", delegations.delegations.size());
+    for (const auto& d : delegations.delegations)
+        spdlog::info("  validator={} amount={} lockedUntilTimestamp={}", d.validator, d.amount, d.lockedUntilTimestamp);
+
+    // Delegations have a lock-up before they can be undelegated, and cWithdraw (staking -> spot)
+    // has a separate multi-day unstaking queue - so this is expected to be rejected on a
+    // freshly-delegated balance. Still useful evidence: it confirms the request reaches the
+    // correct, specific business-logic check rather than failing at signing/transport.
+    spdlog::info("=== cWithdraw: 1 HYPE (expect lock-up/queue rejection) ===");
+    logSimpleResponse("cWithdraw", api.cWithdraw(1ULL * 100000000ULL));
 
     return 0;
 }
