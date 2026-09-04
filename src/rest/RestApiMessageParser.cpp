@@ -51,6 +51,15 @@ namespace hyperliquid
             case RestEndpointType::AllPerpMetas:
                 listener.onAllPerpMetas(parseAllPerpMetas(message), correlationId);
                 break;
+            case RestEndpointType::PerpDexLimits:
+                listener.onPerpDexLimits(parsePerpDexLimits(message), correlationId);
+                break;
+            case RestEndpointType::PerpDexStatus:
+                listener.onPerpDexStatus(parsePerpDexStatus(message), correlationId);
+                break;
+            case RestEndpointType::PerpDeployAuctionStatus:
+                listener.onPerpDeployAuctionStatus(parsePerpDeployAuctionStatus(message), correlationId);
+                break;
             case RestEndpointType::L2Book:
                 listener.onL2Book(parseL2Book(message), correlationId);
                 break;
@@ -718,6 +727,36 @@ namespace hyperliquid
             return response;
         }
 
+        PerpDexLimitsResponse parsePerpDexLimits(const std::string& message)
+        {
+            PerpDexLimitsResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+
+                std::string_view dex;
+                if (!obj["dex"].get_string().get(dex))
+                    response.dex = std::string(dex);
+
+                int64_t maxAssets;
+                if (!obj["maxAssets"].get_int64().get(maxAssets))
+                    response.maxAssets = static_cast<int>(maxAssets);
+
+                int64_t usedAssets;
+                if (!obj["usedAssets"].get_int64().get(usedAssets))
+                    response.usedAssets = static_cast<int>(usedAssets);
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in perpDexLimits: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
         DelegatorHistoryResponse parseDelegatorHistory(const std::string& message)
         {
             DelegatorHistoryResponse response;
@@ -771,6 +810,32 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& err)
             {
                 getLogger()->error("RestMessageParser: parse error in delegatorHistory: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        PerpDexStatusResponse parsePerpDexStatus(const std::string& message)
+        {
+            PerpDexStatusResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+
+                std::string_view dex;
+                if (!obj["dex"].get_string().get(dex))
+                    response.dex = std::string(dex);
+
+                std::string_view status;
+                if (!obj["status"].get_string().get(status))
+                    response.status = std::string(status);
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in perpDexStatus: {}\n  raw: {}", err.what(), message);
             }
 
             return response;
@@ -1051,6 +1116,29 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& e)
             {
                 getLogger()->error("RestMessageParser: parse error in allPerpMetas: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        PerpDeployAuctionStatusResponse parsePerpDeployAuctionStatus(const std::string& message)
+        {
+            PerpDeployAuctionStatusResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+                response.startTimeSeconds = obj["startTimeSeconds"].get_uint64().value();
+                response.durationSeconds = obj["durationSeconds"].get_uint64().value();
+                response.startGas = parseNumberField(obj, "startGas");
+                response.currentGas = parseNumberField(obj, "currentGas");
+                response.endGas = parseNumberField(obj, "endGas");
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in perpDeployAuctionStatus: {}\n  raw: {}", err.what(), message);
             }
 
             return response;
@@ -2453,6 +2541,21 @@ namespace hyperliquid
     AllPerpMetasResponse RestApiMessageParser::parseAllPerpMetas(const std::string& message)
     {
         return impl_->parseAllPerpMetas(message);
+    }
+
+    PerpDexLimitsResponse RestApiMessageParser::parsePerpDexLimits(const std::string& message)
+    {
+        return impl_->parsePerpDexLimits(message);
+    }
+
+    PerpDexStatusResponse RestApiMessageParser::parsePerpDexStatus(const std::string& message)
+    {
+        return impl_->parsePerpDexStatus(message);
+    }
+
+    PerpDeployAuctionStatusResponse RestApiMessageParser::parsePerpDeployAuctionStatus(const std::string& message)
+    {
+        return impl_->parsePerpDeployAuctionStatus(message);
     }
 
     L2BookResponse RestApiMessageParser::parseL2Book(const std::string& message)

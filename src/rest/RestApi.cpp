@@ -226,6 +226,24 @@ AllPerpMetasResponse RestApi::allPerpMetas()
         impl_->signAndSendSync(RestEndpointType::AllPerpMetas, InfoRequestBuilder::allPerpMetas()));
 }
 
+PerpDexLimitsResponse RestApi::perpDexLimits(const std::string& dex)
+{
+    return RestApiMessageParser().parsePerpDexLimits(
+        impl_->signAndSendSync(RestEndpointType::PerpDexLimits, InfoRequestBuilder::perpDexLimits(dex)));
+}
+
+PerpDexStatusResponse RestApi::perpDexStatus(const std::string& dex)
+{
+    return RestApiMessageParser().parsePerpDexStatus(
+        impl_->signAndSendSync(RestEndpointType::PerpDexStatus, InfoRequestBuilder::perpDexStatus(dex)));
+}
+
+PerpDeployAuctionStatusResponse RestApi::perpDeployAuctionStatus(const std::string& dex)
+{
+    return RestApiMessageParser().parsePerpDeployAuctionStatus(
+        impl_->signAndSendSync(RestEndpointType::PerpDeployAuctionStatus, InfoRequestBuilder::perpDeployAuctionStatus(dex)));
+}
+
 L2BookResponse RestApi::l2Book(const std::string& coin,
                                const std::optional<int>& nSigFigs,
                                const std::optional<int>& mantissa)
@@ -687,6 +705,21 @@ void RestApi::perpConciseAnnotationsAsync()
 void RestApi::allPerpMetasAsync()
 {
     impl_->signAndSend(RestEndpointType::AllPerpMetas, InfoRequestBuilder::allPerpMetas());
+}
+
+void RestApi::perpDexLimitsAsync(const std::string& dex)
+{
+    impl_->signAndSend(RestEndpointType::PerpDexLimits, InfoRequestBuilder::perpDexLimits(dex));
+}
+
+void RestApi::perpDexStatusAsync(const std::string& dex)
+{
+    impl_->signAndSend(RestEndpointType::PerpDexStatus, InfoRequestBuilder::perpDexStatus(dex));
+}
+
+void RestApi::perpDeployAuctionStatusAsync(const std::string& dex)
+{
+    impl_->signAndSend(RestEndpointType::PerpDeployAuctionStatus, InfoRequestBuilder::perpDeployAuctionStatus(dex));
 }
 
 void RestApi::l2BookAsync(const std::string& coin,

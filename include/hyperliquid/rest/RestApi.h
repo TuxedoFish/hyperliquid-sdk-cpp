@@ -44,6 +44,9 @@ public:
     PerpCategoriesResponse perpCategories();
     PerpConciseAnnotationsResponse perpConciseAnnotations();
     AllPerpMetasResponse allPerpMetas();
+    PerpDexLimitsResponse perpDexLimits(const std::string& dex);
+    PerpDexStatusResponse perpDexStatus(const std::string& dex);
+    PerpDeployAuctionStatusResponse perpDeployAuctionStatus(const std::string& dex);
     L2BookResponse l2Book(const std::string& coin,
                           const std::optional<int>& nSigFigs = std::nullopt,
                           const std::optional<int>& mantissa = std::nullopt);
@@ -146,6 +149,9 @@ public:
     void perpCategoriesAsync();
     void perpConciseAnnotationsAsync();
     void allPerpMetasAsync();
+    void perpDexLimitsAsync(const std::string& dex);
+    void perpDexStatusAsync(const std::string& dex);
+    void perpDeployAuctionStatusAsync(const std::string& dex);
     void l2BookAsync(const std::string& coin,
                      const std::optional<int>& nSigFigs = std::nullopt,
                      const std::optional<int>& mantissa = std::nullopt);

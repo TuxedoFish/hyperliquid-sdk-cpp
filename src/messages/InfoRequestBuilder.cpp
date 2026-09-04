@@ -83,6 +83,30 @@ nlohmann::ordered_json InfoRequestBuilder::allPerpMetas()
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::perpDexLimits(const std::string& dex)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::PerpDexLimits);
+    body["dex"] = dex;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::perpDexStatus(const std::string& dex)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::PerpDexStatus);
+    body["dex"] = dex;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::perpDeployAuctionStatus(const std::string& dex)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::PerpDeployAuctionStatus);
+    body["dex"] = dex;
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::l2Book(const std::string& coin,
                                                   const std::optional<int>& nSigFigs,
                                                   const std::optional<int>& mantissa)

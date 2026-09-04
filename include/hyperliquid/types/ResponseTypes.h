@@ -1545,4 +1545,30 @@ namespace hyperliquid
         std::string health;
         std::optional<double> healthFactor;
     };
+
+    // --- HIP-3 deployer (perp dex abstraction) ---
+
+    struct PerpDexLimitsResponse
+    {
+        std::string dex;
+        int maxAssets = 0;
+        int usedAssets = 0;
+    };
+
+    struct PerpDexStatusResponse
+    {
+        std::string dex;
+        // Raw status string from the API - not enumerated, since the full set of
+        // possible values isn't confidently known for this endpoint.
+        std::string status;
+    };
+
+    struct PerpDeployAuctionStatusResponse
+    {
+        uint64_t startTimeSeconds = 0;
+        uint64_t durationSeconds = 0;
+        double startGas = 0.0;
+        double currentGas = 0.0;
+        double endGas = 0.0;
+    };
 }

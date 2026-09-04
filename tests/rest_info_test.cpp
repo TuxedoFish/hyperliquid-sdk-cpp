@@ -882,3 +882,69 @@ TEST(RestApiMessageParserInfoTest, ParseSettledOutcomeQuestionActive)
     EXPECT_EQ(response.question->questionId, 823);
     EXPECT_EQ(response.question->name, "2026 World Cup champion");
 }
+
+// --- HIP-3 deployer (perp dex abstraction) ---
+
+TEST(InfoRequestBuilderTest, PerpDexLimits)
+{
+    auto body = InfoRequestBuilder::perpDexLimits("test-dex");
+    EXPECT_EQ(body["type"], "perpDexLimits");
+    EXPECT_EQ(body["dex"], "test-dex");
+}
+
+TEST(InfoRequestBuilderTest, PerpDexStatus)
+{
+    auto body = InfoRequestBuilder::perpDexStatus("test-dex");
+    EXPECT_EQ(body["type"], "perpDexStatus");
+    EXPECT_EQ(body["dex"], "test-dex");
+}
+
+TEST(InfoRequestBuilderTest, PerpDeployAuctionStatus)
+{
+    auto body = InfoRequestBuilder::perpDeployAuctionStatus("test-dex");
+    EXPECT_EQ(body["type"], "perpDeployAuctionStatus");
+    EXPECT_EQ(body["dex"], "test-dex");
+}
+
+TEST(RestApiMessageParserInfoTest, ParsePerpDexLimits)
+{
+    std::string message = R"({"dex": "test-dex", "maxAssets": 10, "usedAssets": 3})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parsePerpDexLimits(message);
+
+    EXPECT_EQ(response.dex, "test-dex");
+    EXPECT_EQ(response.maxAssets, 10);
+    EXPECT_EQ(response.usedAssets, 3);
+}
+
+TEST(RestApiMessageParserInfoTest, ParsePerpDexStatus)
+{
+    std::string message = R"({"dex": "test-dex", "status": "active"})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parsePerpDexStatus(message);
+
+    EXPECT_EQ(response.dex, "test-dex");
+    EXPECT_EQ(response.status, "active");
+}
+
+TEST(RestApiMessageParserInfoTest, ParsePerpDeployAuctionStatus)
+{
+    std::string message = R"({
+        "startTimeSeconds": 1690000000,
+        "durationSeconds": 3600,
+        "startGas": "1000000.0",
+        "currentGas": "500000.0",
+        "endGas": "100000.0"
+    })";
+
+    RestApiMessageParser parser;
+    auto response = parser.parsePerpDeployAuctionStatus(message);
+
+    EXPECT_EQ(response.startTimeSeconds, 1690000000ULL);
+    EXPECT_EQ(response.durationSeconds, 3600ULL);
+    EXPECT_DOUBLE_EQ(response.startGas, 1000000.0);
+    EXPECT_DOUBLE_EQ(response.currentGas, 500000.0);
+    EXPECT_DOUBLE_EQ(response.endGas, 100000.0);
+}
