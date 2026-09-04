@@ -21,6 +21,15 @@ public:
     virtual void onUserFunding(const UserFunding& funding) {}
     virtual void onLiquidation(const Liquidation& liquidation) {}
     virtual void onNonUserCancel(const NonUserCancel& cancel) {}
+
+    // `userFundings` channel: distinct from onUserFunding() above, which fires
+    // for the legacy combined `userEvents` channel. Kept separate rather than
+    // reused so overriding one does not silently also capture the other.
+    virtual void onUserFundingUpdate(const UserFunding& funding) {}
+    virtual void onLedgerUpdate(const LedgerUpdate& update) {}
+    virtual void onWebData3(const WebData3Update& update) {}
+    virtual void onClearinghouseState(const ClearinghouseStateUpdate& update) {}
+    virtual void onOpenOrdersSnapshot(const OpenOrdersUpdate& update) {}
 };
 
 }

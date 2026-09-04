@@ -213,6 +213,31 @@ namespace hyperliquid
                     auto data = doc["data"].get_object().value();
                     crackSubscriptionResponse(data, listener);
                 }
+                else if (channel == "userFundings")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackUserFundings(data, listener);
+                }
+                else if (channel == "userNonFundingLedgerUpdates")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackUserNonFundingLedgerUpdates(data, listener);
+                }
+                else if (channel == "webData3")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackWebData3(data, listener);
+                }
+                else if (channel == "clearinghouseState")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackClearinghouseState(data, listener);
+                }
+                else if (channel == "openOrders")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackOpenOrders(data, listener);
+                }
                 else if (channel == "error")
                 {
                     getLogger()->error("Websocket error: {}", message);
@@ -644,6 +669,346 @@ namespace hyperliquid
                 }
                 return;
             }
+        }
+
+        // channel: "userFundings"
+        // { isSnapshot?: bool, user: string, fundings: WsUserFunding[] }
+        void crackUserFundings(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            bool isSnapshot = false;
+            bool snapshotVal;
+            if (!data["isSnapshot"].get_bool().get(snapshotVal))
+                isSnapshot = snapshotVal;
+
+            auto fundings = data["fundings"].get_array().value();
+            for (auto entry : fundings)
+            {
+                try
+                {
+                    auto obj = entry.get_object().value();
+                    UserFunding funding;
+                    funding.time = obj["time"].get_uint64().value();
+                    funding.coin = std::string(obj["coin"].get_string().value());
+                    funding.usdc = toDouble(obj["usdc"].get_string().value());
+                    funding.szi = toDouble(obj["szi"].get_string().value());
+                    funding.fundingRate = toDouble(obj["fundingRate"].get_string().value());
+                    funding.isSnapshot = isSnapshot;
+                    listener.onUserFundingUpdate(funding);
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in userFundings entry: {}", e.what());
+                }
+            }
+        }
+
+        void crackLedgerDelta(simdjson::ondemand::object& delta, LedgerUpdate& update)
+        {
+            std::string_view typeStr = delta["type"].get_string().value();
+            update.type = stringToLedgerUpdateType(typeStr);
+
+            switch (update.type)
+            {
+            case LedgerUpdateType::Deposit:
+                update.usdc = toDoubleField(delta, "usdc");
+                break;
+            case LedgerUpdateType::Withdraw:
+                update.usdc = toDoubleField(delta, "usdc");
+                update.nonce = delta["nonce"].get_uint64().value();
+                update.fee = toDoubleField(delta, "fee");
+                break;
+            case LedgerUpdateType::InternalTransfer:
+                update.usdc = toDoubleField(delta, "usdc");
+                update.user = std::string(delta["user"].get_string().value());
+                update.destination = std::string(delta["destination"].get_string().value());
+                update.fee = toDoubleField(delta, "fee");
+                break;
+            case LedgerUpdateType::SubAccountTransfer:
+                update.usdc = toDoubleField(delta, "usdc");
+                update.user = std::string(delta["user"].get_string().value());
+                update.destination = std::string(delta["destination"].get_string().value());
+                break;
+            case LedgerUpdateType::Liquidation:
+                update.accountValue = toDoubleField(delta, "accountValue");
+                update.leverageType = std::string(delta["leverageType"].get_string().value());
+                {
+                    simdjson::ondemand::array positions;
+                    if (!delta["liquidatedPositions"].get_array().get(positions))
+                    {
+                        for (auto posEntry : positions)
+                        {
+                            auto posObj = posEntry.get_object().value();
+                            LiquidatedPosition pos;
+                            pos.coin = std::string(posObj["coin"].get_string().value());
+                            pos.szi = toDoubleField(posObj, "szi");
+                            update.liquidatedPositions.push_back(std::move(pos));
+                        }
+                    }
+                }
+                break;
+            case LedgerUpdateType::VaultCreate:
+            case LedgerUpdateType::VaultDeposit:
+            case LedgerUpdateType::VaultDistribution:
+                update.vault = std::string(delta["vault"].get_string().value());
+                update.usdc = toDoubleField(delta, "usdc");
+                break;
+            case LedgerUpdateType::VaultWithdraw:
+                update.vault = std::string(delta["vault"].get_string().value());
+                update.user = std::string(delta["user"].get_string().value());
+                update.requestedUsd = toDoubleField(delta, "requestedUsd");
+                update.commission = toDoubleField(delta, "commission");
+                update.closingCost = toDoubleField(delta, "closingCost");
+                update.basis = toDoubleField(delta, "basis");
+                update.netWithdrawnUsd = toDoubleField(delta, "netWithdrawnUsd");
+                break;
+            case LedgerUpdateType::VaultLeaderCommission:
+                update.user = std::string(delta["user"].get_string().value());
+                update.usdc = toDoubleField(delta, "usdc");
+                break;
+            case LedgerUpdateType::SpotTransfer:
+                update.token = std::string(delta["token"].get_string().value());
+                update.amount = toDoubleField(delta, "amount");
+                update.usdcValue = toDoubleField(delta, "usdcValue");
+                update.user = std::string(delta["user"].get_string().value());
+                update.destination = std::string(delta["destination"].get_string().value());
+                update.fee = toDoubleField(delta, "fee");
+                break;
+            case LedgerUpdateType::AccountClassTransfer:
+                update.usdc = toDoubleField(delta, "usdc");
+                update.toPerp = delta["toPerp"].get_bool().value();
+                break;
+            case LedgerUpdateType::SpotGenesis:
+                update.token = std::string(delta["token"].get_string().value());
+                update.amount = toDoubleField(delta, "amount");
+                break;
+            case LedgerUpdateType::RewardsClaim:
+                update.amount = toDoubleField(delta, "amount");
+                break;
+            default:
+                getLogger()->warn("unhandled ledger update delta type: {}", std::string(typeStr));
+                break;
+            }
+        }
+
+        // channel: "userNonFundingLedgerUpdates"
+        // { isSnapshot?: bool, user: string, nonFundingLedgerUpdates: {time, hash, delta}[] }
+        void crackUserNonFundingLedgerUpdates(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            bool isSnapshot = false;
+            bool snapshotVal;
+            if (!data["isSnapshot"].get_bool().get(snapshotVal))
+                isSnapshot = snapshotVal;
+
+            auto updates = data["nonFundingLedgerUpdates"].get_array().value();
+            for (auto entry : updates)
+            {
+                try
+                {
+                    auto obj = entry.get_object().value();
+                    LedgerUpdate update{};
+                    update.time = obj["time"].get_uint64().value();
+                    update.hash = std::string(obj["hash"].get_string().value());
+                    auto delta = obj["delta"].get_object().value();
+                    crackLedgerDelta(delta, update);
+                    update.isSnapshot = isSnapshot;
+                    listener.onLedgerUpdate(update);
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in userNonFundingLedgerUpdates entry: {}", e.what());
+                }
+            }
+        }
+
+        // channel: "webData3"
+        // { userState: {...}, perpDexStates: [...] } — see docs for full (evolving) shape.
+        void crackWebData3(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            WebData3Update update;
+
+            auto rawStr = simdjson::to_json_string(data);
+            if (!rawStr.error())
+                update.raw = std::string(rawStr.value());
+
+            simdjson::ondemand::object userState;
+            if (!data["userState"].get_object().get(userState))
+            {
+                std::string_view agentAddress;
+                if (!userState["agentAddress"].get_string().get(agentAddress))
+                    update.userState.agentAddress = std::string(agentAddress);
+
+                uint64_t agentValidUntil;
+                if (!userState["agentValidUntil"].get_uint64().get(agentValidUntil))
+                    update.userState.agentValidUntil = agentValidUntil;
+
+                update.userState.serverTime = userState["serverTime"].get_uint64().value();
+                update.userState.cumLedger = toDoubleField(userState, "cumLedger");
+                update.userState.isVault = userState["isVault"].get_bool().value();
+                update.userState.user = std::string(userState["user"].get_string().value());
+
+                bool optOut;
+                update.userState.optOutOfSpotDusting =
+                    !userState["optOutOfSpotDusting"].get_bool().get(optOut) && optOut;
+
+                bool dexAbstraction;
+                update.userState.dexAbstractionEnabled =
+                    !userState["dexAbstractionEnabled"].get_bool().get(dexAbstraction) && dexAbstraction;
+            }
+
+            simdjson::ondemand::array perpDexStates;
+            if (!data["perpDexStates"].get_array().get(perpDexStates))
+            {
+                for (auto entry : perpDexStates)
+                {
+                    try
+                    {
+                        auto obj = entry.get_object().value();
+                        PerpDexState state;
+                        state.totalVaultEquity = toDoubleField(obj, "totalVaultEquity");
+
+                        simdjson::ondemand::array caps;
+                        if (!obj["perpsAtOpenInterestCap"].get_array().get(caps))
+                        {
+                            for (auto capEntry : caps)
+                                state.perpsAtOpenInterestCap.emplace_back(capEntry.get_string().value());
+                        }
+
+                        simdjson::ondemand::array vaults;
+                        if (!obj["leadingVaults"].get_array().get(vaults))
+                        {
+                            for (auto vaultEntry : vaults)
+                            {
+                                auto vaultObj = vaultEntry.get_object().value();
+                                LeadingVault vault;
+                                vault.address = std::string(vaultObj["address"].get_string().value());
+                                vault.name = std::string(vaultObj["name"].get_string().value());
+                                state.leadingVaults.push_back(std::move(vault));
+                            }
+                        }
+
+                        update.perpDexStates.push_back(std::move(state));
+                    }
+                    catch (const simdjson::simdjson_error& e)
+                    {
+                        getLogger()->error("parse error in webData3 perpDexState: {}", e.what());
+                    }
+                }
+            }
+
+            listener.onWebData3(update);
+        }
+
+        void crackInnerClearinghouseState(simdjson::ondemand::object& obj, ClearinghouseState& state)
+        {
+            simdjson::ondemand::array positions;
+            if (!obj["assetPositions"].get_array().get(positions))
+            {
+                for (auto entry : positions)
+                {
+                    try
+                    {
+                        auto posEntry = entry.get_object().value();
+                        auto position = posEntry["position"].get_object().value();
+
+                        AssetPosition pos;
+                        pos.coin = std::string(position["coin"].get_string().value());
+                        pos.szi = toDoubleField(position, "szi");
+                        pos.entryPx = toDoubleField(position, "entryPx");
+                        pos.positionValue = toDoubleField(position, "positionValue");
+                        pos.unrealizedPnl = toDoubleField(position, "unrealizedPnl");
+                        pos.returnOnEquity = toDoubleField(position, "returnOnEquity");
+                        pos.marginUsed = toDoubleField(position, "marginUsed");
+                        pos.maxLeverage = static_cast<int>(position["maxLeverage"].get_int64().value());
+
+                        std::string_view liqPxStr;
+                        pos.hasLiquidationPx = !position["liquidationPx"].get_string().get(liqPxStr)
+                            && !liqPxStr.empty();
+                        pos.liquidationPx = pos.hasLiquidationPx ? toDouble(liqPxStr) : 0.0;
+
+                        simdjson::ondemand::object leverage;
+                        if (!position["leverage"].get_object().get(leverage))
+                            pos.leverageType = std::string(leverage["type"].get_string().value());
+
+                        state.assetPositions.push_back(std::move(pos));
+                    }
+                    catch (const simdjson::simdjson_error& e)
+                    {
+                        getLogger()->error("parse error in clearinghouseState assetPosition: {}", e.what());
+                    }
+                }
+            }
+
+            auto marginSummary = obj["marginSummary"].get_object().value();
+            state.marginSummary.accountValue = toDoubleField(marginSummary, "accountValue");
+            state.marginSummary.totalNtlPos = toDoubleField(marginSummary, "totalNtlPos");
+            state.marginSummary.totalRawUsd = toDoubleField(marginSummary, "totalRawUsd");
+            state.marginSummary.totalMarginUsed = toDoubleField(marginSummary, "totalMarginUsed");
+
+            auto crossMarginSummary = obj["crossMarginSummary"].get_object().value();
+            state.crossMarginSummary.accountValue = toDoubleField(crossMarginSummary, "accountValue");
+            state.crossMarginSummary.totalNtlPos = toDoubleField(crossMarginSummary, "totalNtlPos");
+            state.crossMarginSummary.totalRawUsd = toDoubleField(crossMarginSummary, "totalRawUsd");
+            state.crossMarginSummary.totalMarginUsed = toDoubleField(crossMarginSummary, "totalMarginUsed");
+
+            state.crossMaintenanceMarginUsed = toDoubleField(obj, "crossMaintenanceMarginUsed");
+            state.withdrawable = toDoubleField(obj, "withdrawable");
+        }
+
+        // channel: "clearinghouseState"
+        // { dex: string, user: string, clearinghouseState: InnerClearinghouseState }
+        void crackClearinghouseState(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            ClearinghouseStateUpdate update;
+            std::string_view dex;
+            if (!data["dex"].get_string().get(dex))
+                update.dex = std::string(dex);
+            update.user = std::string(data["user"].get_string().value());
+
+            auto inner = data["clearinghouseState"].get_object().value();
+            crackInnerClearinghouseState(inner, update.state);
+
+            listener.onClearinghouseState(update);
+        }
+
+        // channel: "openOrders"
+        // { dex: string, user: string, orders: WsBasicOrder[] }
+        void crackOpenOrders(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            OpenOrdersUpdate update;
+            std::string_view dex;
+            if (!data["dex"].get_string().get(dex))
+                update.dex = std::string(dex);
+            update.user = std::string(data["user"].get_string().value());
+
+            auto orders = data["orders"].get_array().value();
+            for (auto entry : orders)
+            {
+                try
+                {
+                    auto obj = entry.get_object().value();
+                    OpenOrder order;
+                    order.coin = std::string(obj["coin"].get_string().value());
+                    auto sideStr = obj["side"].get_string().value();
+                    order.side = sideStr.size() > 0 ? sideStr[0] : '?';
+                    order.limitPx = toDouble(obj["limitPx"].get_string().value());
+                    order.sz = toDouble(obj["sz"].get_string().value());
+                    order.oid = obj["oid"].get_uint64().value();
+                    order.timestamp = obj["timestamp"].get_uint64().value();
+                    order.origSz = toDouble(obj["origSz"].get_string().value());
+
+                    std::string_view cloidStr;
+                    if (!obj["cloid"].get_string().get(cloidStr))
+                        order.cloid = std::string(cloidStr);
+
+                    update.orders.push_back(std::move(order));
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in openOrders entry: {}", e.what());
+                }
+            }
+
+            listener.onOpenOrdersSnapshot(update);
         }
     };
 

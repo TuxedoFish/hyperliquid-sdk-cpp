@@ -88,7 +88,7 @@ namespace hyperliquid
         case SubscriptionType::Notification: return "notification";
         case SubscriptionType::WebData3: return "webData3";
         case SubscriptionType::TwapStates: return "twapStates";
-        case SubscriptionType::ClearingHouseState: return "clearingHouseState";
+        case SubscriptionType::ClearingHouseState: return "clearinghouseState";
         case SubscriptionType::OpenOrders: return "openOrders";
         case SubscriptionType::OrderUpdates: return "orderUpdates";
         case SubscriptionType::UserEvents: return "userEvents";
@@ -113,7 +113,7 @@ namespace hyperliquid
         if (type == "notification") return SubscriptionType::Notification;
         if (type == "webData3") return SubscriptionType::WebData3;
         if (type == "twapStates") return SubscriptionType::TwapStates;
-        if (type == "clearingHouseState") return SubscriptionType::ClearingHouseState;
+        if (type == "clearinghouseState") return SubscriptionType::ClearingHouseState;
         if (type == "openOrders") return SubscriptionType::OpenOrders;
         if (type == "orderUpdates") return SubscriptionType::OrderUpdates;
         if (type == "userEvents") return SubscriptionType::UserEvents;
