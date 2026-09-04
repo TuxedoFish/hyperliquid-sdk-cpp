@@ -873,7 +873,7 @@ namespace hyperliquid
         double userSpotCrossRate;
         double userSpotAddRate;
         double activeReferralDiscount;
-        double feeTrialReward;
+        double feeTrialEscrow;
         std::optional<uint64_t> nextTrialAvailableTimestamp;
         std::optional<StakingLink> stakingLink;
         std::optional<ActiveStakingDiscount> activeStakingDiscount;

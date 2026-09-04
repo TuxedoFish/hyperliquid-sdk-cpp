@@ -1098,6 +1098,10 @@ namespace hyperliquid
 
             try
             {
+                // The API returns a bare `null` rather than `[]` when the user has no sub-accounts.
+                if (doc.type().value() == simdjson::ondemand::json_type::null)
+                    return response;
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1191,7 +1195,7 @@ namespace hyperliquid
                 response.userSpotCrossRate = parseNumberField(obj, "userSpotCrossRate");
                 response.userSpotAddRate = parseNumberField(obj, "userSpotAddRate");
                 response.activeReferralDiscount = parseNumberField(obj, "activeReferralDiscount");
-                response.feeTrialReward = parseNumberField(obj, "feeTrialReward");
+                response.feeTrialEscrow = parseNumberField(obj, "feeTrialEscrow");
 
                 simdjson::ondemand::value trialTsVal;
                 if (obj["nextTrialAvailableTimestamp"].get(trialTsVal) == simdjson::SUCCESS && !trialTsVal.is_null())
