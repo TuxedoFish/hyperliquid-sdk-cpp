@@ -25,17 +25,11 @@ namespace hyperliquid
             index++;
         }
 
-        // Spot trading asset ids are 10000 + a *pair's* position in spotMeta().universe, not a
-        // token's own `index` field (those are different, unrelated numbering spaces - a token
-        // can appear as the base of many pairs). Auto-generated pair names ("@<pair.index>")
-        // echo the pair's own `index` field, which is yet another numbering space unrelated to
-        // its array position - e.g. the pair at position 907 can be named "@1035", while some
-        // unrelated pair at a different position can be named "@907". Only that array position
-        // is meaningful for trading/lookup (it's what l2Book/assetCtxs call "coin"), so
-        // auto-generated names are remapped to "@<position>" instead of trusted as-is. Only
-        // canonical pairs with a real human-readable name get their bare token name (e.g.
-        // "PURR") mapped as a convenience alias; ambiguous/auto-named pairs must be traded via
-        // "@<position>" or an explicit OrderRequest::assetId instead.
+        // Spot asset ids are 10000 + a pair's *array position* in spotMeta().universe - not a
+        // token's `index` field, and not the pair's own `index` field (which auto-generated
+        // names like "@1035" echo). Those are different numbering spaces that can disagree for
+        // the same pair, so auto-generated names are remapped to "@<position>" here rather than
+        // trusted as-is, matching what l2Book/assetCtxs call "coin".
         auto spotMetaResponse = api->spotMetaAndAssetCtxs();
         int pairIndex = 0;
         for (const auto& pair : spotMetaResponse.meta.universe)
