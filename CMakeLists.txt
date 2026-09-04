@@ -85,6 +85,10 @@ if(HYPERLIQUID_BUILD_TESTS)
     target_link_libraries(signing_test PRIVATE hyperliquid-sdk GTest::gtest GTest::gtest_main nlohmann_json::nlohmann_json)
     target_include_directories(signing_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME signing_test COMMAND signing_test)
+
+    add_executable(rest_response_test tests/rest_response_test.cpp)
+    target_link_libraries(rest_response_test PRIVATE hyperliquid-sdk GTest::gtest GTest::gtest_main)
+    add_test(NAME rest_response_test COMMAND rest_response_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)

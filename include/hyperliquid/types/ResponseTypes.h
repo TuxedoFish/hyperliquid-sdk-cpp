@@ -462,6 +462,7 @@ namespace hyperliquid
     struct OrderStatusResting
     {
         uint64_t oid;
+        std::optional<std::string> cloid;
     };
 
     struct OrderStatusFilled
@@ -469,6 +470,7 @@ namespace hyperliquid
         std::string totalSz;
         std::string avgPx;
         uint64_t oid;
+        std::optional<std::string> cloid;
     };
 
     struct OrderStatusResult

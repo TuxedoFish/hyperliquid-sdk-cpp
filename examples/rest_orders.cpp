@@ -1,7 +1,6 @@
 #include "test_config.h"
 
 #include <hyperliquid/rest/RestApi.h>
-#include <hyperliquid/rest/RestApiMessageParser.h>
 #include <hyperliquid/config/Config.h>
 #include <spdlog/spdlog.h>
 
@@ -41,7 +40,6 @@ int main()
     config.wallet = wallet;
 
     hyperliquid::RestApi api(config);
-    hyperliquid::RestApiMessageParser parser;
 
     // Place and cancel by oid
     spdlog::info("=== Place and cancel by oid ===");
@@ -55,7 +53,7 @@ int main()
     order1.limit = hyperliquid::LimitOrderType{hyperliquid::Tif::Gtc};
 
     spdlog::info("Placing order...");
-    auto placeResp1 = parser.parsePlaceOrder(api.placeOrder({order1}, hyperliquid::Grouping::Na));
+    auto placeResp1 = api.placeOrder({order1}, hyperliquid::Grouping::Na);
     logPlaceOrder(placeResp1);
 
     uint64_t oid = 0;
@@ -71,7 +69,7 @@ int main()
         hyperliquid::CancelRequest cancel1;
         cancel1.asset = "ETH";
         cancel1.oid = oid;
-        logCancelOrder(parser.parseCancelOrder(api.cancelOrder({cancel1})));
+        logCancelOrder(api.cancelOrder({cancel1}));
     }
 
     // Place with cloid, modify, cancel by cloid
@@ -90,7 +88,7 @@ int main()
     order2.cloid = cloid;
 
     spdlog::info("Placing order with cloid...");
-    logPlaceOrder(parser.parsePlaceOrder(api.placeOrder({order2}, hyperliquid::Grouping::Na)));
+    logPlaceOrder(api.placeOrder({order2}, hyperliquid::Grouping::Na));
 
     spdlog::info("Modifying order (price -> 1750.0)...");
     hyperliquid::OrderRequest modifiedOrder;
@@ -106,14 +104,14 @@ int main()
     modify.cloid = cloid;
     modify.order = modifiedOrder;
 
-    auto modifyResp = parser.parseModifyOrder(api.modifyOrder(modify));
+    auto modifyResp = api.modifyOrder(modify);
     spdlog::info("Modify order: status={}", modifyResp.status);
 
     spdlog::info("Cancelling by cloid={}...", cloid);
     hyperliquid::CancelByCloidRequest cancel2;
     cancel2.asset = "ETH";
     cancel2.cloid = cloid;
-    logCancelOrder(parser.parseCancelOrder(api.cancelOrderByCloid({cancel2})));
+    logCancelOrder(api.cancelOrderByCloid({cancel2}));
 
     return 0;
 }
