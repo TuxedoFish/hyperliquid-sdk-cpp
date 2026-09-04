@@ -35,6 +35,16 @@ namespace hyperliquid
         UserFillsResponse parseUserFillsByTime(const std::string& message);
         ClearinghouseState parseClearinghouseState(const std::string& message);
         UserRateLimitResponse parseUserRateLimit(const std::string& message);
+        MetaAndAssetCtxsResponse parseMetaAndAssetCtxs(const std::string& message);
+        SpotMetaAndAssetCtxsResponse parseSpotMetaAndAssetCtxs(const std::string& message);
+        SpotClearinghouseStateResponse parseSpotClearinghouseState(const std::string& message);
+        FrontendOpenOrdersResponse parseFrontendOpenOrders(const std::string& message);
+        HistoricalOrdersResponse parseHistoricalOrders(const std::string& message);
+        UserTwapSliceFillsResponse parseUserTwapSliceFills(const std::string& message);
+        SubAccountsResponse parseSubAccounts(const std::string& message);
+        UserFeesResponse parseUserFees(const std::string& message);
+        MaxBuilderFeeResponse parseMaxBuilderFee(const std::string& message);
+        ApprovedBuildersResponse parseApprovedBuilders(const std::string& message);
         PlaceOrderResponse parsePlaceOrder(const std::string& message);
         CancelOrderResponse parseCancelOrder(const std::string& message);
         ModifyOrderResponse parseModifyOrder(const std::string& message);

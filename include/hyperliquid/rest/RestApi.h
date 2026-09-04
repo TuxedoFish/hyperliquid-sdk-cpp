@@ -59,6 +59,18 @@ public:
     ClearinghouseState clearinghouseState(const std::string& user,
                                           const std::optional<std::string>& dex = std::nullopt);
     UserRateLimitResponse userRateLimit(const std::string& user);
+    MetaAndAssetCtxsResponse metaAndAssetCtxs(const std::optional<std::string>& dex = std::nullopt);
+    SpotMetaAndAssetCtxsResponse spotMetaAndAssetCtxs();
+    SpotClearinghouseStateResponse spotClearinghouseState(const std::string& user,
+                                                          const std::optional<std::string>& dex = std::nullopt);
+    FrontendOpenOrdersResponse frontendOpenOrders(const std::string& user,
+                                                  const std::optional<std::string>& dex = std::nullopt);
+    HistoricalOrdersResponse historicalOrders(const std::string& user);
+    UserTwapSliceFillsResponse userTwapSliceFills(const std::string& user);
+    SubAccountsResponse subAccounts(const std::string& user);
+    UserFeesResponse userFees(const std::string& user);
+    MaxBuilderFeeResponse maxBuilderFee(const std::string& user, const std::string& builder);
+    ApprovedBuildersResponse approvedBuilders(const std::string& user);
     PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
                            const std::optional<Builder>& builder = std::nullopt,
@@ -105,6 +117,18 @@ public:
     void clearinghouseStateAsync(const std::string& user,
                                  const std::optional<std::string>& dex = std::nullopt);
     void userRateLimitAsync(const std::string& user);
+    void metaAndAssetCtxsAsync(const std::optional<std::string>& dex = std::nullopt);
+    void spotMetaAndAssetCtxsAsync();
+    void spotClearinghouseStateAsync(const std::string& user,
+                                     const std::optional<std::string>& dex = std::nullopt);
+    void frontendOpenOrdersAsync(const std::string& user,
+                                 const std::optional<std::string>& dex = std::nullopt);
+    void historicalOrdersAsync(const std::string& user);
+    void userTwapSliceFillsAsync(const std::string& user);
+    void subAccountsAsync(const std::string& user);
+    void userFeesAsync(const std::string& user);
+    void maxBuilderFeeAsync(const std::string& user, const std::string& builder);
+    void approvedBuildersAsync(const std::string& user);
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
                          const std::optional<Builder>& builder = std::nullopt,

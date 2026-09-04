@@ -144,6 +144,13 @@ namespace hyperliquid
         ClearinghouseState,
         UserRateLimit,
         PerpDexs,
+        FrontendOpenOrders,
+        HistoricalOrders,
+        UserTwapSliceFills,
+        SubAccounts,
+        UserFees,
+        MaxBuilderFee,
+        ApprovedBuilders,
         // Info endpoints (Outcomes)
         OutcomeMeta,
         // Info endpoints (Spot)
@@ -182,6 +189,13 @@ namespace hyperliquid
         case RestEndpointType::ClearinghouseState: return "clearinghouseState";
         case RestEndpointType::UserRateLimit: return "userRateLimit";
         case RestEndpointType::PerpDexs: return "perpDexs";
+        case RestEndpointType::FrontendOpenOrders: return "frontendOpenOrders";
+        case RestEndpointType::HistoricalOrders: return "historicalOrders";
+        case RestEndpointType::UserTwapSliceFills: return "userTwapSliceFills";
+        case RestEndpointType::SubAccounts: return "subAccounts";
+        case RestEndpointType::UserFees: return "userFees";
+        case RestEndpointType::MaxBuilderFee: return "maxBuilderFee";
+        case RestEndpointType::ApprovedBuilders: return "approvedBuilders";
 
         case RestEndpointType::OutcomeMeta: return "outcomeMeta";
 
@@ -221,6 +235,13 @@ namespace hyperliquid
         case RestEndpointType::ClearinghouseState: return false;
         case RestEndpointType::UserRateLimit: return false;
         case RestEndpointType::PerpDexs: return false;
+        case RestEndpointType::FrontendOpenOrders: return false;
+        case RestEndpointType::HistoricalOrders: return false;
+        case RestEndpointType::UserTwapSliceFills: return false;
+        case RestEndpointType::SubAccounts: return false;
+        case RestEndpointType::UserFees: return false;
+        case RestEndpointType::MaxBuilderFee: return false;
+        case RestEndpointType::ApprovedBuilders: return false;
 
         case RestEndpointType::OutcomeMeta: return false;
 

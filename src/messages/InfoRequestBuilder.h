@@ -39,6 +39,18 @@ public:
     static nlohmann::ordered_json clearinghouseState(const std::string& user,
                                                      const std::optional<std::string>& dex = std::nullopt);
     static nlohmann::ordered_json userRateLimit(const std::string& user);
+    static nlohmann::ordered_json metaAndAssetCtxs(const std::optional<std::string>& dex = std::nullopt);
+    static nlohmann::ordered_json spotMetaAndAssetCtxs();
+    static nlohmann::ordered_json spotClearinghouseState(const std::string& user,
+                                                         const std::optional<std::string>& dex = std::nullopt);
+    static nlohmann::ordered_json frontendOpenOrders(const std::string& user,
+                                                     const std::optional<std::string>& dex = std::nullopt);
+    static nlohmann::ordered_json historicalOrders(const std::string& user);
+    static nlohmann::ordered_json userTwapSliceFills(const std::string& user);
+    static nlohmann::ordered_json subAccounts(const std::string& user);
+    static nlohmann::ordered_json userFees(const std::string& user);
+    static nlohmann::ordered_json maxBuilderFee(const std::string& user, const std::string& builder);
+    static nlohmann::ordered_json approvedBuilders(const std::string& user);
 };
 
 } // namespace hyperliquid

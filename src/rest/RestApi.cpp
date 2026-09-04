@@ -248,6 +248,69 @@ UserRateLimitResponse RestApi::userRateLimit(const std::string& user)
         impl_->signAndSendSync(RestEndpointType::UserRateLimit, InfoRequestBuilder::userRateLimit(user)));
 }
 
+MetaAndAssetCtxsResponse RestApi::metaAndAssetCtxs(const std::optional<std::string>& dex)
+{
+    return RestApiMessageParser().parseMetaAndAssetCtxs(
+        impl_->signAndSendSync(RestEndpointType::MetaAndAssetCtxs, InfoRequestBuilder::metaAndAssetCtxs(dex)));
+}
+
+SpotMetaAndAssetCtxsResponse RestApi::spotMetaAndAssetCtxs()
+{
+    return RestApiMessageParser().parseSpotMetaAndAssetCtxs(
+        impl_->signAndSendSync(RestEndpointType::SpotMetaAndAssetCtxs, InfoRequestBuilder::spotMetaAndAssetCtxs()));
+}
+
+SpotClearinghouseStateResponse RestApi::spotClearinghouseState(const std::string& user,
+                                                                const std::optional<std::string>& dex)
+{
+    return RestApiMessageParser().parseSpotClearinghouseState(
+        impl_->signAndSendSync(RestEndpointType::SpotClearinghouseState,
+                               InfoRequestBuilder::spotClearinghouseState(user, dex)));
+}
+
+FrontendOpenOrdersResponse RestApi::frontendOpenOrders(const std::string& user, const std::optional<std::string>& dex)
+{
+    return RestApiMessageParser().parseFrontendOpenOrders(
+        impl_->signAndSendSync(RestEndpointType::FrontendOpenOrders,
+                               InfoRequestBuilder::frontendOpenOrders(user, dex)));
+}
+
+HistoricalOrdersResponse RestApi::historicalOrders(const std::string& user)
+{
+    return RestApiMessageParser().parseHistoricalOrders(
+        impl_->signAndSendSync(RestEndpointType::HistoricalOrders, InfoRequestBuilder::historicalOrders(user)));
+}
+
+UserTwapSliceFillsResponse RestApi::userTwapSliceFills(const std::string& user)
+{
+    return RestApiMessageParser().parseUserTwapSliceFills(
+        impl_->signAndSendSync(RestEndpointType::UserTwapSliceFills, InfoRequestBuilder::userTwapSliceFills(user)));
+}
+
+SubAccountsResponse RestApi::subAccounts(const std::string& user)
+{
+    return RestApiMessageParser().parseSubAccounts(
+        impl_->signAndSendSync(RestEndpointType::SubAccounts, InfoRequestBuilder::subAccounts(user)));
+}
+
+UserFeesResponse RestApi::userFees(const std::string& user)
+{
+    return RestApiMessageParser().parseUserFees(
+        impl_->signAndSendSync(RestEndpointType::UserFees, InfoRequestBuilder::userFees(user)));
+}
+
+MaxBuilderFeeResponse RestApi::maxBuilderFee(const std::string& user, const std::string& builder)
+{
+    return RestApiMessageParser().parseMaxBuilderFee(
+        impl_->signAndSendSync(RestEndpointType::MaxBuilderFee, InfoRequestBuilder::maxBuilderFee(user, builder)));
+}
+
+ApprovedBuildersResponse RestApi::approvedBuilders(const std::string& user)
+{
+    return RestApiMessageParser().parseApprovedBuilders(
+        impl_->signAndSendSync(RestEndpointType::ApprovedBuilders, InfoRequestBuilder::approvedBuilders(user)));
+}
+
 PlaceOrderResponse RestApi::placeOrder(const std::vector<OrderRequest>& orders,
                                 Grouping grouping,
                                 const std::optional<Builder>& builder,
@@ -406,6 +469,56 @@ void RestApi::clearinghouseStateAsync(const std::string& user, const std::option
 void RestApi::userRateLimitAsync(const std::string& user)
 {
     impl_->signAndSend(RestEndpointType::UserRateLimit, InfoRequestBuilder::userRateLimit(user));
+}
+
+void RestApi::metaAndAssetCtxsAsync(const std::optional<std::string>& dex)
+{
+    impl_->signAndSend(RestEndpointType::MetaAndAssetCtxs, InfoRequestBuilder::metaAndAssetCtxs(dex));
+}
+
+void RestApi::spotMetaAndAssetCtxsAsync()
+{
+    impl_->signAndSend(RestEndpointType::SpotMetaAndAssetCtxs, InfoRequestBuilder::spotMetaAndAssetCtxs());
+}
+
+void RestApi::spotClearinghouseStateAsync(const std::string& user, const std::optional<std::string>& dex)
+{
+    impl_->signAndSend(RestEndpointType::SpotClearinghouseState, InfoRequestBuilder::spotClearinghouseState(user, dex));
+}
+
+void RestApi::frontendOpenOrdersAsync(const std::string& user, const std::optional<std::string>& dex)
+{
+    impl_->signAndSend(RestEndpointType::FrontendOpenOrders, InfoRequestBuilder::frontendOpenOrders(user, dex));
+}
+
+void RestApi::historicalOrdersAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::HistoricalOrders, InfoRequestBuilder::historicalOrders(user));
+}
+
+void RestApi::userTwapSliceFillsAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::UserTwapSliceFills, InfoRequestBuilder::userTwapSliceFills(user));
+}
+
+void RestApi::subAccountsAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::SubAccounts, InfoRequestBuilder::subAccounts(user));
+}
+
+void RestApi::userFeesAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::UserFees, InfoRequestBuilder::userFees(user));
+}
+
+void RestApi::maxBuilderFeeAsync(const std::string& user, const std::string& builder)
+{
+    impl_->signAndSend(RestEndpointType::MaxBuilderFee, InfoRequestBuilder::maxBuilderFee(user, builder));
+}
+
+void RestApi::approvedBuildersAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::ApprovedBuilders, InfoRequestBuilder::approvedBuilders(user));
 }
 
 void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,
