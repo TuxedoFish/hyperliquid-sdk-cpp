@@ -99,7 +99,7 @@ TEST(VaultTransferBuilder, DepositBodyShape)
     VaultTransferRequest req;
     req.vaultAddress = kVaultAddress;
     req.isDeposit = true;
-    req.usd = 100;
+    req.usd = 100.0;
 
     auto body = builder.vaultTransfer(req);
     ASSERT_TRUE(body.contains("action"));
@@ -107,7 +107,21 @@ TEST(VaultTransferBuilder, DepositBodyShape)
     EXPECT_EQ(action["type"], "vaultTransfer");
     EXPECT_EQ(action["vaultAddress"], kVaultAddress);
     EXPECT_EQ(action["isDeposit"], true);
-    EXPECT_EQ(action["usd"].get<uint64_t>(), 100ULL);
+    // Wire format wants raw USDC units (x1e6), not whole dollars.
+    EXPECT_EQ(action["usd"].get<uint64_t>(), 100000000ULL);
+}
+
+TEST(VaultTransferBuilder, UsdScalesFractionalDollarsToRawUnits)
+{
+    ExchangeRequestBuilder builder;
+
+    VaultTransferRequest req;
+    req.vaultAddress = kVaultAddress;
+    req.isDeposit = true;
+    req.usd = 5.5;
+
+    auto body = builder.vaultTransfer(req);
+    EXPECT_EQ(body["action"]["usd"].get<uint64_t>(), 5500000ULL);
 }
 
 TEST(VaultTransferBuilder, ActionIsSignable)

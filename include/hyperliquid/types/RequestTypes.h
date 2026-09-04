@@ -453,7 +453,9 @@ namespace hyperliquid
     {
         std::string vaultAddress;
         bool isDeposit;
-        uint64_t usd;
+        // Whole-and-fractional USD, e.g. 5.0 for $5 - the wire format wants this scaled to
+        // raw USDC units (x1e6), which ExchangeRequestBuilder::vaultTransfer handles.
+        double usd;
     };
 
     struct UsdClassTransferRequest

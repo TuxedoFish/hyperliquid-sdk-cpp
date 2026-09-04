@@ -16,9 +16,9 @@ int main()
     hyperliquid::RestApi api(config);
 
     hyperliquid::VaultTransferRequest depositReq;
-    depositReq.vaultAddress = "0x1719884eb866cb12b2287399b15f7db5e7d775e";
+    depositReq.vaultAddress = "0x1719884eb866cb12b2287399b15f7db5e7d775ea";
     depositReq.isDeposit = true;
-    depositReq.usd = 5; // whole USD, not scaled
+    depositReq.usd = 6.0; // vault minimum deposit is $5
 
     auto depositResp = api.vaultTransfer(depositReq);
     spdlog::info("vaultTransfer (deposit): status={} type={}", depositResp.status, depositResp.type);

@@ -320,7 +320,7 @@ namespace hyperliquid
         action["type"] = "vaultTransfer";
         action["vaultAddress"] = request.vaultAddress;
         action["isDeposit"] = request.isDeposit;
-        action["usd"] = request.usd;
+        action["usd"] = static_cast<uint64_t>(std::llround(request.usd * 1e6));
 
         nlohmann::ordered_json body;
         body["action"] = action;
