@@ -1,5 +1,6 @@
 #include "hyperliquid/rest/RestApiMessageParser.h"
 #include <simdjson.h>
+#include <string>
 #include "../config/Logger.h"
 
 namespace hyperliquid
@@ -28,6 +29,30 @@ namespace hyperliquid
                 break;
             case RestEndpointType::PerpDexs:
                 listener.onPerpDexs(parsePerpDexs(message), correlationId);
+                break;
+            case RestEndpointType::L2Book:
+                listener.onL2Book(parseL2Book(message), correlationId);
+                break;
+            case RestEndpointType::CandleSnapshot:
+                listener.onCandleSnapshot(parseCandleSnapshot(message), correlationId);
+                break;
+            case RestEndpointType::AllMids:
+                listener.onAllMids(parseAllMids(message), correlationId);
+                break;
+            case RestEndpointType::OpenOrders:
+                listener.onOpenOrders(parseOpenOrders(message), correlationId);
+                break;
+            case RestEndpointType::OrderStatus:
+                listener.onOrderStatus(parseOrderStatus(message), correlationId);
+                break;
+            case RestEndpointType::UserFills:
+                listener.onUserFills(parseUserFills(message), correlationId);
+                break;
+            case RestEndpointType::UserFillsByTime:
+                listener.onUserFillsByTime(parseUserFillsByTime(message), correlationId);
+                break;
+            case RestEndpointType::ClearinghouseState:
+                listener.onClearinghouseState(parseClearinghouseState(message), correlationId);
                 break;
             case RestEndpointType::PlaceOrder:
                 listener.onPlaceOrder(parsePlaceOrder(message), correlationId);
@@ -352,6 +377,349 @@ namespace hyperliquid
             return response;
         }
 
+        static double toDouble(std::string_view sv)
+        {
+            return sv.empty() ? 0.0 : std::stod(std::string(sv));
+        }
+
+        // Some numeric info-endpoint fields are wire-encoded as strings, others as
+        // raw JSON numbers depending on endpoint/version - accept either.
+        static double parseNumberField(simdjson::ondemand::object& obj, std::string_view key)
+        {
+            auto val = obj[key];
+            std::string_view sv;
+            if (!val.get_string().get(sv)) return toDouble(sv);
+            return val.get_double().value();
+        }
+
+        Fill parseFillEntry(simdjson::ondemand::object& obj)
+        {
+            Fill fill;
+            fill.coin = std::string(obj["coin"].get_string().value());
+            fill.px = toDouble(obj["px"].get_string().value());
+            fill.sz = toDouble(obj["sz"].get_string().value());
+            auto sideStr = obj["side"].get_string().value();
+            fill.side = sideStr.size() > 0 ? sideStr[0] : '?';
+            fill.time = obj["time"].get_uint64().value();
+            fill.startPosition = toDouble(obj["startPosition"].get_string().value());
+            fill.dir = std::string(obj["dir"].get_string().value());
+            fill.closedPnl = toDouble(obj["closedPnl"].get_string().value());
+            fill.hash = std::string(obj["hash"].get_string().value());
+            fill.oid = obj["oid"].get_uint64().value();
+            fill.crossed = obj["crossed"].get_bool().value();
+            fill.fee = toDouble(obj["fee"].get_string().value());
+            fill.tid = obj["tid"].get_uint64().value();
+            fill.feeToken = std::string(obj["feeToken"].get_string().value());
+
+            double builderFee;
+            fill.hasBuilderFee = !obj["builderFee"].get_double().get(builderFee);
+            if (!fill.hasBuilderFee)
+            {
+                std::string_view bfStr;
+                fill.hasBuilderFee = !obj["builderFee"].get_string().get(bfStr);
+                if (fill.hasBuilderFee) builderFee = toDouble(bfStr);
+            }
+            fill.builderFee = fill.hasBuilderFee ? builderFee : 0.0;
+
+            simdjson::ondemand::object liqObj;
+            fill.isLiquidation = !obj["liquidation"].get_object().get(liqObj);
+            if (fill.isLiquidation)
+            {
+                fill.liquidatedUser = std::string(liqObj["liquidatedUser"].get_string().value());
+                fill.liquidationMarkPx = toDouble(liqObj["markPx"].get_string().value());
+                fill.liquidationMethod = stringToLiquidationMethod(liqObj["method"].get_string().value());
+            }
+            else
+            {
+                fill.liquidatedUser.clear();
+                fill.liquidationMarkPx = 0.0;
+                fill.liquidationMethod = LiquidationMethod::Unknown;
+            }
+
+            fill.isSnapshot = false;
+            return fill;
+        }
+
+        OpenOrder parseOpenOrderEntry(simdjson::ondemand::object& obj)
+        {
+            OpenOrder order;
+            order.coin = std::string(obj["coin"].get_string().value());
+            auto sideStr = obj["side"].get_string().value();
+            order.side = sideStr.size() > 0 ? sideStr[0] : '?';
+            order.limitPx = parseNumberField(obj, "limitPx");
+            order.sz = parseNumberField(obj, "sz");
+            order.oid = obj["oid"].get_uint64().value();
+            order.timestamp = obj["timestamp"].get_uint64().value();
+            order.origSz = parseNumberField(obj, "origSz");
+
+            simdjson::ondemand::value cloidVal;
+            if (obj["cloid"].get(cloidVal) == simdjson::SUCCESS && !cloidVal.is_null())
+                order.cloid = std::string(cloidVal.get_string().value());
+            else
+                order.cloid.clear();
+
+            return order;
+        }
+
+        L2BookResponse parseL2Book(const std::string& message)
+        {
+            L2BookResponse response;
+            response.time = 0;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.coin = std::string(doc["coin"].get_string().value());
+                response.time = doc["time"].get_uint64().value();
+
+                auto levels = doc["levels"].get_array().value();
+                size_t sideIdx = 0;
+                for (auto side : levels)
+                {
+                    if (sideIdx > 1)
+                    {
+                        getLogger()->error("unexpected l2Book side index: {}", sideIdx);
+                        break;
+                    }
+                    auto& target = (sideIdx == 0) ? response.bids : response.asks;
+                    auto sideLevels = side.get_array().value();
+                    for (auto entry : sideLevels)
+                    {
+                        auto obj = entry.get_object().value();
+                        RestBookLevel level;
+                        level.px = std::string(obj["px"].get_string().value());
+                        level.sz = std::string(obj["sz"].get_string().value());
+                        level.n = static_cast<int>(obj["n"].get_int64().value());
+                        target.push_back(std::move(level));
+                    }
+                    sideIdx++;
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in l2Book: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        CandleSnapshotResponse parseCandleSnapshot(const std::string& message)
+        {
+            CandleSnapshotResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    Candle candle;
+                    candle.coin = std::string(obj["s"].get_string().value());
+                    candle.interval = std::string(obj["i"].get_string().value());
+                    candle.openTime = obj["t"].get_uint64().value();
+                    candle.closeTime = obj["T"].get_uint64().value();
+                    candle.open = parseNumberField(obj, "o");
+                    candle.close = parseNumberField(obj, "c");
+                    candle.high = parseNumberField(obj, "h");
+                    candle.low = parseNumberField(obj, "l");
+                    candle.volume = parseNumberField(obj, "v");
+                    candle.numTrades = static_cast<int>(obj["n"].get_int64().value());
+                    response.candles.push_back(std::move(candle));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in candleSnapshot: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        AllMidsResponse parseAllMids(const std::string& message)
+        {
+            AllMidsResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+                for (auto field : obj)
+                {
+                    AllMidsEntry entry;
+                    entry.coin = std::string(field.unescaped_key().value());
+                    entry.mid = toDouble(field.value().get_string().value());
+                    response.mids.push_back(std::move(entry));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in allMids: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        OpenOrdersResponse parseOpenOrders(const std::string& message)
+        {
+            OpenOrdersResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    response.orders.push_back(parseOpenOrderEntry(obj));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in openOrders: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        OrderStatusResponse parseOrderStatus(const std::string& message)
+        {
+            OrderStatusResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.status = std::string(doc["status"].get_string().value());
+
+                simdjson::ondemand::value orderVal;
+                if (doc["order"].get(orderVal) == simdjson::SUCCESS && !orderVal.is_null())
+                {
+                    auto orderObj = orderVal.get_object().value();
+                    OrderStatusOrder result;
+
+                    auto innerOrder = orderObj["order"].get_object().value();
+                    result.order = parseOpenOrderEntry(innerOrder);
+                    result.status = stringToOrderStatus(orderObj["status"].get_string().value());
+                    result.statusTimestamp = orderObj["statusTimestamp"].get_uint64().value();
+
+                    response.order = std::move(result);
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in orderStatus: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        UserFillsResponse parseUserFills(const std::string& message)
+        {
+            UserFillsResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    response.fills.push_back(parseFillEntry(obj));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in userFills: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        UserFillsResponse parseUserFillsByTime(const std::string& message)
+        {
+            // Same array-of-fill schema as userFills.
+            return parseUserFills(message);
+        }
+
+        ClearinghouseState parseClearinghouseState(const std::string& message)
+        {
+            ClearinghouseState response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto marginObj = doc["marginSummary"].get_object().value();
+                response.marginSummary.accountValue = toDouble(marginObj["accountValue"].get_string().value());
+                response.marginSummary.totalNtlPos = toDouble(marginObj["totalNtlPos"].get_string().value());
+                response.marginSummary.totalRawUsd = toDouble(marginObj["totalRawUsd"].get_string().value());
+                response.marginSummary.totalMarginUsed = toDouble(marginObj["totalMarginUsed"].get_string().value());
+
+                response.crossMarginSummary = MarginSummary{};
+                simdjson::ondemand::value crossVal;
+                if (doc["crossMarginSummary"].get(crossVal) == simdjson::SUCCESS && !crossVal.is_null())
+                {
+                    auto crossObj = crossVal.get_object().value();
+                    response.crossMarginSummary.accountValue = toDouble(crossObj["accountValue"].get_string().value());
+                    response.crossMarginSummary.totalNtlPos = toDouble(crossObj["totalNtlPos"].get_string().value());
+                    response.crossMarginSummary.totalRawUsd = toDouble(crossObj["totalRawUsd"].get_string().value());
+                    response.crossMarginSummary.totalMarginUsed = toDouble(crossObj["totalMarginUsed"].get_string().value());
+                }
+
+                response.crossMaintenanceMarginUsed = 0.0;
+                simdjson::ondemand::value maintVal;
+                if (doc["crossMaintenanceMarginUsed"].get(maintVal) == simdjson::SUCCESS && !maintVal.is_null())
+                {
+                    std::string_view maintSv;
+                    if (!maintVal.get_string().get(maintSv)) response.crossMaintenanceMarginUsed = toDouble(maintSv);
+                }
+
+                response.withdrawable = toDouble(doc["withdrawable"].get_string().value());
+                response.time = doc["time"].get_uint64().value();
+
+                auto positions = doc["assetPositions"].get_array().value();
+                for (auto entry : positions)
+                {
+                    auto obj = entry.get_object().value();
+                    auto posObj = obj["position"].get_object().value();
+                    AssetPosition pos;
+                    pos.coin = std::string(posObj["coin"].get_string().value());
+                    pos.szi = toDouble(posObj["szi"].get_string().value());
+                    pos.entryPx = toDouble(posObj["entryPx"].get_string().value());
+                    pos.positionValue = toDouble(posObj["positionValue"].get_string().value());
+                    pos.unrealizedPnl = toDouble(posObj["unrealizedPnl"].get_string().value());
+                    pos.returnOnEquity = toDouble(posObj["returnOnEquity"].get_string().value());
+
+                    simdjson::ondemand::value liqPxVal;
+                    if (posObj["liquidationPx"].get(liqPxVal) == simdjson::SUCCESS && !liqPxVal.is_null())
+                    {
+                        std::string_view liqSv;
+                        pos.hasLiquidationPx = !liqPxVal.get_string().get(liqSv);
+                        pos.liquidationPx = pos.hasLiquidationPx ? toDouble(liqSv) : 0.0;
+                    }
+                    else
+                    {
+                        pos.hasLiquidationPx = false;
+                        pos.liquidationPx = 0.0;
+                    }
+
+                    response.assetPositions.push_back(std::move(pos));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in clearinghouseState: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
         SpotMetaResponse parseSpotMeta(const std::string& message)
         {
             SpotMetaResponse response;
@@ -454,6 +822,46 @@ namespace hyperliquid
     PerpDexsResponse RestApiMessageParser::parsePerpDexs(const std::string& message)
     {
         return impl_->parsePerpDexs(message);
+    }
+
+    L2BookResponse RestApiMessageParser::parseL2Book(const std::string& message)
+    {
+        return impl_->parseL2Book(message);
+    }
+
+    CandleSnapshotResponse RestApiMessageParser::parseCandleSnapshot(const std::string& message)
+    {
+        return impl_->parseCandleSnapshot(message);
+    }
+
+    AllMidsResponse RestApiMessageParser::parseAllMids(const std::string& message)
+    {
+        return impl_->parseAllMids(message);
+    }
+
+    OpenOrdersResponse RestApiMessageParser::parseOpenOrders(const std::string& message)
+    {
+        return impl_->parseOpenOrders(message);
+    }
+
+    OrderStatusResponse RestApiMessageParser::parseOrderStatus(const std::string& message)
+    {
+        return impl_->parseOrderStatus(message);
+    }
+
+    UserFillsResponse RestApiMessageParser::parseUserFills(const std::string& message)
+    {
+        return impl_->parseUserFills(message);
+    }
+
+    UserFillsResponse RestApiMessageParser::parseUserFillsByTime(const std::string& message)
+    {
+        return impl_->parseUserFillsByTime(message);
+    }
+
+    ClearinghouseState RestApiMessageParser::parseClearinghouseState(const std::string& message)
+    {
+        return impl_->parseClearinghouseState(message);
     }
 
     PlaceOrderResponse RestApiMessageParser::parsePlaceOrder(const std::string& message)

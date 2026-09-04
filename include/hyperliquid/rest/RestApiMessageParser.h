@@ -26,6 +26,14 @@ namespace hyperliquid
         MetaResponse parseMeta(const std::string& message);
         OutcomeMetaResponse parseOutcomeMeta(const std::string& message);
         PerpDexsResponse parsePerpDexs(const std::string& message);
+        L2BookResponse parseL2Book(const std::string& message);
+        CandleSnapshotResponse parseCandleSnapshot(const std::string& message);
+        AllMidsResponse parseAllMids(const std::string& message);
+        OpenOrdersResponse parseOpenOrders(const std::string& message);
+        OrderStatusResponse parseOrderStatus(const std::string& message);
+        UserFillsResponse parseUserFills(const std::string& message);
+        UserFillsResponse parseUserFillsByTime(const std::string& message);
+        ClearinghouseState parseClearinghouseState(const std::string& message);
         PlaceOrderResponse parsePlaceOrder(const std::string& message);
         CancelOrderResponse parseCancelOrder(const std::string& message);
         ModifyOrderResponse parseModifyOrder(const std::string& message);

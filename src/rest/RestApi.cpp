@@ -150,6 +150,69 @@ PerpDexsResponse RestApi::perpDexs()
         impl_->signAndSendSync(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs()));
 }
 
+L2BookResponse RestApi::l2Book(const std::string& coin,
+                               const std::optional<int>& nSigFigs,
+                               const std::optional<int>& mantissa)
+{
+    return RestApiMessageParser().parseL2Book(
+        impl_->signAndSendSync(RestEndpointType::L2Book, InfoRequestBuilder::l2Book(coin, nSigFigs, mantissa)));
+}
+
+CandleSnapshotResponse RestApi::candleSnapshot(const std::string& coin,
+                                               const std::string& interval,
+                                               uint64_t startTime,
+                                               uint64_t endTime)
+{
+    return RestApiMessageParser().parseCandleSnapshot(
+        impl_->signAndSendSync(RestEndpointType::CandleSnapshot,
+                               InfoRequestBuilder::candleSnapshot(coin, interval, startTime, endTime)));
+}
+
+AllMidsResponse RestApi::allMids(const std::optional<std::string>& dex)
+{
+    return RestApiMessageParser().parseAllMids(
+        impl_->signAndSendSync(RestEndpointType::AllMids, InfoRequestBuilder::allMids(dex)));
+}
+
+OpenOrdersResponse RestApi::openOrders(const std::string& user, const std::optional<std::string>& dex)
+{
+    return RestApiMessageParser().parseOpenOrders(
+        impl_->signAndSendSync(RestEndpointType::OpenOrders, InfoRequestBuilder::openOrders(user, dex)));
+}
+
+OrderStatusResponse RestApi::orderStatus(const std::string& user, const OrderId& oid)
+{
+    return RestApiMessageParser().parseOrderStatus(
+        impl_->signAndSendSync(RestEndpointType::OrderStatus, InfoRequestBuilder::orderStatus(user, oid)));
+}
+
+UserFillsResponse RestApi::userFills(const std::string& user,
+                                     const std::optional<bool>& aggregateByTime,
+                                     const std::optional<std::string>& dex)
+{
+    return RestApiMessageParser().parseUserFills(
+        impl_->signAndSendSync(RestEndpointType::UserFills,
+                               InfoRequestBuilder::userFills(user, aggregateByTime, dex)));
+}
+
+UserFillsResponse RestApi::userFillsByTime(const std::string& user,
+                                           uint64_t startTime,
+                                           const std::optional<uint64_t>& endTime,
+                                           const std::optional<bool>& aggregateByTime,
+                                           const std::optional<std::string>& dex)
+{
+    return RestApiMessageParser().parseUserFillsByTime(
+        impl_->signAndSendSync(RestEndpointType::UserFillsByTime,
+                               InfoRequestBuilder::userFillsByTime(user, startTime, endTime, aggregateByTime, dex)));
+}
+
+ClearinghouseState RestApi::clearinghouseState(const std::string& user, const std::optional<std::string>& dex)
+{
+    return RestApiMessageParser().parseClearinghouseState(
+        impl_->signAndSendSync(RestEndpointType::ClearinghouseState,
+                               InfoRequestBuilder::clearinghouseState(user, dex)));
+}
+
 PlaceOrderResponse RestApi::placeOrder(const std::vector<OrderRequest>& orders,
                                 Grouping grouping,
                                 const std::optional<Builder>& builder,
@@ -216,6 +279,59 @@ void RestApi::outcomeMetaAsync()
 void RestApi::perpDexsAsync()
 {
     impl_->signAndSend(RestEndpointType::PerpDexs, InfoRequestBuilder::perpDexs());
+}
+
+void RestApi::l2BookAsync(const std::string& coin,
+                          const std::optional<int>& nSigFigs,
+                          const std::optional<int>& mantissa)
+{
+    impl_->signAndSend(RestEndpointType::L2Book, InfoRequestBuilder::l2Book(coin, nSigFigs, mantissa));
+}
+
+void RestApi::candleSnapshotAsync(const std::string& coin,
+                                  const std::string& interval,
+                                  uint64_t startTime,
+                                  uint64_t endTime)
+{
+    impl_->signAndSend(RestEndpointType::CandleSnapshot,
+                       InfoRequestBuilder::candleSnapshot(coin, interval, startTime, endTime));
+}
+
+void RestApi::allMidsAsync(const std::optional<std::string>& dex)
+{
+    impl_->signAndSend(RestEndpointType::AllMids, InfoRequestBuilder::allMids(dex));
+}
+
+void RestApi::openOrdersAsync(const std::string& user, const std::optional<std::string>& dex)
+{
+    impl_->signAndSend(RestEndpointType::OpenOrders, InfoRequestBuilder::openOrders(user, dex));
+}
+
+void RestApi::orderStatusAsync(const std::string& user, const OrderId& oid)
+{
+    impl_->signAndSend(RestEndpointType::OrderStatus, InfoRequestBuilder::orderStatus(user, oid));
+}
+
+void RestApi::userFillsAsync(const std::string& user,
+                             const std::optional<bool>& aggregateByTime,
+                             const std::optional<std::string>& dex)
+{
+    impl_->signAndSend(RestEndpointType::UserFills, InfoRequestBuilder::userFills(user, aggregateByTime, dex));
+}
+
+void RestApi::userFillsByTimeAsync(const std::string& user,
+                                   uint64_t startTime,
+                                   const std::optional<uint64_t>& endTime,
+                                   const std::optional<bool>& aggregateByTime,
+                                   const std::optional<std::string>& dex)
+{
+    impl_->signAndSend(RestEndpointType::UserFillsByTime,
+                       InfoRequestBuilder::userFillsByTime(user, startTime, endTime, aggregateByTime, dex));
+}
+
+void RestApi::clearinghouseStateAsync(const std::string& user, const std::optional<std::string>& dex)
+{
+    impl_->signAndSend(RestEndpointType::ClearinghouseState, InfoRequestBuilder::clearinghouseState(user, dex));
 }
 
 void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,
