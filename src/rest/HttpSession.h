@@ -19,7 +19,7 @@ namespace net = boost::asio;
 namespace ssl = boost::asio::ssl;
 using tcp = boost::asio::ip::tcp;
 
-using OnComplete = std::function<void(const std::string&, beast::error_code)>;
+using OnComplete = std::function<void(const std::string&, unsigned int, beast::error_code)>;
 
 class HttpSession : public std::enable_shared_from_this<HttpSession> {
 public:

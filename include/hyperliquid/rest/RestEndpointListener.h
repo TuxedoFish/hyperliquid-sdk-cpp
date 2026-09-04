@@ -23,6 +23,7 @@ public:
     virtual void onUserFills(const UserFillsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onUserFillsByTime(const UserFillsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onClearinghouseState(const ClearinghouseState& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onUserRateLimit(const UserRateLimitResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onPlaceOrder(const PlaceOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onCancelOrder(const CancelOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onModifyOrder(const ModifyOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}

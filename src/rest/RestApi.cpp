@@ -88,10 +88,15 @@ struct RestApi::Impl {
 
         auto session = std::make_shared<HttpSession>(
             ioc, sslCtx, host, port, toPath(type),
-            [this, type](const std::string& responseBody, beast::error_code ec) {
+            [this, type](const std::string& responseBody, unsigned int statusCode, beast::error_code ec) {
                 if (ec) {
                     getLogger()->error("RestApi: error for {}: {}", toString(type), ec.message());
                     listener.onError(type, ec.message());
+                    return;
+                }
+                if (statusCode == 429) {
+                    getLogger()->warn("RestApi: rate limited (HTTP 429) for {}", toString(type));
+                    listener.onRateLimitExceeded(type, responseBody);
                     return;
                 }
                 listener.onMessage(responseBody, type);
@@ -113,10 +118,15 @@ struct RestApi::Impl {
 
         auto session = std::make_shared<HttpSession>(
             ioc, sslCtx, host, port, toPath(type),
-            [promise](const std::string& responseBody, beast::error_code ec) {
+            [promise](const std::string& responseBody, unsigned int statusCode, beast::error_code ec) {
                 if (ec) {
                     promise->set_exception(std::make_exception_ptr(
                         RestApiTransportError("RestApi: " + ec.message())));
+                    return;
+                }
+                if (statusCode == 429) {
+                    promise->set_exception(std::make_exception_ptr(
+                        RestApiRateLimitError("RestApi: HTTP 429 rate limited: " + responseBody)));
                     return;
                 }
                 promise->set_value(responseBody);
@@ -230,6 +240,12 @@ ClearinghouseState RestApi::clearinghouseState(const std::string& user, const st
     return RestApiMessageParser().parseClearinghouseState(
         impl_->signAndSendSync(RestEndpointType::ClearinghouseState,
                                InfoRequestBuilder::clearinghouseState(user, dex)));
+}
+
+UserRateLimitResponse RestApi::userRateLimit(const std::string& user)
+{
+    return RestApiMessageParser().parseUserRateLimit(
+        impl_->signAndSendSync(RestEndpointType::UserRateLimit, InfoRequestBuilder::userRateLimit(user)));
 }
 
 PlaceOrderResponse RestApi::placeOrder(const std::vector<OrderRequest>& orders,
@@ -385,6 +401,11 @@ void RestApi::userFillsByTimeAsync(const std::string& user,
 void RestApi::clearinghouseStateAsync(const std::string& user, const std::optional<std::string>& dex)
 {
     impl_->signAndSend(RestEndpointType::ClearinghouseState, InfoRequestBuilder::clearinghouseState(user, dex));
+}
+
+void RestApi::userRateLimitAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::UserRateLimit, InfoRequestBuilder::userRateLimit(user));
 }
 
 void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,

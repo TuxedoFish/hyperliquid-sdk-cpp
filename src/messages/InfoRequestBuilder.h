@@ -38,6 +38,7 @@ public:
                                                   const std::optional<std::string>& dex = std::nullopt);
     static nlohmann::ordered_json clearinghouseState(const std::string& user,
                                                      const std::optional<std::string>& dex = std::nullopt);
+    static nlohmann::ordered_json userRateLimit(const std::string& user);
 };
 
 } // namespace hyperliquid

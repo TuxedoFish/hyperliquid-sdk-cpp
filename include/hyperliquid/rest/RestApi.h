@@ -19,6 +19,11 @@ public:
     using std::runtime_error::runtime_error;
 };
 
+class RestApiRateLimitError : public RestApiTransportError {
+public:
+    using RestApiTransportError::RestApiTransportError;
+};
+
 class RestApi {
 public:
     explicit RestApi(const ApiConfig& config);
@@ -53,6 +58,7 @@ public:
                                       const std::optional<std::string>& dex = std::nullopt);
     ClearinghouseState clearinghouseState(const std::string& user,
                                           const std::optional<std::string>& dex = std::nullopt);
+    UserRateLimitResponse userRateLimit(const std::string& user);
     PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
                            const std::optional<Builder>& builder = std::nullopt,
@@ -98,6 +104,7 @@ public:
                               const std::optional<std::string>& dex = std::nullopt);
     void clearinghouseStateAsync(const std::string& user,
                                  const std::optional<std::string>& dex = std::nullopt);
+    void userRateLimitAsync(const std::string& user);
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
                          const std::optional<Builder>& builder = std::nullopt,

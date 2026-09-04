@@ -54,6 +54,9 @@ namespace hyperliquid
             case RestEndpointType::ClearinghouseState:
                 listener.onClearinghouseState(parseClearinghouseState(message), correlationId);
                 break;
+            case RestEndpointType::UserRateLimit:
+                listener.onUserRateLimit(parseUserRateLimit(message), correlationId);
+                break;
             case RestEndpointType::PlaceOrder:
                 listener.onPlaceOrder(parsePlaceOrder(message), correlationId);
                 break;
@@ -758,6 +761,27 @@ namespace hyperliquid
             return response;
         }
 
+        UserRateLimitResponse parseUserRateLimit(const std::string& message)
+        {
+            UserRateLimitResponse response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.cumVlm = toDouble(doc["cumVlm"].get_string().value());
+                response.nRequestsUsed = doc["nRequestsUsed"].get_int64().value();
+                response.nRequestsCap = doc["nRequestsCap"].get_int64().value();
+                response.nRequestsSurplus = doc["nRequestsSurplus"].get_int64().value();
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in userRateLimit: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
         SpotMetaResponse parseSpotMeta(const std::string& message)
         {
             SpotMetaResponse response;
@@ -901,6 +925,11 @@ namespace hyperliquid
     ClearinghouseState RestApiMessageParser::parseClearinghouseState(const std::string& message)
     {
         return impl_->parseClearinghouseState(message);
+    }
+
+    UserRateLimitResponse RestApiMessageParser::parseUserRateLimit(const std::string& message)
+    {
+        return impl_->parseUserRateLimit(message);
     }
 
     PlaceOrderResponse RestApiMessageParser::parsePlaceOrder(const std::string& message)

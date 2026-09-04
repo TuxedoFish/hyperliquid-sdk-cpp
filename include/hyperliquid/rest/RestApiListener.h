@@ -11,6 +11,7 @@ public:
 
     virtual void onMessage(const std::string& message, RestEndpointType type) {}
     virtual void onError(RestEndpointType type, const std::string& errorMessage) {}
+    virtual void onRateLimitExceeded(RestEndpointType type, const std::string& responseBody) {}
 };
 
 }

@@ -34,6 +34,7 @@ namespace hyperliquid
         UserFillsResponse parseUserFills(const std::string& message);
         UserFillsResponse parseUserFillsByTime(const std::string& message);
         ClearinghouseState parseClearinghouseState(const std::string& message);
+        UserRateLimitResponse parseUserRateLimit(const std::string& message);
         PlaceOrderResponse parsePlaceOrder(const std::string& message);
         CancelOrderResponse parseCancelOrder(const std::string& message);
         ModifyOrderResponse parseModifyOrder(const std::string& message);
