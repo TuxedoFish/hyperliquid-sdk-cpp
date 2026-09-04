@@ -459,11 +459,6 @@ namespace hyperliquid
         std::vector<PerpDex> dexes;
     };
 
-    // l2Book / candleSnapshot / allMids / openOrders / userFills / userFillsByTime /
-    // orderStatus / clearinghouseState are all unauthenticated /info queries, but
-    // the responses concern (mostly) a specific user's account state, so keep them
-    // grouped here regardless.
-
     struct RestBookLevel
     {
         std::string px;

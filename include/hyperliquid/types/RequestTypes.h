@@ -330,8 +330,6 @@ namespace hyperliquid
         int fee;
     };
 
-    // Used by orderStatus: an order can be looked up either by its numeric oid
-    // or by its client order id (cloid) string.
     using OrderId = std::variant<uint64_t, std::string>;
 
     inline int outcomeEncoding(int outcomeIndex, int side)

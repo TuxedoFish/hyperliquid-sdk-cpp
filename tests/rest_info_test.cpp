@@ -1,10 +1,3 @@
-// Tests for the /info REST endpoints added in issue #4:
-// l2Book, candleSnapshot, allMids, openOrders, orderStatus, userFills,
-// userFillsByTime, clearinghouseState.
-//
-// Covers (a) request body shape via InfoRequestBuilder and (b) response
-// parsing via RestApiMessageParser against sample JSON strings. No network
-// access is used.
 #include <gtest/gtest.h>
 
 #include "messages/InfoRequestBuilder.h"
