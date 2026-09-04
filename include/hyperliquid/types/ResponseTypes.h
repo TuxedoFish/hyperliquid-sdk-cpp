@@ -367,6 +367,7 @@ namespace hyperliquid
         AccountClassTransfer,
         SpotGenesis,
         RewardsClaim,
+        Send,
         Unknown
     };
 
@@ -386,6 +387,7 @@ namespace hyperliquid
         if (s == "accountClassTransfer") return LedgerUpdateType::AccountClassTransfer;
         if (s == "spotGenesis") return LedgerUpdateType::SpotGenesis;
         if (s == "rewardsClaim") return LedgerUpdateType::RewardsClaim;
+        if (s == "send") return LedgerUpdateType::Send;
         return LedgerUpdateType::Unknown;
     }
 
@@ -407,6 +409,7 @@ namespace hyperliquid
         case LedgerUpdateType::AccountClassTransfer: return "accountClassTransfer";
         case LedgerUpdateType::SpotGenesis: return "spotGenesis";
         case LedgerUpdateType::RewardsClaim: return "rewardsClaim";
+        case LedgerUpdateType::Send: return "send";
         default: return "unknown";
         }
     }
@@ -434,9 +437,13 @@ namespace hyperliquid
         std::string token;
         double fee;
         double amount;
-        double usdcValue; // spotTransfer only
+        double usdcValue;
         uint64_t nonce;
         bool toPerp;
+        std::string sourceDex;
+        std::string destinationDex;
+        double nativeTokenFee;
+        std::string feeToken;
         // liquidation-only fields
         double accountValue;
         LeverageType leverageType;

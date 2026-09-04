@@ -212,6 +212,55 @@ TEST(WebsocketParser, UserNonFundingLedgerUpdatesSpotTransfer)
     EXPECT_DOUBLE_EQ(update.fee, 0.01);
 }
 
+TEST(WebsocketParser, UserNonFundingLedgerUpdatesSend)
+{
+    static const std::string kMsg = R"({
+        "channel": "userNonFundingLedgerUpdates",
+        "data": {
+            "user": "0x0000000000000000000000000000000000000a",
+            "nonFundingLedgerUpdates": [
+                {
+                    "time": 1700000004000,
+                    "hash": "0xsend001",
+                    "delta": {
+                        "type": "send",
+                        "user": "0xaaaa",
+                        "destination": "0xbbbb",
+                        "sourceDex": "spot",
+                        "destinationDex": "spot",
+                        "token": "USDC",
+                        "amount": "88.0",
+                        "usdcValue": "88.0",
+                        "fee": "1.0",
+                        "nativeTokenFee": "0.0",
+                        "nonce": 1778486945010,
+                        "feeToken": "USDC"
+                    }
+                }
+            ]
+        }
+    })";
+
+    WebsocketMessageParser parser;
+    CapturingHandler handler;
+    parser.crack(kMsg, handler);
+
+    ASSERT_EQ(handler.ledgerUpdates.size(), 1u);
+    const auto& update = handler.ledgerUpdates[0];
+    EXPECT_EQ(update.type, LedgerUpdateType::Send);
+    EXPECT_EQ(update.user, "0xaaaa");
+    EXPECT_EQ(update.destination, "0xbbbb");
+    EXPECT_EQ(update.sourceDex, "spot");
+    EXPECT_EQ(update.destinationDex, "spot");
+    EXPECT_EQ(update.token, "USDC");
+    EXPECT_DOUBLE_EQ(update.amount, 88.0);
+    EXPECT_DOUBLE_EQ(update.usdcValue, 88.0);
+    EXPECT_DOUBLE_EQ(update.fee, 1.0);
+    EXPECT_DOUBLE_EQ(update.nativeTokenFee, 0.0);
+    EXPECT_EQ(update.nonce, 1778486945010u);
+    EXPECT_EQ(update.feeToken, "USDC");
+}
+
 TEST(WebsocketParser, WebData3)
 {
     static const std::string kMsg = R"({

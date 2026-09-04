@@ -771,6 +771,19 @@ namespace hyperliquid
                 update.destination = std::string(delta["destination"].get_string().value());
                 update.fee = toDoubleField(delta, "fee");
                 break;
+            case LedgerUpdateType::Send:
+                update.user = std::string(delta["user"].get_string().value());
+                update.destination = std::string(delta["destination"].get_string().value());
+                update.sourceDex = std::string(delta["sourceDex"].get_string().value());
+                update.destinationDex = std::string(delta["destinationDex"].get_string().value());
+                update.token = std::string(delta["token"].get_string().value());
+                update.amount = toDoubleField(delta, "amount");
+                update.usdcValue = toDoubleField(delta, "usdcValue");
+                update.fee = toDoubleField(delta, "fee");
+                update.nativeTokenFee = toDoubleField(delta, "nativeTokenFee");
+                update.nonce = delta["nonce"].get_uint64().value();
+                update.feeToken = std::string(delta["feeToken"].get_string().value());
+                break;
             case LedgerUpdateType::AccountClassTransfer:
                 update.usdc = toDoubleField(delta, "usdc");
                 update.toPerp = delta["toPerp"].get_bool().value();
