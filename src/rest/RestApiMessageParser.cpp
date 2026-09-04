@@ -65,6 +65,10 @@ namespace hyperliquid
             case RestEndpointType::BatchModifyOrder:
                 listener.onModifyOrder(parseModifyOrder(message), correlationId);
                 break;
+            case RestEndpointType::UpdateLeverage:
+            case RestEndpointType::UpdateIsolatedMargin:
+                listener.onSimpleResponse(parseSimpleResponse(message), correlationId);
+                break;
             default:
                 getLogger()->error("RestMessageParser: unhandled RestEndpointType: {}", toString(type));
                 break;
@@ -247,6 +251,38 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& err)
             {
                 getLogger()->error("RestMessageParser: parse error in modifyOrder: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        SimpleResponse parseSimpleResponse(const std::string& message)
+        {
+            SimpleResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.status = std::string(doc["status"].get_string().value());
+
+                if (response.status != "ok")
+                {
+                    simdjson::ondemand::value resp;
+                    if (doc["response"].get(resp) == simdjson::SUCCESS
+                        && resp.type().value() == simdjson::ondemand::json_type::string)
+                    {
+                        response.error = std::string(resp.get_string().value());
+                    }
+                    return response;
+                }
+
+                auto resp = doc["response"].get_object().value();
+                response.type = std::string(resp["type"].get_string().value());
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in simpleResponse: {}\n  raw: {}", err.what(), message);
             }
 
             return response;
@@ -877,5 +913,10 @@ namespace hyperliquid
     ModifyOrderResponse RestApiMessageParser::parseModifyOrder(const std::string& message)
     {
         return impl_->parseModifyOrder(message);
+    }
+
+    SimpleResponse RestApiMessageParser::parseSimpleResponse(const std::string& message)
+    {
+        return impl_->parseSimpleResponse(message);
     }
 } // namespace hyperliquid

@@ -187,6 +187,39 @@ TEST(RestResponseParsing, ModifyOrderSuccess)
     EXPECT_TRUE(resp.statuses.empty());
 }
 
+TEST(RestResponseParsing, SimpleResponseOk)
+{
+    static const std::string kOk = R"({
+        "status": "ok",
+        "response": {
+            "type": "default"
+        }
+    })";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kOk);
+
+    EXPECT_EQ(resp.status, "ok");
+    EXPECT_EQ(resp.type, "default");
+    EXPECT_FALSE(resp.error.has_value());
+}
+
+TEST(RestResponseParsing, SimpleResponseError)
+{
+    static const std::string kErr = R"({
+        "status": "err",
+        "response": "Invalid leverage value"
+    })";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kErr);
+
+    EXPECT_EQ(resp.status, "err");
+    EXPECT_TRUE(resp.type.empty());
+    ASSERT_TRUE(resp.error.has_value());
+    EXPECT_EQ(*resp.error, "Invalid leverage value");
+}
+
 TEST(RestResponseParsing, MetaResponse)
 {
     static const std::string kMeta = R"({

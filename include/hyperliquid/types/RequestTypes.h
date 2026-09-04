@@ -161,6 +161,8 @@ namespace hyperliquid
         ScheduleCancel,
         ModifyOrder,
         BatchModifyOrder,
+        UpdateLeverage,
+        UpdateIsolatedMargin,
     };
 
     inline std::string toString(RestEndpointType type)
@@ -195,6 +197,8 @@ namespace hyperliquid
         case RestEndpointType::ScheduleCancel: return "scheduleCancel";
         case RestEndpointType::ModifyOrder: return "modify";
         case RestEndpointType::BatchModifyOrder: return "batchModify";
+        case RestEndpointType::UpdateLeverage: return "updateLeverage";
+        case RestEndpointType::UpdateIsolatedMargin: return "updateIsolatedMargin";
         default: throw std::invalid_argument("Unknown InfoEndpointType");
         }
     }
@@ -231,6 +235,8 @@ namespace hyperliquid
         case RestEndpointType::ScheduleCancel: return true;
         case RestEndpointType::ModifyOrder: return true;
         case RestEndpointType::BatchModifyOrder: return true;
+        case RestEndpointType::UpdateLeverage: return true;
+        case RestEndpointType::UpdateIsolatedMargin: return true;
         default: throw std::invalid_argument("Unknown RestEndpointType");
         }
     }
@@ -331,6 +337,24 @@ namespace hyperliquid
     };
 
     using OrderId = std::variant<uint64_t, std::string>;
+
+    struct UpdateLeverageRequest
+    {
+        std::string asset;
+        bool isCross;
+        int leverage;
+        std::optional<int> assetId;
+    };
+
+    struct UpdateIsolatedMarginRequest
+    {
+        std::string asset;
+        bool isBuy;
+        // Amount to add (positive) or remove (negative) from the isolated position's margin,
+        // in USD with 6 decimals of precision (1,000,000 == 1 USD).
+        int64_t ntli;
+        std::optional<int> assetId;
+    };
 
     inline int outcomeEncoding(int outcomeIndex, int side)
     {

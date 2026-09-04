@@ -225,4 +225,34 @@ namespace hyperliquid
         body["action"] = action;
         return body;
     }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::updateLeverage(const UpdateLeverageRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "updateLeverage";
+        action["asset"] = request.assetId
+            ? *request.assetId
+            : symbolMap_.resolve(request.asset);
+        action["isCross"] = request.isCross;
+        action["leverage"] = request.leverage;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::updateIsolatedMargin(const UpdateIsolatedMarginRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "updateIsolatedMargin";
+        action["asset"] = request.assetId
+            ? *request.assetId
+            : symbolMap_.resolve(request.asset);
+        action["isBuy"] = request.isBuy;
+        action["ntli"] = request.ntli;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
 }
