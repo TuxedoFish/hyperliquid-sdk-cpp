@@ -22,6 +22,8 @@ set(HYPERLIQUID_SANITIZE_FLAGS -fsanitize=address,undefined -fno-omit-frame-poin
 option(HYPERLIQUID_COVERAGE "Build with gcov coverage instrumentation" OFF)
 set(HYPERLIQUID_COVERAGE_FLAGS --coverage -fno-inline -fno-inline-small-functions -fno-default-inline)
 
+include(GNUInstallDirs)
+
 find_package(OpenSSL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(simdjson CONFIG REQUIRED)
@@ -69,20 +71,22 @@ add_library(hyperliquid-sdk STATIC ${SDK_SOURCES})
 
 target_include_directories(hyperliquid-sdk
         PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 target_link_libraries(hyperliquid-sdk
-        PRIVATE
+        PUBLIC
         Boost::system
         OpenSSL::SSL
         OpenSSL::Crypto
         nlohmann_json::nlohmann_json
         simdjson::simdjson
-        secp256k1
         spdlog::spdlog
+        PRIVATE
+        $<BUILD_INTERFACE:secp256k1_objs>
         ZLIB::ZLIB
 )
 
@@ -104,6 +108,46 @@ set_target_properties(hyperliquid-sdk PROPERTIES
         CXX_STANDARD 23
         CXX_STANDARD_REQUIRED ON
         POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(hyperliquid-sdk::hyperliquid-sdk ALIAS hyperliquid-sdk)
+
+include(CMakePackageConfigHelpers)
+
+install(TARGETS hyperliquid-sdk
+        EXPORT hyperliquid-sdk-targets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(EXPORT hyperliquid-sdk-targets
+        FILE hyperliquid-sdk-targets.cmake
+        NAMESPACE hyperliquid-sdk::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/hyperliquid-sdk
+)
+
+configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/hyperliquid-sdk-config.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/hyperliquid-sdk-config.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/hyperliquid-sdk
+)
+
+write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/hyperliquid-sdk-config-version.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/hyperliquid-sdk-config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/hyperliquid-sdk-config-version.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/hyperliquid-sdk
 )
 
 option(HYPERLIQUID_BUILD_EXAMPLES "Build example programs" OFF)
