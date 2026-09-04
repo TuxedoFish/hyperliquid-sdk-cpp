@@ -320,6 +320,9 @@ namespace hyperliquid
         action["type"] = "vaultTransfer";
         action["vaultAddress"] = request.vaultAddress;
         action["isDeposit"] = request.isDeposit;
+        // Unlike usdSend/spotSend (decimal strings), vaultTransfer is a plain L1 action whose
+        // usd field mirrors USDC's own on-chain representation: raw integer units at USDC's
+        // 6 decimals (vs. ETH's 18), so $5 is sent as 5_000_000.
         action["usd"] = static_cast<uint64_t>(std::llround(request.usd * 1e6));
 
         nlohmann::ordered_json body;

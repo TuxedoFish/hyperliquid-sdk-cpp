@@ -107,7 +107,6 @@ TEST(VaultTransferBuilder, DepositBodyShape)
     EXPECT_EQ(action["type"], "vaultTransfer");
     EXPECT_EQ(action["vaultAddress"], kVaultAddress);
     EXPECT_EQ(action["isDeposit"], true);
-    // Wire format wants raw USDC units (x1e6), not whole dollars.
     EXPECT_EQ(action["usd"].get<uint64_t>(), 100000000ULL);
 }
 

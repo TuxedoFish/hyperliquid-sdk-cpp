@@ -331,9 +331,6 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& err)
             {
                 getLogger()->error("RestMessageParser: parse error in simpleResponse: {}\n  raw: {}", err.what(), message);
-                // Some failures (e.g. a malformed request rejected before reaching business logic)
-                // come back as plain text rather than JSON. Surface that text as the error instead
-                // of silently returning a blank status/error that gives the caller nothing to act on.
                 if (response.status.empty())
                 {
                     response.status = "err";
