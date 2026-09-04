@@ -55,6 +55,9 @@ public:
         const Wallet& wallet,
         const std::array<uint8_t, 32>& messageHash);
 
+    static std::string generatePrivateKeyHex();
+    static std::string privateKeyToAddress(const std::string& privateKeyHex);
+
 };
 
 }

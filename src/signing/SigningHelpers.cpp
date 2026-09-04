@@ -9,6 +9,7 @@ extern "C" {
 #include <stdexcept>
 #include <sstream>
 #include <iomanip>
+#include <random>
 
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
@@ -279,6 +280,58 @@ Signature SigningHelpers::ecdsaSign(
     result.s = toHex(serialized + 32, 32);
     result.v = recid + 27;
     return result;
+}
+
+std::string SigningHelpers::generatePrivateKeyHex()
+{
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    std::uniform_int_distribution<uint64_t> dist;
+
+    secp256k1_context* context = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
+    if (!context)
+        throw std::runtime_error("Failed to create secp256k1 context");
+
+    std::array<uint8_t, 32> bytes{};
+    do
+    {
+        for (int word = 0; word < 4; word++)
+        {
+            uint64_t value = dist(gen);
+            for (int idx = 0; idx < 8; idx++)
+                bytes[word * 8 + idx] = static_cast<uint8_t>((value >> ((7 - idx) * 8)) & 0xFF);
+        }
+    } while (!secp256k1_ec_seckey_verify(context, bytes.data()));
+
+    secp256k1_context_destroy(context);
+    return toHexPadded(bytes.data(), bytes.size());
+}
+
+std::string SigningHelpers::privateKeyToAddress(const std::string& privateKeyHex)
+{
+    auto privateKeyBytes = hexToBytes(privateKeyHex);
+    if (privateKeyBytes.size() != 32)
+        throw std::invalid_argument("Private key must be 32 bytes");
+
+    secp256k1_context* context = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
+    if (!context)
+        throw std::runtime_error("Failed to create secp256k1 context");
+
+    secp256k1_pubkey pubkey;
+    if (!secp256k1_ec_pubkey_create(context, &pubkey, privateKeyBytes.data()))
+    {
+        secp256k1_context_destroy(context);
+        throw std::runtime_error("Failed to derive public key from private key");
+    }
+
+    uint8_t serialized[65];
+    size_t outputLen = sizeof(serialized);
+    secp256k1_ec_pubkey_serialize(context, serialized, &outputLen, &pubkey, SECP256K1_EC_UNCOMPRESSED);
+    secp256k1_context_destroy(context);
+
+    // Ethereum address = last 20 bytes of keccak256(uncompressed pubkey without the 0x04 prefix).
+    auto hash = keccak256(serialized + 1, 64);
+    return toHexPadded(hash.data() + 12, 20);
 }
 
 }

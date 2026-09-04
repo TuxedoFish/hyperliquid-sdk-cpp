@@ -266,4 +266,16 @@ namespace hyperliquid
         body["action"] = action;
         return body;
     }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::approveAgent(const ApproveAgentRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "approveAgent";
+        action["agentAddress"] = request.agentAddress;
+        if (request.agentName) action["agentName"] = *request.agentName;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
 }

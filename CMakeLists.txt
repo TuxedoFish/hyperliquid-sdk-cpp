@@ -39,6 +39,7 @@ set(SDK_SOURCES
 
         src/signing/Signing.cpp
         src/signing/SigningHelpers.cpp
+        src/signing/Keys.cpp
         src/signing/sha3.c
 
         include/hyperliquid/types/RequestTypes.h
@@ -94,6 +95,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     hyperliquid_add_test(leverage_margin_test)
     hyperliquid_add_test(schedule_cancel_test)
     hyperliquid_add_test(websocket_parser_test)
+    hyperliquid_add_test(approve_agent_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)

@@ -23,6 +23,9 @@ nlohmann::ordered_json Signing::prepareBody(
             spdlog::error("Wallet not configured, can't send authenticated request: {}", toString(type));
             return body;
         }
+        // Nonce: current unix time in ms. Must be strictly increasing per-user (and within the
+        // exchange's accepted clock window), so this relies on the local clock being reasonably
+        // accurate and monotonic across requests - don't override it with a custom generator.
         uint64_t nonce = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count());
@@ -57,6 +60,60 @@ Signature Signing::signUserSignedAction(
     auto finalHash = SigningHelpers::eip712Hash(domSep, structHash);
 
     return SigningHelpers::ecdsaSign(wallet, finalHash);
+}
+
+nlohmann::ordered_json Signing::prepareApproveAgentBody(
+    const ApiConfig& config,
+    const std::string& agentAddress,
+    const std::optional<std::string>& agentName)
+{
+    nlohmann::ordered_json body;
+
+    if (!config.wallet.has_value())
+    {
+        spdlog::error("Wallet not configured, can't send authenticated request: {}",
+                      toString(RestEndpointType::ApproveAgent));
+        return body;
+    }
+
+    uint64_t nonce = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count());
+    bool isMainnet = (config.env == Environment::Mainnet);
+
+    nlohmann::ordered_json action;
+    action["type"] = "approveAgent";
+    action["agentAddress"] = agentAddress;
+    // Signed with an empty string when no name is given (matching the reference SDKs), then
+    // stripped from the outgoing body below - the exchange treats a missing agentName the same
+    // as an empty one when it recomputes the signed struct hash for verification.
+    action["agentName"] = agentName.value_or("");
+    action["nonce"] = nonce;
+    action["signatureChainId"] = "0x66eee";
+    action["hyperliquidChain"] = isMainnet ? "Mainnet" : "Testnet";
+
+    auto signature = signUserSignedAction(
+        config.wallet.value(), action,
+        {
+            {"hyperliquidChain", "string"},
+            {"agentAddress", "address"},
+            {"agentName", "string"},
+            {"nonce", "uint64"},
+        },
+        "HyperliquidTransaction:ApproveAgent", isMainnet);
+
+    if (!agentName) action.erase("agentName");
+
+    body["action"] = action;
+    body["nonce"] = nonce;
+
+    nlohmann::ordered_json signatureJson;
+    signatureJson["r"] = signature.r;
+    signatureJson["s"] = signature.s;
+    signatureJson["v"] = signature.v;
+    body["signature"] = signatureJson;
+
+    return body;
 }
 
 Signature Signing::signL1Action(

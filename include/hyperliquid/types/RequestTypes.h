@@ -163,6 +163,7 @@ namespace hyperliquid
         BatchModifyOrder,
         UpdateLeverage,
         UpdateIsolatedMargin,
+        ApproveAgent,
     };
 
     inline std::string toString(RestEndpointType type)
@@ -199,6 +200,7 @@ namespace hyperliquid
         case RestEndpointType::BatchModifyOrder: return "batchModify";
         case RestEndpointType::UpdateLeverage: return "updateLeverage";
         case RestEndpointType::UpdateIsolatedMargin: return "updateIsolatedMargin";
+        case RestEndpointType::ApproveAgent: return "approveAgent";
         default: throw std::invalid_argument("Unknown InfoEndpointType");
         }
     }
@@ -237,6 +239,7 @@ namespace hyperliquid
         case RestEndpointType::BatchModifyOrder: return true;
         case RestEndpointType::UpdateLeverage: return true;
         case RestEndpointType::UpdateIsolatedMargin: return true;
+        case RestEndpointType::ApproveAgent: return true;
         default: throw std::invalid_argument("Unknown RestEndpointType");
         }
     }
@@ -354,6 +357,15 @@ namespace hyperliquid
         // in USD with 6 decimals of precision (1,000,000 == 1 USD).
         int64_t ntli;
         std::optional<int> assetId;
+    };
+
+    struct ApproveAgentRequest
+    {
+        std::string agentAddress;
+        // If omitted, the approval is unnamed (max 1 per account); named agents (max 3
+        // per account, plus 2 per subaccount) can carry a `valid_until {timestampMs}`
+        // suffix per the Hyperliquid docs to set a custom expiry.
+        std::optional<std::string> agentName;
     };
 
     inline int outcomeEncoding(int outcomeIndex, int side)

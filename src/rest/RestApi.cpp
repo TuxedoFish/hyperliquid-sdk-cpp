@@ -59,12 +59,31 @@ struct RestApi::Impl {
         if (thread.joinable()) thread.join();
     }
 
+    // approveAgent is a user-signed action rather than an L1 action (see Signing.h), so it is
+    // routed to Signing::prepareApproveAgentBody instead of the generic vaultAddress/expiresAfter
+    // path used by the other (L1) exchange endpoints.
+    nlohmann::ordered_json prepareBodyForType(RestEndpointType type, nlohmann::ordered_json body,
+                                              const std::optional<std::string>& vaultAddress,
+                                              const std::optional<uint64_t>& expiresAfter)
+    {
+        if (type == RestEndpointType::ApproveAgent)
+        {
+            std::string agentAddress = body["action"].at("agentAddress").get<std::string>();
+            std::optional<std::string> agentName;
+            if (body["action"].contains("agentName"))
+                agentName = body["action"].at("agentName").get<std::string>();
+            return Signing::prepareApproveAgentBody(config, agentAddress, agentName);
+        }
+
+        auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
+        return Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
+    }
+
     void signAndSend(RestEndpointType type, nlohmann::ordered_json body,
                      const std::optional<std::string>& vaultAddress = std::nullopt,
                      const std::optional<uint64_t>& expiresAfter = std::nullopt)
     {
-        auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
-        auto prepared = Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
+        auto prepared = prepareBodyForType(type, std::move(body), vaultAddress, expiresAfter);
         std::string serialized = prepared.dump();
 
         auto session = std::make_shared<HttpSession>(
@@ -85,8 +104,7 @@ struct RestApi::Impl {
                                 const std::optional<std::string>& vaultAddress = std::nullopt,
                                 const std::optional<uint64_t>& expiresAfter = std::nullopt)
     {
-        auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
-        auto prepared = Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
+        auto prepared = prepareBodyForType(type, std::move(body), vaultAddress, expiresAfter);
         std::string serialized = prepared.dump();
         getLogger()->debug("{}", serialized);
 
@@ -288,6 +306,13 @@ SimpleResponse RestApi::updateIsolatedMargin(const UpdateIsolatedMarginRequest& 
                                    vaultAddress));
 }
 
+SimpleResponse RestApi::approveAgent(const ApproveAgentRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::ApproveAgent,
+                                   impl_->exchangeRequestBuilder.approveAgent(request)));
+}
+
 
 void RestApi::spotMetaAsync()
 {
@@ -426,6 +451,12 @@ void RestApi::updateIsolatedMarginAsync(const UpdateIsolatedMarginRequest& reque
     impl_->signAndSend(RestEndpointType::UpdateIsolatedMargin,
                        impl_->exchangeRequestBuilder.updateIsolatedMargin(request),
                        vaultAddress);
+}
+
+void RestApi::approveAgentAsync(const ApproveAgentRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::ApproveAgent,
+                       impl_->exchangeRequestBuilder.approveAgent(request));
 }
 
 }

@@ -68,6 +68,7 @@ namespace hyperliquid
             case RestEndpointType::UpdateLeverage:
             case RestEndpointType::UpdateIsolatedMargin:
             case RestEndpointType::ScheduleCancel:
+            case RestEndpointType::ApproveAgent:
                 listener.onSimpleResponse(parseSimpleResponse(message), correlationId);
                 break;
             default:
