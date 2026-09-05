@@ -491,9 +491,7 @@ namespace hyperliquid
         action["destinationDex"] = request.destinationDex;
         action["token"] = request.token;
         action["amount"] = request.amount;
-        // Unlike sendAsset, the documented agentSendAsset schema has no fromSubAccount field -
-        // only set it when the caller actually provided one, rather than always sending "".
-        if (request.fromSubAccount) action["fromSubAccount"] = *request.fromSubAccount;
+        action["fromSubAccount"] = request.fromSubAccount.value_or("");
 
         nlohmann::ordered_json body;
         body["action"] = action;

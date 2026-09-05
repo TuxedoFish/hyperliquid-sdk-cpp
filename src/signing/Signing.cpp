@@ -82,8 +82,14 @@ nlohmann::ordered_json Signing::prepareBody(
         else
         {
             auto action = body["action"];
+            // agentSendAsset is an unusual L1 action: the exchange requires the action's own
+            // nonce field to equal the envelope nonce below, and checks it strictly (server
+            // rejects the request as a whole with a deserialize error if it's missing), unlike
+            // every other L1 action here which carries no embedded nonce at all.
+            if (type == RestEndpointType::AgentSendAsset) action["nonce"] = nonce;
             signature = signL1Action(
                 config.wallet.value(), action, vaultAddress, nonce, expiresAfter, isMainnet);
+            body["action"] = action;
         }
 
         nlohmann::ordered_json signatureJson;

@@ -38,20 +38,12 @@ int main()
     // per the API docs, `destination` must be the account's own address (it moves funds between
     // that account's own dexes, not to a third party), so we use the wallet's own address here
     // rather than the third-party `destination` constant used above.
-    // NOTE: at time of writing, testnet rejects this action with a generic
-    // "Failed to deserialize the JSON body into the target type" regardless of field content
-    // (verified against the documented request shape, with/without the optional fromSubAccount,
-    // and with both checksummed and lowercase destination casing) - this looks like a testnet
-    // rollout gap for this specific action type rather than a client-side request bug, since
-    // sibling actions (sendAsset, sendToEvmWithData) with near-identical shapes get real,
-    // properly-parsed business responses instead of a deserialize failure.
     hyperliquid::AgentSendAssetRequest agentSendReq;
     agentSendReq.destination = wallet.accountAddress;
     agentSendReq.sourceDex = "";
     agentSendReq.destinationDex = "";
     agentSendReq.token = "USDC:0xeb62eee3685fc4c43992febcd9e75443";
     agentSendReq.amount = "1";
-    // fromSubAccount left unset - agentSendAsset's documented schema has no such field.
     logSimpleResponse("agentSendAsset", api.agentSendAsset(agentSendReq));
 
     // Bridges a token out to an arbitrary EVM chain/address with attached calldata. Niche
