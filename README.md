@@ -107,36 +107,36 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 |---|---|---|---|
 | General | `allMids` | ✅ | `RestApi::allMids` |
 | General | `openOrders` | ✅ | `RestApi::openOrders` |
-| General | `frontendOpenOrders` | ⬜ | |
+| General | `frontendOpenOrders` | ✅ | `RestApi::frontendOpenOrders` |
 | General | `userFills` | ✅ | `RestApi::userFills` |
 | General | `userFillsByTime` | ✅ | `RestApi::userFillsByTime` |
-| General | `userRateLimit` | ⬜ | |
+| General | `userRateLimit` | ✅ | `RestApi::userRateLimit` |
 | General | `orderStatus` | ✅ | `RestApi::orderStatus` |
 | General | `l2Book` | ✅ | `RestApi::l2Book` |
 | General | `candleSnapshot` | ✅ | `RestApi::candleSnapshot` |
-| General | `maxBuilderFee` | ⬜ | |
-| General | `historicalOrders` | ⬜ | |
-| General | `userTwapSliceFills` | ⬜ | |
-| General | `subAccounts` | ⬜ | |
+| General | `maxBuilderFee` | ✅ | `RestApi::maxBuilderFee` |
+| General | `historicalOrders` | ✅ | `RestApi::historicalOrders` |
+| General | `userTwapSliceFills` | ✅ | `RestApi::userTwapSliceFills` |
+| General | `subAccounts` | ✅ | `RestApi::subAccounts` |
 | General | `vaultDetails` | ⬜ | |
 | General | `userVaultEquities` | ⬜ | |
 | General | `userRole` | ⬜ | |
 | General | `portfolio` | ⬜ | |
 | General | `referral` | ⬜ | |
-| General | `userFees` | ⬜ | |
-| General | `delegations` | ⬜ | |
-| General | `delegatorSummary` | ⬜ | |
-| General | `delegatorHistory` | ⬜ | |
-| General | `delegatorRewards` | ⬜ | |
+| General | `userFees` | ✅ | `RestApi::userFees` |
+| General | `delegations` | ✅ | `RestApi::delegations` |
+| General | `delegatorSummary` | ✅ | `RestApi::delegatorSummary` |
+| General | `delegatorHistory` | ✅ | `RestApi::delegatorHistory` |
+| General | `delegatorRewards` | ✅ | `RestApi::delegatorRewards` |
 | General | `userDexAbstraction` | ⬜ | |
 | General | `userAbstraction` | ⬜ | |
 | General | `borrowLendUserState` | ⬜ | |
 | General | `borrowLendReserveState` | ⬜ | |
 | General | `allBorrowLendReserveStates` | ⬜ | |
-| General | `approvedBuilders` | ⬜ | |
+| General | `approvedBuilders` | ✅ | `RestApi::approvedBuilders` |
 | Perpetuals | `perpDexs` | ✅ | `RestApi::perpDexs` |
 | Perpetuals | `meta` | ✅ | `RestApi::meta` |
-| Perpetuals | `metaAndAssetCtxs` | ⬜ | |
+| Perpetuals | `metaAndAssetCtxs` | ✅ | `RestApi::metaAndAssetCtxs` |
 | Perpetuals | `clearinghouseState` | ✅ | `RestApi::clearinghouseState` |
 | Perpetuals | `userFunding` | ⬜ | |
 | Perpetuals | `userNonFundingLedgerUpdates` | ⬜ | |
@@ -152,8 +152,8 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Perpetuals | `perpCategories` | ⬜ | |
 | Perpetuals | `perpConciseAnnotations` | ⬜ | |
 | Spot / Outcomes | `spotMeta` | ✅ | `RestApi::spotMeta` |
-| Spot / Outcomes | `spotMetaAndAssetCtxs` | ⬜ | |
-| Spot / Outcomes | `spotClearinghouseState` | ⬜ | |
+| Spot / Outcomes | `spotMetaAndAssetCtxs` | ✅ | `RestApi::spotMetaAndAssetCtxs` |
+| Spot / Outcomes | `spotClearinghouseState` | ✅ | `RestApi::spotClearinghouseState` |
 | Spot / Outcomes | `spotDeployState` | ⬜ | |
 | Spot / Outcomes | `spotPairDeployAuctionStatus` | ⬜ | |
 | Spot / Outcomes | `tokenDetails` | ⬜ | |
@@ -161,7 +161,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `settledOutcome` | ⬜ | |
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 
-12 of 55 documented info endpoints implemented. A handful (`metaAndAssetCtxs`, `userRateLimit`, `spotMetaAndAssetCtxs`, `spotClearinghouseState`, `spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
+27 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 
@@ -175,27 +175,27 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `batchModify` | ✅ | `RestApi::batchModifyOrder` |
 | `updateLeverage` | ✅ | `RestApi::updateLeverage` |
 | `updateIsolatedMargin` | ✅ | `RestApi::updateIsolatedMargin` |
-| `approveAgent` | ⬜ | |
-| `approveBuilderFee` | ⬜ | |
-| `sendAsset` | ⬜ | |
+| `approveAgent` | ✅ | `RestApi::approveAgent` |
+| `approveBuilderFee` | ✅ | `RestApi::approveBuilderFee` |
+| `sendAsset` | ✅ | `RestApi::sendAsset` |
 | `agentSendAsset` | ⬜ | |
 | `sendToEvmWithData` | ⬜ | |
-| `usdSend` | ⬜ | |
-| `spotSend` | ⬜ | |
-| `withdraw3` | ⬜ | |
-| `usdClassTransfer` | ⬜ | |
-| `cDeposit` | ⬜ | |
-| `cWithdraw` | ⬜ | |
-| `tokenDelegate` | ⬜ | |
-| `vaultTransfer` | ⬜ | |
+| `usdSend` | ✅ | `RestApi::usdSend` |
+| `spotSend` | ✅ | `RestApi::spotSend` |
+| `withdraw3` | ✅ | `RestApi::withdraw3` |
+| `usdClassTransfer` | ✅ | `RestApi::usdClassTransfer` |
+| `cDeposit` | ✅ | `RestApi::cDeposit` |
+| `cWithdraw` | ✅ | `RestApi::cWithdraw` |
+| `tokenDelegate` | ✅ | `RestApi::tokenDelegate` |
+| `vaultTransfer` | ✅ | `RestApi::vaultTransfer` |
 | `hip3LiquidatorTransfer` | ⬜ | |
-| `twapOrder` | ⬜ | |
-| `twapCancel` | ⬜ | |
+| `twapOrder` | ✅ | `RestApi::twapOrder` |
+| `twapCancel` | ✅ | `RestApi::twapCancel` |
 | `reserveRequestWeight` | ⬜ | |
 | `noop` | ⬜ | |
 | `userDexAbstraction` (deprecated) | ⬜ | |
 
-8 of 27 documented exchange actions implemented. Both REST (`RestApi`) and WebSocket (`WebsocketApi`) expose the same 8 — the WebSocket API additionally supports posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket.
+21 of 27 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
 
 ### WebSocket subscriptions
 
