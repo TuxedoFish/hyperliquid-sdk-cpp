@@ -127,6 +127,10 @@ namespace hyperliquid
             case RestEndpointType::CDeposit:
             case RestEndpointType::CWithdraw:
             case RestEndpointType::TokenDelegate:
+            case RestEndpointType::SendToEvmWithData:
+            case RestEndpointType::AgentSendAsset:
+            case RestEndpointType::ReserveRequestWeight:
+            case RestEndpointType::Noop:
                 listener.onSimpleResponse(parseSimpleResponse(message), correlationId);
                 break;
             case RestEndpointType::TwapOrder:

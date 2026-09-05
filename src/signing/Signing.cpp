@@ -6,6 +6,43 @@
 
 namespace hyperliquid {
 
+namespace {
+
+// EIP-712 field lists for user-signed actions, keyed by RestEndpointType. Field order
+// must match the on-chain HyperliquidTransaction:* struct definition.
+const std::vector<EIP712Field>& userSignedActionFields(RestEndpointType type)
+{
+    static const std::vector<EIP712Field> sendToEvmWithDataFields = {
+        {"hyperliquidChain", "string"},
+        {"token", "string"},
+        {"amount", "string"},
+        {"sourceDex", "string"},
+        {"destinationRecipient", "string"},
+        {"addressEncoding", "string"},
+        {"destinationChainId", "uint32"},
+        {"gasLimit", "uint64"},
+        {"data", "bytes"},
+        {"nonce", "uint64"},
+    };
+
+    switch (type)
+    {
+    case RestEndpointType::SendToEvmWithData: return sendToEvmWithDataFields;
+    default: throw std::invalid_argument("No EIP-712 field list for RestEndpointType: " + toString(type));
+    }
+}
+
+std::string userSignedActionPrimaryType(RestEndpointType type)
+{
+    switch (type)
+    {
+    case RestEndpointType::SendToEvmWithData: return "HyperliquidTransaction:SendToEvmWithData";
+    default: throw std::invalid_argument("No EIP-712 primary type for RestEndpointType: " + toString(type));
+    }
+}
+
+}
+
 nlohmann::ordered_json Signing::prepareBody(
     const ApiConfig& config,
     RestEndpointType type,
@@ -29,9 +66,31 @@ nlohmann::ordered_json Signing::prepareBody(
         body["nonce"] = nonce;
 
         bool isMainnet = (config.env == Environment::Mainnet);
-        auto action = body["action"];
-        auto signature = signL1Action(
-            config.wallet.value(), action, vaultAddress, nonce, expiresAfter, isMainnet);
+
+        Signature signature;
+        if (isUserSignedAction(type))
+        {
+            auto action = body["action"];
+            action["nonce"] = nonce;
+            action["signatureChainId"] = "0x66eee";
+            action["hyperliquidChain"] = isMainnet ? "Mainnet" : "Testnet";
+            signature = signUserSignedAction(
+                config.wallet.value(), action, userSignedActionFields(type),
+                userSignedActionPrimaryType(type));
+            body["action"] = action;
+        }
+        else
+        {
+            auto action = body["action"];
+            // agentSendAsset is an unusual L1 action: the exchange requires the action's own
+            // nonce field to equal the envelope nonce below, and checks it strictly (server
+            // rejects the request as a whole with a deserialize error if it's missing), unlike
+            // every other L1 action here which carries no embedded nonce at all.
+            if (type == RestEndpointType::AgentSendAsset) action["nonce"] = nonce;
+            signature = signL1Action(
+                config.wallet.value(), action, vaultAddress, nonce, expiresAfter, isMainnet);
+            body["action"] = action;
+        }
 
         nlohmann::ordered_json signatureJson;
         signatureJson["r"] = signature.r;
@@ -182,6 +241,15 @@ nlohmann::ordered_json Signing::prepareUserSignedActionBody(
         payloadTypes = {
             {"hyperliquidChain", "string"}, {"validator", "address"}, {"wei", "uint64"},
             {"isUndelegate", "bool"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
+    case RestEndpointType::SendToEvmWithData:
+        primaryType = "HyperliquidTransaction:SendToEvmWithData";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"token", "string"}, {"amount", "string"},
+            {"sourceDex", "string"}, {"destinationRecipient", "string"},
+            {"addressEncoding", "string"}, {"destinationChainId", "uint32"},
+            {"gasLimit", "uint64"}, {"data", "bytes"}, {"nonce", "uint64"}};
         timeField = "nonce";
         break;
     default:

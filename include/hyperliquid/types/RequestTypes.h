@@ -207,6 +207,10 @@ namespace hyperliquid
         CDeposit,
         CWithdraw,
         TokenDelegate,
+        SendToEvmWithData,
+        AgentSendAsset,
+        ReserveRequestWeight,
+        Noop,
     };
 
     inline std::string toString(RestEndpointType type)
@@ -274,6 +278,10 @@ namespace hyperliquid
         case RestEndpointType::CDeposit: return "cDeposit";
         case RestEndpointType::CWithdraw: return "cWithdraw";
         case RestEndpointType::TokenDelegate: return "tokenDelegate";
+        case RestEndpointType::SendToEvmWithData: return "sendToEvmWithData";
+        case RestEndpointType::AgentSendAsset: return "agentSendAsset";
+        case RestEndpointType::ReserveRequestWeight: return "reserveRequestWeight";
+        case RestEndpointType::Noop: return "noop";
         default: throw std::invalid_argument("Unknown InfoEndpointType");
         }
     }
@@ -343,6 +351,10 @@ namespace hyperliquid
         case RestEndpointType::CDeposit: return true;
         case RestEndpointType::CWithdraw: return true;
         case RestEndpointType::TokenDelegate: return true;
+        case RestEndpointType::SendToEvmWithData: return true;
+        case RestEndpointType::AgentSendAsset: return true;
+        case RestEndpointType::ReserveRequestWeight: return true;
+        case RestEndpointType::Noop: return true;
         default: throw std::invalid_argument("Unknown RestEndpointType");
         }
     }
@@ -352,9 +364,11 @@ namespace hyperliquid
         return isAuthenticated(type) ? "/exchange" : "/info";
     }
 
-    // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee and the staking
-    // actions (cDeposit/cWithdraw/tokenDelegate) are EIP-712 user-signed actions (see
-    // Signing::prepareUserSignedActionBody), not L1 actions.
+    // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee, the staking
+    // actions (cDeposit/cWithdraw/tokenDelegate), and sendToEvmWithData are EIP-712 user-signed
+    // actions (see Signing::prepareUserSignedActionBody), not L1 actions. All other authenticated
+    // actions here (including agentSendAsset/reserveRequestWeight/noop) are L1 actions signed
+    // with the agent/master key directly.
     inline bool isUserSignedAction(RestEndpointType type)
     {
         switch (type)
@@ -368,6 +382,7 @@ namespace hyperliquid
         case RestEndpointType::CDeposit:
         case RestEndpointType::CWithdraw:
         case RestEndpointType::TokenDelegate:
+        case RestEndpointType::SendToEvmWithData:
             return true;
         default:
             return false;
@@ -562,6 +577,53 @@ namespace hyperliquid
         // Amount to delegate/undelegate, in wei (1 HYPE == 1e8 wei).
         uint64_t wei;
         bool isUndelegate;
+    };
+
+    enum class AddressEncoding { Hex, Base58 };
+
+    inline std::string toString(AddressEncoding encoding)
+    {
+        switch (encoding)
+        {
+        case AddressEncoding::Hex: return "hex";
+        case AddressEncoding::Base58: return "base58";
+        default: throw std::invalid_argument("Unknown AddressEncoding");
+        }
+    }
+
+    inline AddressEncoding stringToAddressEncoding(const std::string& encoding)
+    {
+        if (encoding == "hex") return AddressEncoding::Hex;
+        if (encoding == "base58") return AddressEncoding::Base58;
+        throw std::invalid_argument("Unknown AddressEncoding: " + encoding);
+    }
+
+    struct SendToEvmWithDataRequest
+    {
+        std::string token;
+        std::string amount;
+        std::string sourceDex;
+        std::string destinationRecipient;
+        AddressEncoding addressEncoding;
+        uint32_t destinationChainId;
+        uint64_t gasLimit;
+        std::string data; // hex-encoded bytes, e.g. "0x..."
+    };
+
+    struct AgentSendAssetRequest
+    {
+        std::string destination;
+        std::string sourceDex;
+        std::string destinationDex;
+        std::string token;
+        std::string amount;
+        std::optional<std::string> fromSubAccount;
+    };
+
+    struct ReserveRequestWeightRequest
+    {
+        int weight;
+        std::optional<std::string> destination;
     };
 
     inline int outcomeEncoding(int outcomeIndex, int side)

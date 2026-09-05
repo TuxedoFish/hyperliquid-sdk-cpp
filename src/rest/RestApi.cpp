@@ -537,6 +537,39 @@ DelegatorRewardsResponse RestApi::delegatorRewards(const std::string& user)
         impl_->signAndSendSync(RestEndpointType::DelegatorRewards, InfoRequestBuilder::delegatorRewards(user)));
 }
 
+SimpleResponse RestApi::sendToEvmWithData(const SendToEvmWithDataRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SendToEvmWithData,
+                                   impl_->exchangeRequestBuilder.sendToEvmWithData(request)));
+}
+
+SimpleResponse RestApi::agentSendAsset(const AgentSendAssetRequest& request,
+                               const std::optional<std::string>& vaultAddress)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::AgentSendAsset,
+                                   impl_->exchangeRequestBuilder.agentSendAsset(request),
+                                   vaultAddress));
+}
+
+SimpleResponse RestApi::reserveRequestWeight(const ReserveRequestWeightRequest& request,
+                               const std::optional<std::string>& vaultAddress)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::ReserveRequestWeight,
+                                   impl_->exchangeRequestBuilder.reserveRequestWeight(request),
+                                   vaultAddress));
+}
+
+SimpleResponse RestApi::noop(const std::optional<std::string>& vaultAddress)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::Noop,
+                                   impl_->exchangeRequestBuilder.noop(),
+                                   vaultAddress));
+}
+
 
 void RestApi::spotMetaAsync()
 {
@@ -854,6 +887,35 @@ void RestApi::delegatorHistoryAsync(const std::string& user)
 void RestApi::delegatorRewardsAsync(const std::string& user)
 {
     impl_->signAndSend(RestEndpointType::DelegatorRewards, InfoRequestBuilder::delegatorRewards(user));
+}
+
+void RestApi::sendToEvmWithDataAsync(const SendToEvmWithDataRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::SendToEvmWithData,
+                       impl_->exchangeRequestBuilder.sendToEvmWithData(request));
+}
+
+void RestApi::agentSendAssetAsync(const AgentSendAssetRequest& request,
+                                   const std::optional<std::string>& vaultAddress)
+{
+    impl_->signAndSend(RestEndpointType::AgentSendAsset,
+                       impl_->exchangeRequestBuilder.agentSendAsset(request),
+                       vaultAddress);
+}
+
+void RestApi::reserveRequestWeightAsync(const ReserveRequestWeightRequest& request,
+                                         const std::optional<std::string>& vaultAddress)
+{
+    impl_->signAndSend(RestEndpointType::ReserveRequestWeight,
+                       impl_->exchangeRequestBuilder.reserveRequestWeight(request),
+                       vaultAddress);
+}
+
+void RestApi::noopAsync(const std::optional<std::string>& vaultAddress)
+{
+    impl_->signAndSend(RestEndpointType::Noop,
+                       impl_->exchangeRequestBuilder.noop(),
+                       vaultAddress);
 }
 
 }
