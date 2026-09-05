@@ -53,11 +53,11 @@ public:
     }
 
     void onDisconnected(bool hasError, const std::string& errMsg) override {
-        spdlog::info("Disconnected");
+        spdlog::info("Disconnected: hasError={} errMsg={}", hasError, errMsg);
     }
 
     void onPlaceOrder(const hyperliquid::PlaceOrderResponse& response,
-                       std::optional<uint64_t> correlationId) override {
+                       std::optional<uint64_t>) override {
         spdlog::info("Place order: status={}", response.status);
         if (response.status != "ok" || response.statuses.empty()) return;
 

@@ -12,11 +12,11 @@ class WebsocketApiListener {
 public:
     virtual ~WebsocketApiListener() = default;
 
-    virtual void onMessage(const std::string& message) {}
-    virtual void onPostResponse(const std::string& message, RestEndpointType type,
-                                std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onMessage(const std::string&) {}
+    virtual void onPostResponse(const std::string&, RestEndpointType,
+                                std::optional<uint64_t> = std::nullopt) {}
     virtual void onConnected() {}
-    virtual void onDisconnected(bool hasError, const std::string& errMsg) {}
+    virtual void onDisconnected(bool, const std::string&) {}
 };
 
 }

@@ -50,7 +50,7 @@ public:
     }
 
     void onPlaceOrder(const hyperliquid::PlaceOrderResponse& response,
-                       std::optional<uint64_t> correlationId) override {
+                       std::optional<uint64_t>) override {
         spdlog::info("Place order: status={}", response.status);
         if (response.status != "ok" || response.statuses.empty()) return;
 
@@ -77,7 +77,7 @@ public:
     }
 
     void onModifyOrder(const hyperliquid::ModifyOrderResponse& response,
-                        std::optional<uint64_t> correlationId) override {
+                        std::optional<uint64_t>) override {
         spdlog::info("Modify order: status={}", response.status);
         if (response.status != "ok") return;
 
@@ -89,7 +89,7 @@ public:
     }
 
     void onCancelOrder(const hyperliquid::CancelOrderResponse& response,
-                        std::optional<uint64_t> correlationId) override {
+                        std::optional<uint64_t>) override {
         spdlog::info("Cancel order: status={}", response.status);
         spdlog::info("Unsubscribing...");
         ws_->unsubscribe(hyperliquid::SubscriptionType::OrderUpdates);
@@ -115,7 +115,7 @@ public:
     }
 
     void onDisconnected(bool hasError, const std::string& errMsg) override {
-        spdlog::info("Disconnected");
+        spdlog::info("Disconnected: hasError={} errMsg={}", hasError, errMsg);
     }
 
 private:
