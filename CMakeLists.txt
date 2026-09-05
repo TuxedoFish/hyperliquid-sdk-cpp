@@ -22,6 +22,15 @@ set(HYPERLIQUID_SANITIZE_FLAGS -fsanitize=address,undefined -fno-omit-frame-poin
 option(HYPERLIQUID_COVERAGE "Build with gcov coverage instrumentation" OFF)
 set(HYPERLIQUID_COVERAGE_FLAGS --coverage -fno-inline -fno-inline-small-functions -fno-default-inline)
 
+# Off by default - libFuzzer is a clang-only feature and these binaries are only ever
+# meant for the dedicated scheduled fuzz workflow, not normal local/CI builds.
+option(HYPERLIQUID_BUILD_FUZZERS "Build libFuzzer harnesses for the REST/websocket message parsers (clang only)" OFF)
+# Applied to hyperliquid-sdk itself (PUBLIC) so the actual parsing code is coverage-instrumented
+# and ASan-checked, not just the thin harness translation units in fuzz/. fuzzer-no-link gives
+# coverage instrumentation without pulling in a libFuzzer main - only the harness executables do that.
+set(HYPERLIQUID_FUZZER_LIB_FLAGS -fsanitize=fuzzer-no-link,address -fno-omit-frame-pointer -g)
+set(HYPERLIQUID_FUZZER_EXE_FLAGS -fsanitize=fuzzer,address -fno-omit-frame-pointer -g)
+
 include(GNUInstallDirs)
 
 find_package(OpenSSL REQUIRED)
@@ -194,4 +203,27 @@ if(HYPERLIQUID_BUILD_EXAMPLES)
             target_compile_options(${EXAMPLE_NAME} PRIVATE ${HYPERLIQUID_WARNING_FLAGS})
         endif()
     endforeach()
+endif()
+
+if(HYPERLIQUID_BUILD_FUZZERS)
+    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        message(FATAL_ERROR
+            "HYPERLIQUID_BUILD_FUZZERS requires Clang (libFuzzer/-fsanitize=fuzzer is a "
+            "clang-only feature). CMAKE_CXX_COMPILER_ID is '${CMAKE_CXX_COMPILER_ID}'. "
+            "Reconfigure with -DCMAKE_CXX_COMPILER=clang++.")
+    endif()
+
+    target_compile_options(hyperliquid-sdk PUBLIC ${HYPERLIQUID_FUZZER_LIB_FLAGS})
+    target_link_options(hyperliquid-sdk PUBLIC -fsanitize=address)
+
+    function(hyperliquid_add_fuzzer NAME)
+        add_executable(${NAME} fuzz/${NAME}.cpp)
+        target_link_libraries(${NAME} PRIVATE hyperliquid-sdk)
+        target_include_directories(${NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+        target_compile_options(${NAME} PRIVATE ${HYPERLIQUID_FUZZER_EXE_FLAGS})
+        target_link_options(${NAME} PRIVATE ${HYPERLIQUID_FUZZER_EXE_FLAGS})
+    endfunction()
+
+    hyperliquid_add_fuzzer(rest_parser_fuzz)
+    hyperliquid_add_fuzzer(websocket_parser_fuzz)
 endif()
