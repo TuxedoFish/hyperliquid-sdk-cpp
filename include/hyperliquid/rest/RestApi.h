@@ -105,6 +105,13 @@ public:
     SimpleResponse spotSend(const SpotSendRequest& request);
     SimpleResponse withdraw3(const Withdraw3Request& request);
     SimpleResponse approveBuilderFee(const ApproveBuilderFeeRequest& request);
+    SimpleResponse cDeposit(uint64_t wei);
+    SimpleResponse cWithdraw(uint64_t wei);
+    SimpleResponse tokenDelegate(const TokenDelegateRequest& request);
+    DelegationsResponse delegations(const std::string& user);
+    DelegatorSummaryResponse delegatorSummary(const std::string& user);
+    DelegatorHistoryResponse delegatorHistory(const std::string& user);
+    DelegatorRewardsResponse delegatorRewards(const std::string& user);
 
     void spotMetaAsync();
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
@@ -174,6 +181,13 @@ public:
     void spotSendAsync(const SpotSendRequest& request);
     void withdraw3Async(const Withdraw3Request& request);
     void approveBuilderFeeAsync(const ApproveBuilderFeeRequest& request);
+    void cDepositAsync(uint64_t wei);
+    void cWithdrawAsync(uint64_t wei);
+    void tokenDelegateAsync(const TokenDelegateRequest& request);
+    void delegationsAsync(const std::string& user);
+    void delegatorSummaryAsync(const std::string& user);
+    void delegatorHistoryAsync(const std::string& user);
+    void delegatorRewardsAsync(const std::string& user);
 
 private:
     struct Impl;

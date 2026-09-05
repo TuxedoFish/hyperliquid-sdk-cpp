@@ -60,9 +60,10 @@ struct RestApi::Impl {
     }
 
     // approveAgent and the other EIP-712 user-signed actions (usdClassTransfer/sendAsset/usdSend/
-    // spotSend/withdraw3/approveBuilderFee; see isUserSignedAction) are routed to
-    // Signing::prepareApproveAgentBody / Signing::prepareUserSignedActionBody instead of the
-    // generic vaultAddress/expiresAfter path used by the other (L1) exchange endpoints.
+    // spotSend/withdraw3/approveBuilderFee/cDeposit/cWithdraw/tokenDelegate; see
+    // isUserSignedAction) are routed to Signing::prepareApproveAgentBody /
+    // Signing::prepareUserSignedActionBody instead of the generic vaultAddress/expiresAfter path
+    // used by the other (L1) exchange endpoints.
     nlohmann::ordered_json prepareBodyForType(RestEndpointType type, nlohmann::ordered_json body,
                                               const std::optional<std::string>& vaultAddress,
                                               const std::optional<uint64_t>& expiresAfter)
@@ -463,6 +464,48 @@ SimpleResponse RestApi::approveBuilderFee(const ApproveBuilderFeeRequest& reques
                                    impl_->exchangeRequestBuilder.approveBuilderFee(request)));
 }
 
+SimpleResponse RestApi::cDeposit(uint64_t wei)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::CDeposit, impl_->exchangeRequestBuilder.cDeposit(wei)));
+}
+
+SimpleResponse RestApi::cWithdraw(uint64_t wei)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::CWithdraw, impl_->exchangeRequestBuilder.cWithdraw(wei)));
+}
+
+SimpleResponse RestApi::tokenDelegate(const TokenDelegateRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::TokenDelegate, impl_->exchangeRequestBuilder.tokenDelegate(request)));
+}
+
+DelegationsResponse RestApi::delegations(const std::string& user)
+{
+    return RestApiMessageParser().parseDelegations(
+        impl_->signAndSendSync(RestEndpointType::Delegations, InfoRequestBuilder::delegations(user)));
+}
+
+DelegatorSummaryResponse RestApi::delegatorSummary(const std::string& user)
+{
+    return RestApiMessageParser().parseDelegatorSummary(
+        impl_->signAndSendSync(RestEndpointType::DelegatorSummary, InfoRequestBuilder::delegatorSummary(user)));
+}
+
+DelegatorHistoryResponse RestApi::delegatorHistory(const std::string& user)
+{
+    return RestApiMessageParser().parseDelegatorHistory(
+        impl_->signAndSendSync(RestEndpointType::DelegatorHistory, InfoRequestBuilder::delegatorHistory(user)));
+}
+
+DelegatorRewardsResponse RestApi::delegatorRewards(const std::string& user)
+{
+    return RestApiMessageParser().parseDelegatorRewards(
+        impl_->signAndSendSync(RestEndpointType::DelegatorRewards, InfoRequestBuilder::delegatorRewards(user)));
+}
+
 
 void RestApi::spotMetaAsync()
 {
@@ -720,6 +763,41 @@ void RestApi::approveBuilderFeeAsync(const ApproveBuilderFeeRequest& request)
 {
     impl_->signAndSend(RestEndpointType::ApproveBuilderFee,
                        impl_->exchangeRequestBuilder.approveBuilderFee(request));
+}
+
+void RestApi::cDepositAsync(uint64_t wei)
+{
+    impl_->signAndSend(RestEndpointType::CDeposit, impl_->exchangeRequestBuilder.cDeposit(wei));
+}
+
+void RestApi::cWithdrawAsync(uint64_t wei)
+{
+    impl_->signAndSend(RestEndpointType::CWithdraw, impl_->exchangeRequestBuilder.cWithdraw(wei));
+}
+
+void RestApi::tokenDelegateAsync(const TokenDelegateRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::TokenDelegate, impl_->exchangeRequestBuilder.tokenDelegate(request));
+}
+
+void RestApi::delegationsAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::Delegations, InfoRequestBuilder::delegations(user));
+}
+
+void RestApi::delegatorSummaryAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::DelegatorSummary, InfoRequestBuilder::delegatorSummary(user));
+}
+
+void RestApi::delegatorHistoryAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::DelegatorHistory, InfoRequestBuilder::delegatorHistory(user));
+}
+
+void RestApi::delegatorRewardsAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::DelegatorRewards, InfoRequestBuilder::delegatorRewards(user));
 }
 
 }

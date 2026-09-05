@@ -7,6 +7,11 @@ void SymbolMap::add(const std::string& symbol, int securityId)
     symbolToId_.insert({symbol, securityId});
 }
 
+void SymbolMap::set(const std::string& symbol, int securityId)
+{
+    symbolToId_[symbol] = securityId;
+}
+
 int SymbolMap::resolve(const std::string& symbol) const
 {
     auto iter = symbolToId_.find(symbol);

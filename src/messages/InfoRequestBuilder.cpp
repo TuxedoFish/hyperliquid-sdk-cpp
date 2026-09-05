@@ -217,4 +217,36 @@ nlohmann::ordered_json InfoRequestBuilder::approvedBuilders(const std::string& u
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::delegations(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::Delegations);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::delegatorSummary(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::DelegatorSummary);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::delegatorHistory(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::DelegatorHistory);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::delegatorRewards(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::DelegatorRewards);
+    body["user"] = user;
+    return body;
+}
+
 }

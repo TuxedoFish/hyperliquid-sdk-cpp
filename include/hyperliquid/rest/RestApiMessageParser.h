@@ -51,6 +51,10 @@ namespace hyperliquid
         SimpleResponse parseSimpleResponse(const std::string& message);
         TwapOrderResponse parseTwapOrder(const std::string& message);
         TwapCancelResponse parseTwapCancel(const std::string& message);
+        DelegationsResponse parseDelegations(const std::string& message);
+        DelegatorSummaryResponse parseDelegatorSummary(const std::string& message);
+        DelegatorHistoryResponse parseDelegatorHistory(const std::string& message);
+        DelegatorRewardsResponse parseDelegatorRewards(const std::string& message);
 
     private:
         struct Impl;

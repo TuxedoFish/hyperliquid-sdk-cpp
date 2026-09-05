@@ -961,4 +961,120 @@ namespace hyperliquid
         std::optional<std::string> success;
         std::optional<std::string> error;
     };
+
+    // --- Staking / delegation types ---
+
+    struct Delegation
+    {
+        std::string validator;
+        double amount;
+        uint64_t lockedUntilTimestamp;
+    };
+
+    struct DelegationsResponse
+    {
+        std::vector<Delegation> delegations;
+    };
+
+    struct DelegatorSummaryResponse
+    {
+        double delegated;
+        double undelegated;
+        double totalPendingWithdrawal;
+        int nPendingWithdrawals;
+    };
+
+    enum class DelegatorHistoryDeltaType { Delegate, CDeposit, Withdrawal, Unknown };
+
+    inline DelegatorHistoryDeltaType stringToDelegatorHistoryDeltaType(std::string_view s)
+    {
+        if (s == "delegate") return DelegatorHistoryDeltaType::Delegate;
+        if (s == "cDeposit") return DelegatorHistoryDeltaType::CDeposit;
+        if (s == "withdrawal") return DelegatorHistoryDeltaType::Withdrawal;
+        return DelegatorHistoryDeltaType::Unknown;
+    }
+
+    inline std::string toString(DelegatorHistoryDeltaType type)
+    {
+        switch (type)
+        {
+        case DelegatorHistoryDeltaType::Delegate: return "delegate";
+        case DelegatorHistoryDeltaType::CDeposit: return "cDeposit";
+        case DelegatorHistoryDeltaType::Withdrawal: return "withdrawal";
+        default: return "unknown";
+        }
+    }
+
+    enum class WithdrawalPhase { Initiated, Finalized, Unknown };
+
+    inline WithdrawalPhase stringToWithdrawalPhase(std::string_view s)
+    {
+        if (s == "initiated") return WithdrawalPhase::Initiated;
+        if (s == "finalized") return WithdrawalPhase::Finalized;
+        return WithdrawalPhase::Unknown;
+    }
+
+    inline std::string toString(WithdrawalPhase phase)
+    {
+        switch (phase)
+        {
+        case WithdrawalPhase::Initiated: return "initiated";
+        case WithdrawalPhase::Finalized: return "finalized";
+        default: return "unknown";
+        }
+    }
+
+    // Flattened representation of the {delegate|cDeposit|withdrawal}-keyed delta union;
+    // `type` indicates which variant this was, fields not applicable to it are left default.
+    struct DelegatorHistoryDelta
+    {
+        DelegatorHistoryDeltaType type;
+        std::string validator;
+        double amount;
+        bool isUndelegate;
+        WithdrawalPhase phase;
+    };
+
+    struct DelegatorHistoryEntry
+    {
+        uint64_t time;
+        std::string hash;
+        DelegatorHistoryDelta delta;
+    };
+
+    struct DelegatorHistoryResponse
+    {
+        std::vector<DelegatorHistoryEntry> history;
+    };
+
+    enum class DelegatorRewardSource { Delegation, Commission, Unknown };
+
+    inline DelegatorRewardSource stringToDelegatorRewardSource(std::string_view s)
+    {
+        if (s == "delegation") return DelegatorRewardSource::Delegation;
+        if (s == "commission") return DelegatorRewardSource::Commission;
+        return DelegatorRewardSource::Unknown;
+    }
+
+    inline std::string toString(DelegatorRewardSource source)
+    {
+        switch (source)
+        {
+        case DelegatorRewardSource::Delegation: return "delegation";
+        case DelegatorRewardSource::Commission: return "commission";
+        default: return "unknown";
+        }
+    }
+
+    struct DelegatorReward
+    {
+        uint64_t time;
+        DelegatorRewardSource source;
+        double totalAmount;
+    };
+
+    struct DelegatorRewardsResponse
+    {
+        std::vector<DelegatorReward> rewards;
+    };
 }

@@ -43,10 +43,35 @@ TEST(SymbolMapTest, FirstAddWinsOnDuplicateSymbol)
     EXPECT_EQ(map.resolve("ETH"), 4);
 }
 
+TEST(SymbolMapTest, SetUnconditionallyOverwrites)
+{
+    SymbolMap map;
+    map.add("ETH", 4);
+    map.set("ETH", 999);
+    EXPECT_EQ(map.resolve("ETH"), 999);
+}
+
+TEST(SymbolMapTest, RealNameRegisteredWithSetWinsOverAnEarlierAliasRegisteredWithAdd)
+{
+    // Mirrors the Python SDK's asymmetry: a pair's own real name always wins, even over an
+    // alias that claimed the same string first, because raw names are registered with an
+    // unconditional overwrite while aliases only claim a string if it's still free. Without
+    // this, a non-canonical pair's derived "BASE/QUOTE" alias processed before the real
+    // canonical pair of the same name would permanently steal that name.
+    SymbolMap map;
+    map.add("PURR/USDC", 10050);  // non-canonical duplicate's derived alias, claimed first
+    map.set("PURR/USDC", 10000);  // canonical pair's own real name, processed second
+
+    EXPECT_EQ(map.resolve("PURR/USDC"), 10000);
+}
+
 // --- Asset-id range scheme mirrored from ExchangeRequestBuilder::initializeMapping ---
 //
 // Perp assets (default meta universe): raw index, e.g. 0, 1, 2, ...
-// Spot tokens (spotMeta): token.index + 10000
+// Spot pairs (spotMetaAndAssetCtxs): 10000 + the pair's own `index` field (mirrors the
+// official Python SDK). Every pair also gets a "BASE/QUOTE" convenience alias built from its
+// token names, regardless of canonical status - first pair to claim a given "BASE/QUOTE"
+// string wins.
 // Dex-scoped perp assets (per-dex meta): 100000 + perpIdx * 10000 + index,
 // where perpIdx is the 1-based position of the dex in perpDexs().dexes.
 
@@ -62,23 +87,44 @@ TEST(SymbolMapTest, PerpAssetsUseRawUniverseIndex)
     EXPECT_EQ(map.resolve("SOL"), 2);
 }
 
-TEST(SymbolMapTest, SpotTokensAreOffsetByTenThousand)
+TEST(SymbolMapTest, SpotPairsAreOffsetByTenThousand)
 {
     SymbolMap map;
-    // spotMeta token.index values start at 0, same as perp indices, but must not
-    // collide with perp asset ids once offset.
-    map.add("PURR", 0 + 10000);
-    map.add("HFUN", 1 + 10000);
+    // Pair's own `index` field, offset by 10000.
+    map.add("PURR/USDC", 0 + 10000);
+    map.add("HFUN/USDC", 1 + 10000);
 
-    EXPECT_EQ(map.resolve("PURR"), 10000);
-    EXPECT_EQ(map.resolve("HFUN"), 10001);
+    EXPECT_EQ(map.resolve("PURR/USDC"), 10000);
+    EXPECT_EQ(map.resolve("HFUN/USDC"), 10001);
+}
+
+TEST(SymbolMapTest, SpotAssetIdUsesPairsOwnIndexFieldNotArrayPosition)
+{
+    // Mirrors the official Python SDK: asset id is 10000 + the pair's own `index` field,
+    // regardless of where the pair actually sits in the universe array.
+    SymbolMap map;
+    map.add("@1035", 1035 + 10000);
+
+    EXPECT_EQ(map.resolve("@1035"), 11035);
+}
+
+TEST(SymbolMapTest, EveryPairGetsABaseQuoteAliasRegardlessOfCanonicalStatus)
+{
+    // First pair to claim a given "BASE/QUOTE" string wins - applies even to non-canonical,
+    // auto-named pairs, matching the Python SDK's unconditional aliasing.
+    SymbolMap map;
+    map.add("@1", 1 + 10000);
+    map.add("PUCKY/USDC", 1 + 10000);
+
+    EXPECT_EQ(map.resolve("@1"), 10001);
+    EXPECT_EQ(map.resolve("PUCKY/USDC"), 10001);
 }
 
 TEST(SymbolMapTest, PerpAndSpotIdsDoNotCollide)
 {
     SymbolMap map;
     map.add("BTC", 0);        // perp asset index 0
-    map.add("SOMECOIN", 0 + 10000); // spot token index 0
+    map.add("SOMECOIN", 0 + 10000); // spot pair position 0
 
     EXPECT_EQ(map.resolve("BTC"), 0);
     EXPECT_EQ(map.resolve("SOMECOIN"), 10000);

@@ -40,6 +40,10 @@ public:
     virtual void onSimpleResponse(const SimpleResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onTwapOrder(const TwapOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onTwapCancel(const TwapCancelResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onDelegations(const DelegationsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onDelegatorSummary(const DelegatorSummaryResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onDelegatorHistory(const DelegatorHistoryResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onDelegatorRewards(const DelegatorRewardsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
 };
 
 }
