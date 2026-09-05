@@ -1399,4 +1399,49 @@ namespace hyperliquid
     {
         std::vector<DelegatorReward> rewards;
     };
+
+    // --- Borrow/lend ---
+
+    struct BorrowLendReserveState
+    {
+        double borrowYearlyRate;
+        double supplyYearlyRate;
+        double balance;
+        double utilization;
+        double oraclePx;
+        double ltv;
+        double totalSupplied;
+        double totalBorrowed;
+    };
+
+    struct BorrowLendReserveEntry
+    {
+        int token;
+        BorrowLendReserveState state;
+    };
+
+    struct AllBorrowLendReserveStatesResponse
+    {
+        std::vector<BorrowLendReserveEntry> reserves;
+    };
+
+    struct BorrowLendPositionSide
+    {
+        double basis;
+        double value;
+    };
+
+    struct BorrowLendUserPosition
+    {
+        int token;
+        BorrowLendPositionSide borrow;
+        BorrowLendPositionSide supply;
+    };
+
+    struct BorrowLendUserStateResponse
+    {
+        std::vector<BorrowLendUserPosition> tokenToState;
+        std::string health;
+        std::optional<double> healthFactor;
+    };
 }

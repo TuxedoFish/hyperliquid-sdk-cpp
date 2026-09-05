@@ -69,6 +69,10 @@ public:
     static nlohmann::ordered_json portfolio(const std::string& user);
     static nlohmann::ordered_json referral(const std::string& user);
     static nlohmann::ordered_json userRole(const std::string& user);
+
+    static nlohmann::ordered_json borrowLendUserState(const std::string& user);
+    static nlohmann::ordered_json borrowLendReserveState(int token);
+    static nlohmann::ordered_json allBorrowLendReserveStates();
 };
 
 } // namespace hyperliquid

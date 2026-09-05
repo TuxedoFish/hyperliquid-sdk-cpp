@@ -83,6 +83,9 @@ public:
     PortfolioResponse portfolio(const std::string& user);
     ReferralResponse referral(const std::string& user);
     UserRoleResponse userRole(const std::string& user);
+    BorrowLendUserStateResponse borrowLendUserState(const std::string& user);
+    BorrowLendReserveState borrowLendReserveState(int token);
+    AllBorrowLendReserveStatesResponse allBorrowLendReserveStates();
     PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
                            const std::optional<Builder>& builder = std::nullopt,
@@ -181,6 +184,9 @@ public:
     void portfolioAsync(const std::string& user);
     void referralAsync(const std::string& user);
     void userRoleAsync(const std::string& user);
+    void borrowLendUserStateAsync(const std::string& user);
+    void borrowLendReserveStateAsync(int token);
+    void allBorrowLendReserveStatesAsync();
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
                          const std::optional<Builder>& builder = std::nullopt,

@@ -55,6 +55,9 @@ public:
     virtual void onDelegatorSummary(const DelegatorSummaryResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onDelegatorHistory(const DelegatorHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onDelegatorRewards(const DelegatorRewardsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onBorrowLendUserState(const BorrowLendUserStateResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onBorrowLendReserveState(const BorrowLendReserveState&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onAllBorrowLendReserveStates(const AllBorrowLendReserveStatesResponse&, std::optional<uint64_t> = std::nullopt) {}
 };
 
 }
