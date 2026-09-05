@@ -7,13 +7,30 @@ on:
     branches: [main]
 
 jobs:
+  # Windows/MSVC is intentionally out of scope here - the Boost.Asio/Beast + current CMake setup
+  # would be a bigger lift than adding another *nix compiler, so it's left for a follow-up.
   build-and-test:
-    name: Build & Test (ubuntu-latest, gcc)
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+          - os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+          - os: macos-latest
+            cc: clang
+            cxx: clang++
+    name: Build & Test (${{ matrix.os }}, ${{ matrix.cc }})
+    runs-on: ${{ matrix.os }}
 
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
 
     steps:
       - name: Checkout repository
@@ -26,9 +43,9 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-          key: vcpkg-bincache-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          key: vcpkg-bincache-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
-            vcpkg-bincache-${{ runner.os }}-
+            vcpkg-bincache-${{ runner.os }}-${{ matrix.cc }}-
 
       - name: Clone and bootstrap vcpkg
         run: |
@@ -39,7 +56,7 @@ jobs:
         run: cmake --preset default -DHYPERLIQUID_WARNINGS_AS_ERRORS=ON
 
       - name: Build
-        run: cmake --build build -j"$(nproc)"
+        run: cmake --build build -j"$(getconf _NPROCESSORS_ONLN)"
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
