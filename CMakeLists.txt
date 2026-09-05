@@ -85,9 +85,9 @@ target_link_libraries(hyperliquid-sdk
         nlohmann_json::nlohmann_json
         simdjson::simdjson
         spdlog::spdlog
+        ZLIB::ZLIB
         PRIVATE
         $<BUILD_INTERFACE:secp256k1_objs>
-        ZLIB::ZLIB
 )
 
 if(NOT MSVC)
