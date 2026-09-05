@@ -80,3 +80,58 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+  coverage:
+    name: Coverage (ubuntu-latest, gcc)
+    runs-on: ubuntu-latest
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install lcov
+        run: sudo apt-get update && sudo apt-get install -y lcov
+
+      - name: Create vcpkg binary cache directory
+        run: mkdir -p "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
+
+      - name: Cache vcpkg binary cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: vcpkg-bincache-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-bincache-${{ runner.os }}-
+
+      - name: Clone and bootstrap vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "${VCPKG_ROOT}"
+          "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
+
+      - name: Configure (CMake preset "default", coverage on)
+        run: cmake --preset default -DHYPERLIQUID_COVERAGE=ON -DHYPERLIQUID_BUILD_EXAMPLES=OFF
+
+      - name: Build
+        run: cmake --build build -j"$(nproc)"
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Generate coverage report
+        run: |
+          lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch,gcov
+          lcov --remove coverage.info \
+            '/usr/*' '*/vcpkg_installed/*' '*/_deps/*' '*/tests/*' \
+            --output-file coverage.info --ignore-errors unused
+          lcov --list coverage.info
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
