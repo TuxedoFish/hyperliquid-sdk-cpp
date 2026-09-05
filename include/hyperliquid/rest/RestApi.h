@@ -36,6 +36,7 @@ public:
     SpotMetaResponse spotMeta();
     MetaResponse meta(const std::optional<std::string>& dex = std::nullopt);
     OutcomeMetaResponse outcomeMeta();
+    SettledOutcomeResponse settledOutcome(int outcome);
     PerpDexsResponse perpDexs();
     PerpsAtOpenInterestCapResponse perpsAtOpenInterestCap(const std::optional<std::string>& dex = std::nullopt);
     PredictedFundingsResponse predictedFundings();
@@ -137,6 +138,7 @@ public:
     void spotMetaAsync();
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
     void outcomeMetaAsync();
+    void settledOutcomeAsync(int outcome);
     void perpDexsAsync();
     void perpsAtOpenInterestCapAsync(const std::optional<std::string>& dex = std::nullopt);
     void predictedFundingsAsync();

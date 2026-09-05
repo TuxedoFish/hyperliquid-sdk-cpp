@@ -266,6 +266,11 @@ namespace hyperliquid
                     auto data = doc["data"].get_string().value();
                     crackFastAssetCtxs(data, listener);
                 }
+                else if (channel == "outcomeMetaUpdates")
+                {
+                    auto data = doc["data"].get_array().value();
+                    crackOutcomeMetaUpdates(data, listener);
+                }
                 else if (channel == "error")
                 {
                     getLogger()->error("Websocket error: {}", message);
@@ -1368,6 +1373,107 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& e)
             {
                 getLogger()->error("parse error in decompressed fastAssetCtxs payload: {}", e.what());
+            }
+        }
+
+        static void parseOutcomeSpecForUpdate(simdjson::ondemand::object& obj, Outcome& outcome)
+        {
+            outcome.outcome = static_cast<int>(obj["outcome"].get_int64().value());
+            outcome.name = std::string(obj["name"].get_string().value());
+            outcome.descriptionRaw = std::string(obj["description"].get_string().value());
+            outcome.description = parseOutcomeDescription(outcome.descriptionRaw);
+
+            auto sideSpecs = obj["sideSpecs"].get_array().value();
+            for (auto sideEntry : sideSpecs)
+            {
+                auto sideObj = sideEntry.get_object().value();
+                OutcomeSideSpec spec;
+                spec.name = std::string(sideObj["name"].get_string().value());
+                int64_t token;
+                if (!sideObj["token"].get_int64().get(token))
+                    spec.token = static_cast<int>(token);
+                outcome.sideSpecs.push_back(std::move(spec));
+            }
+
+            std::string_view quoteToken;
+            if (!obj["quoteToken"].get_string().get(quoteToken))
+                outcome.quoteToken = std::string(quoteToken);
+
+            std::string_view deployer;
+            if (!obj["deployer"].get_string().get(deployer))
+                outcome.deployer = std::string(deployer);
+        }
+
+        static void parseQuestionSpecForUpdate(simdjson::ondemand::object& obj, QuestionSpec& question)
+        {
+            question.question = static_cast<int>(obj["question"].get_int64().value());
+            question.name = std::string(obj["name"].get_string().value());
+            question.description = std::string(obj["description"].get_string().value());
+            question.fallbackOutcome = static_cast<int>(obj["fallbackOutcome"].get_int64().value());
+
+            auto namedOutcomes = obj["namedOutcomes"].get_array().value();
+            for (auto entry : namedOutcomes)
+                question.namedOutcomes.push_back(static_cast<int>(entry.get_int64().value()));
+
+            simdjson::ondemand::array settledNamedOutcomes;
+            if (!obj["settledNamedOutcomes"].get_array().get(settledNamedOutcomes))
+                for (auto entry : settledNamedOutcomes)
+                    question.settledNamedOutcomes.push_back(static_cast<int>(entry.get_int64().value()));
+        }
+
+        // Each array entry is a discriminated union keyed by variant name (outcomeCreated/
+        // outcomeSettled/questionUpdated/questionSettled), mirroring the shape of the
+        // delegatorHistory delta union - exactly one key is present per entry. The top-level
+        // "data" is itself an array of these entries (confirmed live: a single message can
+        // read `[{"outcomeSettled":17424}]`), not a bare object.
+        void crackOutcomeMetaUpdates(simdjson::ondemand::array& data, WebsocketMessageHandler& listener)
+        {
+            for (auto entry : data)
+            {
+                try
+                {
+                    auto obj = entry.get_object().value();
+                    OutcomeMetaUpdate update{};
+
+                    simdjson::ondemand::value outcomeCreatedVal;
+                    simdjson::ondemand::value outcomeSettledVal;
+                    simdjson::ondemand::value questionUpdatedVal;
+                    simdjson::ondemand::value questionSettledVal;
+
+                    if (obj["outcomeCreated"].get(outcomeCreatedVal) == simdjson::SUCCESS)
+                    {
+                        update.type = OutcomeMetaUpdateType::OutcomeCreated;
+                        auto createdObj = outcomeCreatedVal.get_object().value();
+                        parseOutcomeSpecForUpdate(createdObj, update.outcome);
+                    }
+                    else if (obj["outcomeSettled"].get(outcomeSettledVal) == simdjson::SUCCESS)
+                    {
+                        update.type = OutcomeMetaUpdateType::OutcomeSettled;
+                        update.settledOutcome = static_cast<int>(outcomeSettledVal.get_int64().value());
+                    }
+                    else if (obj["questionUpdated"].get(questionUpdatedVal) == simdjson::SUCCESS)
+                    {
+                        update.type = OutcomeMetaUpdateType::QuestionUpdated;
+                        auto updatedObj = questionUpdatedVal.get_object().value();
+                        parseQuestionSpecForUpdate(updatedObj, update.question);
+                    }
+                    else if (obj["questionSettled"].get(questionSettledVal) == simdjson::SUCCESS)
+                    {
+                        update.type = OutcomeMetaUpdateType::QuestionSettled;
+                        update.settledQuestion = static_cast<int>(questionSettledVal.get_int64().value());
+                    }
+                    else
+                    {
+                        update.type = OutcomeMetaUpdateType::Unknown;
+                        getLogger()->warn("outcomeMetaUpdates: unrecognized update variant");
+                    }
+
+                    listener.onOutcomeMetaUpdate(update);
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in outcomeMetaUpdates entry: {}", e.what());
+                }
             }
         }
     };

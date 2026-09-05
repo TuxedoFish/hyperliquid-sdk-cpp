@@ -15,6 +15,7 @@ namespace
         std::optional<ClearinghouseStateUpdate> clearinghouseState;
         std::optional<OpenOrdersUpdate> openOrders;
         std::optional<L2BookSnapshot> l2Book;
+        std::optional<OutcomeMetaUpdate> outcomeMetaUpdate;
 
         void onUserFundingUpdate(const UserFunding& funding) override
         {
@@ -44,6 +45,11 @@ namespace
         void onL2Book(const L2BookSnapshot& snapshot) override
         {
             l2Book = snapshot;
+        }
+
+        void onOutcomeMetaUpdate(const OutcomeMetaUpdate& update) override
+        {
+            outcomeMetaUpdate = update;
         }
     };
 }
@@ -501,4 +507,133 @@ TEST(WebsocketParser, L2BookFallbackPath)
     EXPECT_EQ(snapshot.asks[0].px, "29801.0");
     EXPECT_EQ(snapshot.asks[0].sz, "2.0");
     EXPECT_EQ(snapshot.asks[0].n, 3);
+}
+
+TEST(WebsocketParser, OutcomeMetaUpdatesOutcomeCreated)
+{
+    // "data" is an array of update entries, not a bare object - confirmed against a live
+    // testnet feed (a real captured message was `{"channel":"outcomeMetaUpdates",
+    // "data":[{"outcomeSettled":17424}]}`).
+    static const std::string kMsg = R"({
+        "channel": "outcomeMetaUpdates",
+        "data": [{
+            "outcomeCreated": {
+                "outcome": 7,
+                "name": "Will it rain tomorrow?",
+                "description": "raw description",
+                "sideSpecs": [
+                    {"name": "Yes", "token": 100},
+                    {"name": "No", "token": 101}
+                ],
+                "quoteToken": "USDC",
+                "deployer": "0x000000000000000000000000000000000000aa"
+            }
+        }]
+    })";
+
+    WebsocketMessageParser parser;
+    CapturingHandler handler;
+    parser.crack(kMsg, handler);
+
+    ASSERT_TRUE(handler.outcomeMetaUpdate.has_value());
+    const auto& update = *handler.outcomeMetaUpdate;
+    EXPECT_EQ(update.type, OutcomeMetaUpdateType::OutcomeCreated);
+    EXPECT_EQ(update.outcome.outcome, 7);
+    EXPECT_EQ(update.outcome.name, "Will it rain tomorrow?");
+    ASSERT_EQ(update.outcome.sideSpecs.size(), 2u);
+    EXPECT_EQ(update.outcome.sideSpecs[0].name, "Yes");
+    ASSERT_TRUE(update.outcome.deployer.has_value());
+    EXPECT_EQ(*update.outcome.deployer, "0x000000000000000000000000000000000000aa");
+}
+
+TEST(WebsocketParser, OutcomeMetaUpdatesOutcomeSettled)
+{
+    // Real payload captured live from the testnet outcomeMetaUpdates feed.
+    static const std::string kMsg = R"({
+        "channel": "outcomeMetaUpdates",
+        "data": [{"outcomeSettled": 17424}]
+    })";
+
+    WebsocketMessageParser parser;
+    CapturingHandler handler;
+    parser.crack(kMsg, handler);
+
+    ASSERT_TRUE(handler.outcomeMetaUpdate.has_value());
+    const auto& update = *handler.outcomeMetaUpdate;
+    EXPECT_EQ(update.type, OutcomeMetaUpdateType::OutcomeSettled);
+    EXPECT_EQ(update.settledOutcome, 17424);
+}
+
+TEST(WebsocketParser, OutcomeMetaUpdatesQuestionUpdated)
+{
+    static const std::string kMsg = R"({
+        "channel": "outcomeMetaUpdates",
+        "data": [{
+            "questionUpdated": {
+                "question": 3,
+                "name": "Election outcome",
+                "description": "who wins",
+                "fallbackOutcome": 1,
+                "namedOutcomes": [1, 2, 3],
+                "settledNamedOutcomes": [1]
+            }
+        }]
+    })";
+
+    WebsocketMessageParser parser;
+    CapturingHandler handler;
+    parser.crack(kMsg, handler);
+
+    ASSERT_TRUE(handler.outcomeMetaUpdate.has_value());
+    const auto& update = *handler.outcomeMetaUpdate;
+    EXPECT_EQ(update.type, OutcomeMetaUpdateType::QuestionUpdated);
+    EXPECT_EQ(update.question.question, 3);
+    EXPECT_EQ(update.question.name, "Election outcome");
+    EXPECT_EQ(update.question.fallbackOutcome, 1);
+    ASSERT_EQ(update.question.namedOutcomes.size(), 3u);
+    ASSERT_EQ(update.question.settledNamedOutcomes.size(), 1u);
+    EXPECT_EQ(update.question.settledNamedOutcomes[0], 1);
+}
+
+TEST(WebsocketParser, OutcomeMetaUpdatesQuestionSettled)
+{
+    static const std::string kMsg = R"({
+        "channel": "outcomeMetaUpdates",
+        "data": [{"questionSettled": 3}]
+    })";
+
+    WebsocketMessageParser parser;
+    CapturingHandler handler;
+    parser.crack(kMsg, handler);
+
+    ASSERT_TRUE(handler.outcomeMetaUpdate.has_value());
+    const auto& update = *handler.outcomeMetaUpdate;
+    EXPECT_EQ(update.type, OutcomeMetaUpdateType::QuestionSettled);
+    EXPECT_EQ(update.settledQuestion, 3);
+}
+
+TEST(WebsocketParser, OutcomeMetaUpdatesMultipleEntriesInOneMessage)
+{
+    // The array can carry more than one update per message - each entry should be dispatched
+    // to the listener independently.
+    static const std::string kMsg = R"({
+        "channel": "outcomeMetaUpdates",
+        "data": [{"outcomeSettled": 17424}, {"questionSettled": 823}]
+    })";
+
+    WebsocketMessageParser parser;
+    std::vector<OutcomeMetaUpdate> received;
+    struct CollectingHandler : WebsocketMessageHandler
+    {
+        std::vector<OutcomeMetaUpdate>& out;
+        explicit CollectingHandler(std::vector<OutcomeMetaUpdate>& out) : out(out) {}
+        void onOutcomeMetaUpdate(const OutcomeMetaUpdate& update) override { out.push_back(update); }
+    } handler(received);
+    parser.crack(kMsg, handler);
+
+    ASSERT_EQ(received.size(), 2u);
+    EXPECT_EQ(received[0].type, OutcomeMetaUpdateType::OutcomeSettled);
+    EXPECT_EQ(received[0].settledOutcome, 17424);
+    EXPECT_EQ(received[1].type, OutcomeMetaUpdateType::QuestionSettled);
+    EXPECT_EQ(received[1].settledQuestion, 823);
 }

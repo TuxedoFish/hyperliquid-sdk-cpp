@@ -24,6 +24,14 @@ nlohmann::ordered_json InfoRequestBuilder::outcomeMeta()
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::settledOutcome(int outcome)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::SettledOutcome);
+    body["outcome"] = outcome;
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::perpDexs()
 {
     nlohmann::ordered_json body;
