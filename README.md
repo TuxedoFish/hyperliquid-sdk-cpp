@@ -133,9 +133,9 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | General | `delegatorRewards` | ✅ | `RestApi::delegatorRewards` |
 | General | `userDexAbstraction` | ⬜ | |
 | General | `userAbstraction` | ⬜ | |
-| General | `borrowLendUserState` | ⬜ | |
-| General | `borrowLendReserveState` | ⬜ | |
-| General | `allBorrowLendReserveStates` | ⬜ | |
+| General | `borrowLendUserState` | ✅ | `RestApi::borrowLendUserState` |
+| General | `borrowLendReserveState` | ✅ | `RestApi::borrowLendReserveState` |
+| General | `allBorrowLendReserveStates` | ✅ | `RestApi::allBorrowLendReserveStates` |
 | General | `approvedBuilders` | ✅ | `RestApi::approvedBuilders` |
 | Perpetuals | `perpDexs` | ✅ | `RestApi::perpDexs` |
 | Perpetuals | `meta` | ✅ | `RestApi::meta` |
@@ -164,7 +164,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `settledOutcome` | ⬜ | |
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 
-38 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
+41 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 
