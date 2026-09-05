@@ -1130,9 +1130,12 @@ namespace hyperliquid
             state.user = std::string(obj["user"].get_string().value());
             auto sideStr = obj["side"].get_string().value();
             state.side = sideStr.size() > 0 ? sideStr[0] : '?';
-            state.sz = obj["sz"].get_double().value();
-            state.executedSz = obj["executedSz"].get_double().value();
-            state.executedNtl = obj["executedNtl"].get_double().value();
+            // sz/executedSz/executedNtl arrive as strings here (unlike twapOrder's own request
+            // fields), matching Hyperliquid's general convention of string-encoding numbers
+            // prone to float precision issues.
+            state.sz = toDoubleField(obj, "sz");
+            state.executedSz = toDoubleField(obj, "executedSz");
+            state.executedNtl = toDoubleField(obj, "executedNtl");
             state.minutes = static_cast<int>(obj["minutes"].get_int64().value());
             state.reduceOnly = obj["reduceOnly"].get_bool().value();
             state.randomize = obj["randomize"].get_bool().value();
@@ -1260,11 +1263,14 @@ namespace hyperliquid
             if (!data["leverage"].get_object().get(leverage))
                 result.leverageType = stringToLeverageType(leverage["type"].get_string().value());
 
+            // maxTradeSzs/availableToTrade entries arrive as strings (Hyperliquid's general
+            // convention for numbers prone to float precision issues), not JSON numbers.
             auto maxTradeSzs = data["maxTradeSzs"].get_array().value();
             size_t idx = 0;
             for (auto v : maxTradeSzs)
             {
-                double val = v.get_double().value();
+                std::string_view sv;
+                double val = !v.get_string().get(sv) ? toDouble(sv) : v.get_double().value();
                 if (idx == 0) result.maxTradeSzLong = val;
                 else if (idx == 1) result.maxTradeSzShort = val;
                 idx++;
@@ -1274,7 +1280,8 @@ namespace hyperliquid
             idx = 0;
             for (auto v : availableToTrade)
             {
-                double val = v.get_double().value();
+                std::string_view sv;
+                double val = !v.get_string().get(sv) ? toDouble(sv) : v.get_double().value();
                 if (idx == 0) result.availableToTradeLong = val;
                 else if (idx == 1) result.availableToTradeShort = val;
                 idx++;
