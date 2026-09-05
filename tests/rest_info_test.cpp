@@ -699,8 +699,6 @@ TEST(RestApiMessageParserInfoTest, ParseDelegatorRewards)
 }
 
 // --- Borrow/lend ---
-// Field names/shapes below are verified against real testnet responses (not inferred from
-// naming conventions) - see #44 for context on the earlier incorrect version.
 
 TEST(InfoRequestBuilderTest, BorrowLendUserState)
 {
@@ -724,7 +722,6 @@ TEST(InfoRequestBuilderTest, AllBorrowLendReserveStates)
 
 TEST(RestApiMessageParserInfoTest, ParseBorrowLendReserveState)
 {
-    // Real testnet payload for token 0.
     std::string message = R"({
         "borrowYearlyRate": "0.05",
         "supplyYearlyRate": "0.0035124541",
@@ -751,8 +748,7 @@ TEST(RestApiMessageParserInfoTest, ParseBorrowLendReserveState)
 
 TEST(RestApiMessageParserInfoTest, ParseAllBorrowLendReserveStates)
 {
-    // Real testnet payload (trimmed to 2 of the ~30 reserves) - top level is an array of
-    // [tokenId, reserveStateObj] pairs, not a flat array of objects.
+    // Top level is an array of [tokenId, reserveStateObj] pairs, not a flat array of objects.
     std::string message = R"([
         [0, {"borrowYearlyRate": "0.05", "supplyYearlyRate": "0.0035124548", "balance": "4000064.8172154501", "utilization": "0.078054552", "oraclePx": "1.0", "ltv": "0.0", "totalSupplied": "4338721.1701327004", "totalBorrowed": "338656.93723639"}],
         [1, {"borrowYearlyRate": "0.05", "supplyYearlyRate": "0.0", "balance": "6945.8974", "utilization": "0.0", "oraclePx": "4.6252", "ltv": "0.5", "totalSupplied": "6927.0173", "totalBorrowed": "0.0"}]
@@ -770,7 +766,6 @@ TEST(RestApiMessageParserInfoTest, ParseAllBorrowLendReserveStates)
 
 TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateEmpty)
 {
-    // Real testnet payload for an account with no borrow/lend activity.
     std::string message = R"({"tokenToState":[],"health":"healthy","healthFactor":null})";
 
     RestApiMessageParser parser;
@@ -783,9 +778,8 @@ TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateEmpty)
 
 TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateWithPosition)
 {
-    // Real testnet payload for an account with an active supply position (created live for
-    // this PR - see PR evidence). tokenToState is an array of [tokenId, {borrow, supply}]
-    // pairs, not a flat array of {token, deposited, borrowed} objects.
+    // tokenToState is an array of [tokenId, {borrow, supply}] pairs, not a flat array of
+    // {token, deposited, borrowed} objects.
     std::string message = R"({
         "tokenToState": [
             [0, {"borrow": {"basis": "0.0", "value": "0.0"}, "supply": {"basis": "2.0", "value": "1.99999999"}}]
@@ -808,10 +802,7 @@ TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateWithPosition)
 
 TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateHealthFactorPresent)
 {
-    // Synthetic, not a captured payload - testnet never returned a non-null healthFactor
-    // during manual testing (every borrow attempt hit a business-rule rejection before one
-    // could be observed). This only verifies the "has a value" branch of the nullable-double
-    // parsing actually works.
+    // Synthetic - healthFactor is nullable but this covers the non-null case.
     std::string message = R"({"tokenToState":[],"health":"healthy","healthFactor":1.5})";
 
     RestApiMessageParser parser;

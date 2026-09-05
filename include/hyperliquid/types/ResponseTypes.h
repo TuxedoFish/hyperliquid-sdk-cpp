@@ -1401,8 +1401,6 @@ namespace hyperliquid
     };
 
     // --- Borrow/lend ---
-    // Field names/shapes below are verified against real testnet responses (not inferred from
-    // naming conventions) - see #44 for the corrected version of an earlier guess.
 
     struct BorrowLendReserveState
     {

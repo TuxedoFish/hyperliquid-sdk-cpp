@@ -1323,8 +1323,7 @@ namespace hyperliquid
 
             try
             {
-                // Top level is an array of [tokenId, reserveStateObj] pairs, not a flat array of
-                // objects - verified against real testnet responses.
+                // Top level is an array of [tokenId, reserveStateObj] pairs, not a flat array of objects.
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {

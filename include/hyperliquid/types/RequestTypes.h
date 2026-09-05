@@ -189,7 +189,6 @@ namespace hyperliquid
         DelegatorHistory,
         DelegatorRewards,
 
-        // Info endpoints (Borrow/lend)
         BorrowLendUserState,
         BorrowLendReserveState,
         AllBorrowLendReserveStates,
