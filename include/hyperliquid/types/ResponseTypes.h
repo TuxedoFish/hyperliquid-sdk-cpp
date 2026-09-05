@@ -1068,10 +1068,15 @@ namespace hyperliquid
         std::string user;
     };
 
+    // `data`'s shape depends on `stage` - e.g. "needToTrade" carries `required`, other stages
+    // (not yet observed against a live account) are assumed to carry `code`/`referralStates`
+    // per the wire shape used elsewhere in this response. All fields are optional since the
+    // full set of stages and their shapes isn't documented anywhere.
     struct ReferrerState
     {
         std::string stage;
-        std::string code;
+        std::optional<double> required;
+        std::optional<std::string> code;
         std::vector<ReferralState> referralStates;
     };
 
@@ -1090,7 +1095,7 @@ namespace hyperliquid
         double unclaimedRewards;
         double claimedRewards;
         double builderRewards;
-        // Wire shape is a flat [tokenIndex, state] tuple, not an array of tuples.
+        // Wire shape is an array containing one [tokenIndex, state] tuple, e.g. [[0, {...}]].
         std::optional<std::pair<int, TokenRewardState>> tokenToState;
         std::optional<ReferrerState> referrerState;
     };

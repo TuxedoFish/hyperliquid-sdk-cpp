@@ -1759,20 +1759,27 @@ namespace hyperliquid
                 simdjson::ondemand::array tokenToStateArr;
                 if (!obj["tokenToState"].get_array().get(tokenToStateArr))
                 {
-                    auto iter = tokenToStateArr.begin();
-                    if (iter != tokenToStateArr.end())
+                    auto outerIter = tokenToStateArr.begin();
+                    if (outerIter != tokenToStateArr.end())
                     {
-                        int tokenIndex = static_cast<int>((*iter).get_int64().value());
-                        ++iter;
-                        if (iter != tokenToStateArr.end())
+                        // Wire shape is actually an array containing one [tokenIndex, state]
+                        // tuple (e.g. [[0, {...}]]), not a flat 2-element array.
+                        auto pairArr = (*outerIter).get_array().value();
+                        auto iter = pairArr.begin();
+                        if (iter != pairArr.end())
                         {
-                            auto stateObj = (*iter).get_object().value();
-                            TokenRewardState state;
-                            state.cumVlm = parseNumberField(stateObj, "cumVlm");
-                            state.unclaimedRewards = parseNumberField(stateObj, "unclaimedRewards");
-                            state.claimedRewards = parseNumberField(stateObj, "claimedRewards");
-                            state.builderRewards = parseNumberField(stateObj, "builderRewards");
-                            response.tokenToState = std::make_pair(tokenIndex, std::move(state));
+                            int tokenIndex = static_cast<int>((*iter).get_int64().value());
+                            ++iter;
+                            if (iter != pairArr.end())
+                            {
+                                auto stateObj = (*iter).get_object().value();
+                                TokenRewardState state;
+                                state.cumVlm = parseNumberField(stateObj, "cumVlm");
+                                state.unclaimedRewards = parseNumberField(stateObj, "unclaimedRewards");
+                                state.claimedRewards = parseNumberField(stateObj, "claimedRewards");
+                                state.builderRewards = parseNumberField(stateObj, "builderRewards");
+                                response.tokenToState = std::make_pair(tokenIndex, std::move(state));
+                            }
                         }
                     }
                 }
@@ -1783,19 +1790,41 @@ namespace hyperliquid
                     auto rsObj = referrerStateVal.get_object().value();
                     ReferrerState referrerState;
                     referrerState.stage = std::string(rsObj["stage"].get_string().value());
-                    auto dataObj = rsObj["data"].get_object().value();
-                    referrerState.code = std::string(dataObj["code"].get_string().value());
-                    auto statesArr = dataObj["referralStates"].get_array().value();
-                    for (auto entry : statesArr)
+
+                    // `data`'s shape is a discriminated union keyed by `stage`. simdjson's
+                    // ondemand API requires fields to be accessed in document order and a
+                    // speculative lookup for an absent field exhausts the remaining object, so
+                    // each stage's fields must be read in isolation rather than speculatively
+                    // probed one after another.
+                    simdjson::ondemand::object dataObj;
+                    if (!rsObj["data"].get_object().get(dataObj))
                     {
-                        auto sObj = entry.get_object().value();
-                        ReferralState state;
-                        state.cumVlm = parseNumberField(sObj, "cumVlm");
-                        state.cumRewardedFeesSinceReferred = parseNumberField(sObj, "cumRewardedFeesSinceReferred");
-                        state.cumFeesRewardedToReferrer = parseNumberField(sObj, "cumFeesRewardedToReferrer");
-                        state.timeJoined = sObj["timeJoined"].get_uint64().value();
-                        state.user = std::string(sObj["user"].get_string().value());
-                        referrerState.referralStates.push_back(std::move(state));
+                        if (referrerState.stage == "needToTrade")
+                        {
+                            referrerState.required = parseNumberField(dataObj, "required");
+                        }
+                        else
+                        {
+                            std::string_view codeStr;
+                            if (!dataObj["code"].get_string().get(codeStr))
+                                referrerState.code = std::string(codeStr);
+
+                            simdjson::ondemand::array statesArr;
+                            if (!dataObj["referralStates"].get_array().get(statesArr))
+                            {
+                                for (auto entry : statesArr)
+                                {
+                                    auto sObj = entry.get_object().value();
+                                    ReferralState state;
+                                    state.cumVlm = parseNumberField(sObj, "cumVlm");
+                                    state.cumRewardedFeesSinceReferred = parseNumberField(sObj, "cumRewardedFeesSinceReferred");
+                                    state.cumFeesRewardedToReferrer = parseNumberField(sObj, "cumFeesRewardedToReferrer");
+                                    state.timeJoined = sObj["timeJoined"].get_uint64().value();
+                                    state.user = std::string(sObj["user"].get_string().value());
+                                    referrerState.referralStates.push_back(std::move(state));
+                                }
+                            }
+                        }
                     }
                     response.referrerState = std::move(referrerState);
                 }
