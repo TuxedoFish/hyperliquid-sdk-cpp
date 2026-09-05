@@ -1,12 +1,14 @@
 # hyperliquid-sdk-cpp
 
-A C++17 SDK for the [Hyperliquid](https://hyperliquid.xyz) perpetuals and spot exchange API — REST (`/info`, `/exchange`) and WebSocket, with typed request/response models.
+[![CI](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/actions/workflows/ci.yml/badge.svg)](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/actions/workflows/ci.yml)
+
+A C++23 SDK for the [Hyperliquid](https://hyperliquid.xyz) perpetuals and spot exchange API — REST (`/info`, `/exchange`) and WebSocket, with typed request/response models.
 
 This SDK signs and submits real transactions on mainnet. Test against `Environment::Testnet` before pointing any code at `Environment::Mainnet`.
 
 ## Build
 
-Requires CMake 3.16+, a C++17 compiler, and [vcpkg](https://github.com/microsoft/vcpkg) for dependencies (OpenSSL, Boost.Asio/Beast, simdjson, nlohmann-json, spdlog, GTest). `secp256k1` is fetched and built automatically via `FetchContent`.
+Requires CMake 3.16+, a C++23 compiler, and [vcpkg](https://github.com/microsoft/vcpkg) for dependencies (OpenSSL, Boost.Asio/Beast, simdjson, nlohmann-json, spdlog, GTest). `secp256k1` is fetched and built automatically via `FetchContent`.
 
 ```bash
 git clone https://github.com/TuxedoFish/hyperliquid-sdk-cpp.git
