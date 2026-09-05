@@ -14,6 +14,7 @@ namespace
         std::optional<WebData3Update> webData3;
         std::optional<ClearinghouseStateUpdate> clearinghouseState;
         std::optional<OpenOrdersUpdate> openOrders;
+        std::optional<L2BookSnapshot> l2Book;
 
         void onUserFundingUpdate(const UserFunding& funding) override
         {
@@ -38,6 +39,11 @@ namespace
         void onOpenOrdersSnapshot(const OpenOrdersUpdate& update) override
         {
             openOrders = update;
+        }
+
+        void onL2Book(const L2BookSnapshot& snapshot) override
+        {
+            l2Book = snapshot;
         }
     };
 }
@@ -436,4 +442,63 @@ TEST(WebsocketParser, OpenOrders)
     EXPECT_EQ(update.orders[1].coin, "ETH");
     EXPECT_EQ(update.orders[1].side, 'A');
     EXPECT_EQ(update.orders[1].cloid, "0xdeadbeef");
+}
+
+TEST(WebsocketParser, L2BookFastPath)
+{
+    // Byte-for-byte matches what crackL2BookFast's raw string scan expects
+    // ("coin":", "time":, [[ ... ], [ ... ) - exercises the fast path.
+    static const std::string kMsg =
+        R"({"channel":"l2Book","data":{"coin":"BTC","time":1700000000000,"levels":[[)"
+        R"({"px":"29800.0","sz":"1.5","n":2},{"px":"29799.0","sz":"0.5","n":1}],[)"
+        R"({"px":"29801.0","sz":"2.0","n":3}]]}})";
+
+    WebsocketMessageParser parser;
+    CapturingHandler handler;
+    parser.crack(kMsg, handler);
+
+    ASSERT_TRUE(handler.l2Book.has_value());
+    const auto& snapshot = *handler.l2Book;
+    EXPECT_EQ(snapshot.coin, "BTC");
+    EXPECT_EQ(snapshot.time, 1700000000000u);
+    ASSERT_EQ(snapshot.numBids, 2);
+    EXPECT_EQ(snapshot.bids[0].px, "29800.0");
+    EXPECT_EQ(snapshot.bids[0].sz, "1.5");
+    EXPECT_EQ(snapshot.bids[0].n, 2);
+    ASSERT_EQ(snapshot.numAsks, 1);
+    EXPECT_EQ(snapshot.asks[0].px, "29801.0");
+}
+
+TEST(WebsocketParser, L2BookFallbackPath)
+{
+    // A space after "coin": breaks crackL2BookFast's exact literal scan ("coin":\"), so this
+    // falls through to the simdjson-based crackL2Book - the path with the dangling-reference
+    // bug (fixed: the inner per-side array must be bound to a named variable before the
+    // range-for, same as the outer per-book array already was).
+    static const std::string kMsg = R"({
+        "channel": "l2Book",
+        "data": {
+            "coin": "BTC",
+            "time": 1700000000000,
+            "levels": [
+                [{"px": "29800.0", "sz": "1.5", "n": 2}, {"px": "29799.0", "sz": "0.5", "n": 1}],
+                [{"px": "29801.0", "sz": "2.0", "n": 3}]
+            ]
+        }
+    })";
+
+    WebsocketMessageParser parser;
+    CapturingHandler handler;
+    parser.crack(kMsg, handler);
+
+    ASSERT_TRUE(handler.l2Book.has_value());
+    const auto& snapshot = *handler.l2Book;
+    EXPECT_EQ(snapshot.coin, "BTC");
+    ASSERT_EQ(snapshot.numBids, 2);
+    EXPECT_EQ(snapshot.bids[0].px, "29800.0");
+    EXPECT_EQ(snapshot.bids[1].px, "29799.0");
+    ASSERT_EQ(snapshot.numAsks, 1);
+    EXPECT_EQ(snapshot.asks[0].px, "29801.0");
+    EXPECT_EQ(snapshot.asks[0].sz, "2.0");
+    EXPECT_EQ(snapshot.asks[0].n, 3);
 }
