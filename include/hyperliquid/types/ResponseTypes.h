@@ -531,8 +531,6 @@ namespace hyperliquid
         std::vector<DexClearinghouseState> states;
     };
 
-    // Per-dex asset contexts; PerpAssetCtx.coin is left empty since entries
-    // are positional (indexed against that dex's universe) rather than named.
     struct DexAssetCtxs
     {
         std::string dex;

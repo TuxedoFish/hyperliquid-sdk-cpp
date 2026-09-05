@@ -3,90 +3,13 @@
 #include <charconv>
 #include <cstring>
 #include <simdjson.h>
-#include <zlib.h>
 #include "../config/Logger.h"
+#include "WebsocketParsingUtils.h"
 
 #include "../../include/hyperliquid/types/ResponseTypes.h"
 
 namespace hyperliquid
 {
-    static std::vector<uint8_t> base64Decode(std::string_view input)
-    {
-        static int8_t table[256];
-        static bool initialized = false;
-        if (!initialized)
-        {
-            std::fill(std::begin(table), std::end(table), int8_t{-1});
-            static const char* alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-            for (int i = 0; i < 64; ++i)
-                table[static_cast<uint8_t>(alphabet[i])] = static_cast<int8_t>(i);
-            initialized = true;
-        }
-
-        std::vector<uint8_t> out;
-        out.reserve(input.size() / 4 * 3);
-        int val = 0, bits = -8;
-        for (unsigned char c : input)
-        {
-            if (table[c] == -1) continue;
-            val = (val << 6) + table[c];
-            bits += 6;
-            if (bits >= 0)
-            {
-                out.push_back(static_cast<uint8_t>((val >> bits) & 0xFF));
-                bits -= 8;
-            }
-        }
-        return out;
-    }
-
-    // windowBits=-15 selects raw DEFLATE (RFC 1951): no zlib/gzip header or checksum
-    static bool inflateRawDeflate(const std::vector<uint8_t>& compressed, std::string& out)
-    {
-        z_stream stream{};
-        if (inflateInit2(&stream, -15) != Z_OK) return false;
-
-        stream.next_in = const_cast<Bytef*>(compressed.data());
-        stream.avail_in = static_cast<uInt>(compressed.size());
-
-        std::array<char, 4096> buffer{};
-        int ret;
-        do
-        {
-            stream.next_out = reinterpret_cast<Bytef*>(buffer.data());
-            stream.avail_out = static_cast<uInt>(buffer.size());
-            ret = inflate(&stream, Z_NO_FLUSH);
-            if (ret != Z_OK && ret != Z_STREAM_END && ret != Z_BUF_ERROR)
-            {
-                inflateEnd(&stream);
-                return false;
-            }
-            out.append(buffer.data(), buffer.size() - stream.avail_out);
-        } while (ret != Z_STREAM_END && ret != Z_BUF_ERROR);
-
-        inflateEnd(&stream);
-        return ret == Z_STREAM_END;
-    }
-
-    // Find pattern in [p, end), return pointer past the pattern, or nullptr
-    static inline const char* scanTo(const char* p, const char* end,
-                                     const char* pattern, size_t len)
-    {
-        const char* found = static_cast<const char*>(memmem(p, end - p, pattern, len));
-        return found ? found + len : nullptr;
-    }
-
-    static inline uint64_t parseUint64Fast(const char*& p, const char* end)
-    {
-        uint64_t val = 0;
-        while (p < end && *p >= '0' && *p <= '9')
-        {
-            val = val * 10 + (*p - '0');
-            p++;
-        }
-        return val;
-    }
-
     static void parseLevels(const char*& p, const char* end,
                             std::array<PriceLevel, L2_BOOK_MAX_LEVELS>& levels,
                             uint8_t& count, Side side)
@@ -94,7 +17,7 @@ namespace hyperliquid
         while (p < end && count < L2_BOOK_MAX_LEVELS)
         {
             // Find next "px":"
-            const char* px = scanTo(p, end, "\"px\":\"", 6);
+            const char* px = WebsocketParsingUtils::scanTo(p, end, "\"px\":\"", 6);
             if (!px) return;
 
             // Check if we crossed the ],[ boundary (bid/ask split)
@@ -111,12 +34,12 @@ namespace hyperliquid
             const char* pxEnd = static_cast<const char*>(memchr(px, '"', end - px));
             if (!pxEnd) return;
 
-            const char* sz = scanTo(pxEnd, end, "\"sz\":\"", 6);
+            const char* sz = WebsocketParsingUtils::scanTo(pxEnd, end, "\"sz\":\"", 6);
             if (!sz) return;
             const char* szEnd = static_cast<const char*>(memchr(sz, '"', end - sz));
             if (!szEnd) return;
 
-            const char* nPos = scanTo(szEnd, end, "\"n\":", 4);
+            const char* nPos = WebsocketParsingUtils::scanTo(szEnd, end, "\"n\":", 4);
             if (!nPos) return;
             int n = 0;
             while (nPos < end && *nPos >= '0' && *nPos <= '9')
@@ -145,19 +68,19 @@ namespace hyperliquid
         const char* end = p + msg.size();
 
         // Find "coin":" — extract coin name up to closing quote
-        p = scanTo(p, end, "\"coin\":\"", 8);
+        p = WebsocketParsingUtils::scanTo(p, end, "\"coin\":\"", 8);
         if (!p) return false;
         const char* coinEnd = static_cast<const char*>(memchr(p, '"', end - p));
         if (!coinEnd) return false;
         snapshot.coin = std::string(p, coinEnd - p);
 
         // Find "time": — parse uint64
-        p = scanTo(coinEnd, end, "\"time\":", 7);
+        p = WebsocketParsingUtils::scanTo(coinEnd, end, "\"time\":", 7);
         if (!p) return false;
-        snapshot.time = parseUint64Fast(p, end);
+        snapshot.time = WebsocketParsingUtils::parseUint64Fast(p, end);
 
         // Find start of levels array: "levels":[[
-        p = scanTo(p, end, "[[", 2);
+        p = WebsocketParsingUtils::scanTo(p, end, "[[", 2);
         if (!p) return false;
 
         // Parse bid levels until we hit ],[ boundary
@@ -165,7 +88,7 @@ namespace hyperliquid
 
         // If parseLevels exited due to count limit (not finding ],[),
         // we need to skip past the ],[ boundary before parsing asks.
-        const char* boundary = scanTo(p, end, "],[", 3);
+        const char* boundary = WebsocketParsingUtils::scanTo(p, end, "],[", 3);
         if (boundary) p = boundary;
 
         // Parse ask levels
@@ -1130,9 +1053,6 @@ namespace hyperliquid
             state.user = std::string(obj["user"].get_string().value());
             auto sideStr = obj["side"].get_string().value();
             state.side = sideStr.size() > 0 ? sideStr[0] : '?';
-            // sz/executedSz/executedNtl arrive as strings here (unlike twapOrder's own request
-            // fields), matching Hyperliquid's general convention of string-encoding numbers
-            // prone to float precision issues.
             state.sz = toDoubleField(obj, "sz");
             state.executedSz = toDoubleField(obj, "executedSz");
             state.executedNtl = toDoubleField(obj, "executedNtl");
@@ -1263,8 +1183,6 @@ namespace hyperliquid
             if (!data["leverage"].get_object().get(leverage))
                 result.leverageType = stringToLeverageType(leverage["type"].get_string().value());
 
-            // maxTradeSzs/availableToTrade entries arrive as strings (Hyperliquid's general
-            // convention for numbers prone to float precision issues), not JSON numbers.
             auto maxTradeSzs = data["maxTradeSzs"].get_array().value();
             size_t idx = 0;
             for (auto v : maxTradeSzs)
@@ -1408,9 +1326,9 @@ namespace hyperliquid
 
         void crackFastAssetCtxs(std::string_view base64Data, WebsocketMessageHandler& listener)
         {
-            auto compressed = base64Decode(base64Data);
+            auto compressed = WebsocketParsingUtils::base64Decode(base64Data);
             std::string decompressed;
-            if (!inflateRawDeflate(compressed, decompressed))
+            if (!WebsocketParsingUtils::inflateRawDeflate(compressed, decompressed))
             {
                 getLogger()->error("failed to inflate fastAssetCtxs payload");
                 return;

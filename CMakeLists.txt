@@ -37,6 +37,7 @@ set(SDK_SOURCES
         src/websocket/WebsocketRunner.cpp
         src/websocket/WebsocketApi.cpp
         src/websocket/WebsocketMessageParser.cpp
+        src/websocket/WebsocketParsingUtils.cpp
 
         src/signing/Signing.cpp
         src/signing/SigningHelpers.cpp
