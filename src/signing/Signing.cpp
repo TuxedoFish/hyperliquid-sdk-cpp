@@ -76,7 +76,7 @@ nlohmann::ordered_json Signing::prepareBody(
             action["hyperliquidChain"] = isMainnet ? "Mainnet" : "Testnet";
             signature = signUserSignedAction(
                 config.wallet.value(), action, userSignedActionFields(type),
-                userSignedActionPrimaryType(type), isMainnet);
+                userSignedActionPrimaryType(type));
             body["action"] = action;
         }
         else
@@ -235,6 +235,15 @@ nlohmann::ordered_json Signing::prepareUserSignedActionBody(
         payloadTypes = {
             {"hyperliquidChain", "string"}, {"validator", "address"}, {"wei", "uint64"},
             {"isUndelegate", "bool"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
+    case RestEndpointType::SendToEvmWithData:
+        primaryType = "HyperliquidTransaction:SendToEvmWithData";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"token", "string"}, {"amount", "string"},
+            {"sourceDex", "string"}, {"destinationRecipient", "string"},
+            {"addressEncoding", "string"}, {"destinationChainId", "uint32"},
+            {"gasLimit", "uint64"}, {"data", "bytes"}, {"nonce", "uint64"}};
         timeField = "nonce";
         break;
     default:

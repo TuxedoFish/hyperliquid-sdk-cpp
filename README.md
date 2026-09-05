@@ -180,8 +180,8 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `approveAgent` | ✅ | `RestApi::approveAgent` |
 | `approveBuilderFee` | ✅ | `RestApi::approveBuilderFee` |
 | `sendAsset` | ✅ | `RestApi::sendAsset` |
-| `agentSendAsset` | ⬜ | |
-| `sendToEvmWithData` | ⬜ | |
+| `agentSendAsset` | ✅ | `RestApi::agentSendAsset` |
+| `sendToEvmWithData` | ✅ | `RestApi::sendToEvmWithData` |
 | `usdSend` | ✅ | `RestApi::usdSend` |
 | `spotSend` | ✅ | `RestApi::spotSend` |
 | `withdraw3` | ✅ | `RestApi::withdraw3` |
@@ -193,11 +193,11 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `hip3LiquidatorTransfer` | ⬜ | |
 | `twapOrder` | ✅ | `RestApi::twapOrder` |
 | `twapCancel` | ✅ | `RestApi::twapCancel` |
-| `reserveRequestWeight` | ⬜ | |
-| `noop` | ⬜ | |
+| `reserveRequestWeight` | ✅ | `RestApi::reserveRequestWeight` |
+| `noop` | ✅ | `RestApi::noop` |
 | `userDexAbstraction` (deprecated) | ⬜ | |
 
-21 of 27 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
+25 of 27 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
 
 ### WebSocket subscriptions
 
