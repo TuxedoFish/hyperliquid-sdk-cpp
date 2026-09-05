@@ -316,7 +316,8 @@ namespace hyperliquid
                     break;
                 }
                 Side s = (sideIdx == 0) ? Side::Bid : Side::Ask;
-                for (auto entry : side.get_array().value())
+                auto sideArr = side.get_array().value();
+                for (auto entry : sideArr)
                 {
                     try
                     {
