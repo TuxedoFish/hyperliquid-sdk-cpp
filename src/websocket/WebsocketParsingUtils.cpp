@@ -1,5 +1,6 @@
 #include "WebsocketParsingUtils.h"
 
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <zlib.h>
