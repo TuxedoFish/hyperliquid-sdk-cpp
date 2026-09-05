@@ -17,6 +17,11 @@ endif()
 option(HYPERLIQUID_SANITIZE "Build with AddressSanitizer + UndefinedBehaviorSanitizer" OFF)
 set(HYPERLIQUID_SANITIZE_FLAGS -fsanitize=address,undefined -fno-omit-frame-pointer)
 
+# Off by default - gcov instrumentation slows the build and bloats binaries for no benefit
+# outside a dedicated coverage run. CI runs a dedicated coverage job with this on.
+option(HYPERLIQUID_COVERAGE "Build with gcov coverage instrumentation" OFF)
+set(HYPERLIQUID_COVERAGE_FLAGS --coverage -fno-inline -fno-inline-small-functions -fno-default-inline)
+
 find_package(OpenSSL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(simdjson CONFIG REQUIRED)
@@ -88,6 +93,11 @@ endif()
 if(HYPERLIQUID_SANITIZE)
     target_compile_options(hyperliquid-sdk PUBLIC ${HYPERLIQUID_SANITIZE_FLAGS})
     target_link_options(hyperliquid-sdk PUBLIC ${HYPERLIQUID_SANITIZE_FLAGS})
+endif()
+
+if(HYPERLIQUID_COVERAGE)
+    target_compile_options(hyperliquid-sdk PUBLIC ${HYPERLIQUID_COVERAGE_FLAGS})
+    target_link_options(hyperliquid-sdk PUBLIC --coverage)
 endif()
 
 set_target_properties(hyperliquid-sdk PROPERTIES
