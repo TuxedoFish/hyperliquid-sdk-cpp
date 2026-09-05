@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Create vcpkg binary cache directory
         run: mkdir -p "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
