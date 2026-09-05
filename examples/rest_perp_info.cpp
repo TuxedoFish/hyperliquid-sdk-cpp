@@ -10,9 +10,21 @@ int main() {
 
     hyperliquid::RestApi api(config);
 
-    spdlog::info("=== perpsAtOpenInterestCap ===");
+    spdlog::info("=== perpsAtOpenInterestCap (default dex) ===");
     auto atCap = api.perpsAtOpenInterestCap();
     for (const auto& coin : atCap.coins) {
+        spdlog::info("  {}", coin);
+    }
+    if (atCap.coins.empty()) {
+        spdlog::info("  (none - expected on testnet, where trading volume rarely pushes a coin to its open-interest cap)");
+    }
+
+    // The default dex has essentially no volume on testnet, so it almost never has anything at
+    // cap - but some of the many HIP-3 test dexes do. "hyna" is a real, live example of this at
+    // time of writing.
+    spdlog::info("=== perpsAtOpenInterestCap (dex=hyna) ===");
+    auto atCapHyna = api.perpsAtOpenInterestCap("hyna");
+    for (const auto& coin : atCapHyna.coins) {
         spdlog::info("  {}", coin);
     }
 
@@ -39,6 +51,17 @@ int main() {
     spdlog::info("=== perpAnnotation(BTC) ===");
     auto annotation = api.perpAnnotation("BTC");
     spdlog::info("  category={}  description={}", annotation.category, annotation.description);
+
+    spdlog::info("=== perpConciseAnnotations ===");
+    auto conciseAnnotations = api.perpConciseAnnotations();
+    for (const auto& entry : conciseAnnotations.annotations) {
+        std::string keywords;
+        for (const auto& kw : entry.keywords) {
+            if (!keywords.empty()) keywords += ", ";
+            keywords += kw;
+        }
+        spdlog::info("  {}  category={}  keywords=[{}]", entry.coin, entry.category, keywords);
+    }
 
     spdlog::info("=== allPerpMetas ===");
     auto allMetas = api.allPerpMetas();

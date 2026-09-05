@@ -52,6 +52,17 @@ TEST(InfoRequestBuilderMiscTest, AllPerpMetas)
     EXPECT_EQ(body["type"], "allPerpMetas");
 }
 
+TEST(InfoRequestBuilderMiscTest, AllUnauthenticated)
+{
+    // All six are read-only /info endpoints - none should require a signed request.
+    EXPECT_FALSE(isAuthenticated(RestEndpointType::PerpsAtOpenInterestCap));
+    EXPECT_FALSE(isAuthenticated(RestEndpointType::PredictedFundings));
+    EXPECT_FALSE(isAuthenticated(RestEndpointType::PerpAnnotation));
+    EXPECT_FALSE(isAuthenticated(RestEndpointType::PerpCategories));
+    EXPECT_FALSE(isAuthenticated(RestEndpointType::PerpConciseAnnotations));
+    EXPECT_FALSE(isAuthenticated(RestEndpointType::AllPerpMetas));
+}
+
 // --- Response parsing ---
 
 TEST(RestApiMessageParserMiscTest, ParsePerpsAtOpenInterestCap)
