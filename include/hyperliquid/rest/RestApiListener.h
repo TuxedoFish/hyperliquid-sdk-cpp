@@ -9,9 +9,9 @@ class RestApiListener {
 public:
     virtual ~RestApiListener() = default;
 
-    virtual void onMessage(const std::string& message, RestEndpointType type) {}
-    virtual void onError(RestEndpointType type, const std::string& errorMessage) {}
-    virtual void onRateLimitExceeded(RestEndpointType type, const std::string& responseBody) {}
+    virtual void onMessage(const std::string&, RestEndpointType) {}
+    virtual void onError(RestEndpointType, const std::string&) {}
+    virtual void onRateLimitExceeded(RestEndpointType, const std::string&) {}
 };
 
 }

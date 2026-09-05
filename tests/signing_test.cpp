@@ -195,8 +195,7 @@ TEST(SigningTest, SignUsdTransferAction)
             {"amount", "string"},
             {"time", "uint64"},
         },
-        "HyperliquidTransaction:UsdSend",
-        false);
+        "HyperliquidTransaction:UsdSend");
 
     EXPECT_EQ(sig.r, "0x637b37dd731507cdd24f46532ca8ba6eec616952c56218baeff04144e4a77073");
     EXPECT_EQ(sig.s, "0x11a6a24900e6e314136d2592e2f8d502cd89b7c15b198e1bee043c9589f9fad7");
@@ -222,8 +221,7 @@ TEST(SigningTest, SignWithdrawFromBridgeAction)
             {"amount", "string"},
             {"time", "uint64"},
         },
-        "HyperliquidTransaction:Withdraw",
-        false);
+        "HyperliquidTransaction:Withdraw");
 
     EXPECT_EQ(sig.r, "0x8363524c799e90ce9bc41022f7c39b4e9bdba786e5f9c72b20e43e1462c37cf9");
     EXPECT_EQ(sig.s, "0x58b1411a775938b83e29182e8ef74975f9054c8e97ebf5ec2dc8d51bfc893881");
