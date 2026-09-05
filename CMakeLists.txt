@@ -12,6 +12,11 @@ if(HYPERLIQUID_WARNINGS_AS_ERRORS)
     list(APPEND HYPERLIQUID_WARNING_FLAGS -Werror)
 endif()
 
+# Off by default - real runtime overhead, not something you want in every local build.
+# CI runs a dedicated sanitizer job with this on.
+option(HYPERLIQUID_SANITIZE "Build with AddressSanitizer + UndefinedBehaviorSanitizer" OFF)
+set(HYPERLIQUID_SANITIZE_FLAGS -fsanitize=address,undefined -fno-omit-frame-pointer)
+
 find_package(OpenSSL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(simdjson CONFIG REQUIRED)
@@ -78,6 +83,11 @@ target_link_libraries(hyperliquid-sdk
 
 if(NOT MSVC)
     target_compile_options(hyperliquid-sdk PRIVATE ${HYPERLIQUID_WARNING_FLAGS})
+endif()
+
+if(HYPERLIQUID_SANITIZE)
+    target_compile_options(hyperliquid-sdk PUBLIC ${HYPERLIQUID_SANITIZE_FLAGS})
+    target_link_options(hyperliquid-sdk PUBLIC ${HYPERLIQUID_SANITIZE_FLAGS})
 endif()
 
 set_target_properties(hyperliquid-sdk PROPERTIES
