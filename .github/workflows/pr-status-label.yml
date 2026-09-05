@@ -1,0 +1,71 @@
+name: PR Status Label
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+jobs:
+  label:
+    name: Apply CI status label
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      actions: read
+
+    steps:
+      - name: Label PR based on CI conclusion
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const readyLabel = "ready for review";
+            const failingLabel = "build failing";
+            const { owner, repo } = context.repo;
+            const run = context.payload.workflow_run;
+
+            let pulls = run.pull_requests || [];
+            if (pulls.length === 0) {
+              const openPulls = await github.paginate(github.rest.pulls.list, {
+                owner,
+                repo,
+                state: "open",
+              });
+              pulls = openPulls.filter((pull) => pull.head.sha === run.head_sha);
+            }
+
+            if (pulls.length === 0) {
+              core.info(`No pull request found for head_sha ${run.head_sha}`);
+              return;
+            }
+
+            if (run.conclusion !== "success" && run.conclusion !== "failure") {
+              core.info(`Ignoring conclusion "${run.conclusion}"`);
+              return;
+            }
+
+            const addLabel = run.conclusion === "success" ? readyLabel : failingLabel;
+            const removeLabel = run.conclusion === "success" ? failingLabel : readyLabel;
+
+            for (const pull of pulls) {
+              const issue_number = pull.number;
+
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number,
+                labels: [addLabel],
+              });
+
+              try {
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number,
+                  name: removeLabel,
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
