@@ -26,6 +26,12 @@ namespace hyperliquid
         MetaResponse parseMeta(const std::string& message);
         OutcomeMetaResponse parseOutcomeMeta(const std::string& message);
         PerpDexsResponse parsePerpDexs(const std::string& message);
+        PerpsAtOpenInterestCapResponse parsePerpsAtOpenInterestCap(const std::string& message);
+        PredictedFundingsResponse parsePredictedFundings(const std::string& message);
+        PerpAnnotationResponse parsePerpAnnotation(const std::string& message);
+        PerpCategoriesResponse parsePerpCategories(const std::string& message);
+        PerpConciseAnnotationsResponse parsePerpConciseAnnotations(const std::string& message);
+        AllPerpMetasResponse parseAllPerpMetas(const std::string& message);
         L2BookResponse parseL2Book(const std::string& message);
         CandleSnapshotResponse parseCandleSnapshot(const std::string& message);
         AllMidsResponse parseAllMids(const std::string& message);

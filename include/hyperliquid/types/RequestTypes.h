@@ -168,6 +168,12 @@ namespace hyperliquid
         Portfolio,
         Referral,
         UserRole,
+        PerpsAtOpenInterestCap,
+        PredictedFundings,
+        PerpAnnotation,
+        PerpCategories,
+        PerpConciseAnnotations,
+        AllPerpMetas,
         // Info endpoints (Outcomes)
         OutcomeMeta,
         // Info endpoints (Spot)
@@ -241,6 +247,12 @@ namespace hyperliquid
         case RestEndpointType::Portfolio: return "portfolio";
         case RestEndpointType::Referral: return "referral";
         case RestEndpointType::UserRole: return "userRole";
+        case RestEndpointType::PerpsAtOpenInterestCap: return "perpsAtOpenInterestCap";
+        case RestEndpointType::PredictedFundings: return "predictedFundings";
+        case RestEndpointType::PerpAnnotation: return "perpAnnotation";
+        case RestEndpointType::PerpCategories: return "perpCategories";
+        case RestEndpointType::PerpConciseAnnotations: return "perpConciseAnnotations";
+        case RestEndpointType::AllPerpMetas: return "allPerpMetas";
 
         case RestEndpointType::OutcomeMeta: return "outcomeMeta";
 
@@ -314,6 +326,12 @@ namespace hyperliquid
         case RestEndpointType::Portfolio: return false;
         case RestEndpointType::Referral: return false;
         case RestEndpointType::UserRole: return false;
+        case RestEndpointType::PerpsAtOpenInterestCap: return false;
+        case RestEndpointType::PredictedFundings: return false;
+        case RestEndpointType::PerpAnnotation: return false;
+        case RestEndpointType::PerpCategories: return false;
+        case RestEndpointType::PerpConciseAnnotations: return false;
+        case RestEndpointType::AllPerpMetas: return false;
 
         case RestEndpointType::OutcomeMeta: return false;
 

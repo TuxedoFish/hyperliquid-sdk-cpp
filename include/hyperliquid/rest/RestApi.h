@@ -37,6 +37,12 @@ public:
     MetaResponse meta(const std::optional<std::string>& dex = std::nullopt);
     OutcomeMetaResponse outcomeMeta();
     PerpDexsResponse perpDexs();
+    PerpsAtOpenInterestCapResponse perpsAtOpenInterestCap(const std::optional<std::string>& dex = std::nullopt);
+    PredictedFundingsResponse predictedFundings();
+    PerpAnnotationResponse perpAnnotation(const std::string& coin);
+    PerpCategoriesResponse perpCategories();
+    PerpConciseAnnotationsResponse perpConciseAnnotations();
+    AllPerpMetasResponse allPerpMetas();
     L2BookResponse l2Book(const std::string& coin,
                           const std::optional<int>& nSigFigs = std::nullopt,
                           const std::optional<int>& mantissa = std::nullopt);
@@ -129,6 +135,12 @@ public:
     void metaAsync(const std::optional<std::string>& dex = std::nullopt);
     void outcomeMetaAsync();
     void perpDexsAsync();
+    void perpsAtOpenInterestCapAsync(const std::optional<std::string>& dex = std::nullopt);
+    void predictedFundingsAsync();
+    void perpAnnotationAsync(const std::string& coin);
+    void perpCategoriesAsync();
+    void perpConciseAnnotationsAsync();
+    void allPerpMetasAsync();
     void l2BookAsync(const std::string& coin,
                      const std::optional<int>& nSigFigs = std::nullopt,
                      const std::optional<int>& mantissa = std::nullopt);
