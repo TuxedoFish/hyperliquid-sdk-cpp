@@ -26,9 +26,13 @@ namespace hyperliquid
             index++;
         }
 
-        // Mirrors the official Python SDK's resolution: spot asset ids are 10000 + a pair's own
-        // `index` field, and every pair also gets a "BASE/QUOTE" convenience alias (first pair
-        // to claim a given "BASE/QUOTE" string wins), regardless of canonical status.
+        // Spot asset ids are 10000 + a pair's own `index` field - NOT its position in this
+        // universe array. The two commonly diverge (this array is a curated listing; `index` is
+        // the pair's real identity, e.g. what l2Book/assetCtxs call "coin" and what
+        // assetCtxs is itself keyed by). Confirmed against live testnet data: joining
+        // universe[i] to assetCtxs by array position matched ~4 pairs out of 1300+; joining by
+        // `index` field matched all of them. Every pair also gets a "BASE/QUOTE" convenience
+        // alias (first pair to claim a given string wins), regardless of canonical status.
         auto spotMetaResponse = api->spotMetaAndAssetCtxs();
         std::unordered_map<int, const SpotAssetMeta*> tokenByIndex;
         for (const auto& token : spotMetaResponse.meta.tokens)
