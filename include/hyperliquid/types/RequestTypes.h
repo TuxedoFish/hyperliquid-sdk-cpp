@@ -163,6 +163,11 @@ namespace hyperliquid
         UserFees,
         MaxBuilderFee,
         ApprovedBuilders,
+        VaultDetails,
+        UserVaultEquities,
+        Portfolio,
+        Referral,
+        UserRole,
         // Info endpoints (Outcomes)
         OutcomeMeta,
         // Info endpoints (Spot)
@@ -227,6 +232,11 @@ namespace hyperliquid
         case RestEndpointType::UserFees: return "userFees";
         case RestEndpointType::MaxBuilderFee: return "maxBuilderFee";
         case RestEndpointType::ApprovedBuilders: return "approvedBuilders";
+        case RestEndpointType::VaultDetails: return "vaultDetails";
+        case RestEndpointType::UserVaultEquities: return "userVaultEquities";
+        case RestEndpointType::Portfolio: return "portfolio";
+        case RestEndpointType::Referral: return "referral";
+        case RestEndpointType::UserRole: return "userRole";
 
         case RestEndpointType::OutcomeMeta: return "outcomeMeta";
 
@@ -291,6 +301,11 @@ namespace hyperliquid
         case RestEndpointType::UserFees: return false;
         case RestEndpointType::MaxBuilderFee: return false;
         case RestEndpointType::ApprovedBuilders: return false;
+        case RestEndpointType::VaultDetails: return false;
+        case RestEndpointType::UserVaultEquities: return false;
+        case RestEndpointType::Portfolio: return false;
+        case RestEndpointType::Referral: return false;
+        case RestEndpointType::UserRole: return false;
 
         case RestEndpointType::OutcomeMeta: return false;
 

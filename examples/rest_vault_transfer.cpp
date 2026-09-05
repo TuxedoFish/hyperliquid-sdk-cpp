@@ -16,7 +16,7 @@ int main()
     hyperliquid::RestApi api(config);
 
     hyperliquid::VaultTransferRequest depositReq;
-    depositReq.vaultAddress = "0x1719884eb866cb12b2287399b15f7db5e7d775ea";
+    depositReq.vaultAddress = "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0"; // Hyperliquidity Provider (HLP)
     depositReq.isDeposit = true;
     depositReq.usd = 6.0; // vault minimum deposit is $5
 

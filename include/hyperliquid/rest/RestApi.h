@@ -71,6 +71,12 @@ public:
     UserFeesResponse userFees(const std::string& user);
     MaxBuilderFeeResponse maxBuilderFee(const std::string& user, const std::string& builder);
     ApprovedBuildersResponse approvedBuilders(const std::string& user);
+    VaultDetailsResponse vaultDetails(const std::string& vaultAddress,
+                                      const std::optional<std::string>& user = std::nullopt);
+    UserVaultEquitiesResponse userVaultEquities(const std::string& user);
+    PortfolioResponse portfolio(const std::string& user);
+    ReferralResponse referral(const std::string& user);
+    UserRoleResponse userRole(const std::string& user);
     PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
                            const std::optional<Builder>& builder = std::nullopt,
@@ -151,6 +157,12 @@ public:
     void userFeesAsync(const std::string& user);
     void maxBuilderFeeAsync(const std::string& user, const std::string& builder);
     void approvedBuildersAsync(const std::string& user);
+    void vaultDetailsAsync(const std::string& vaultAddress,
+                           const std::optional<std::string>& user = std::nullopt);
+    void userVaultEquitiesAsync(const std::string& user);
+    void portfolioAsync(const std::string& user);
+    void referralAsync(const std::string& user);
+    void userRoleAsync(const std::string& user);
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
                          const std::optional<Builder>& builder = std::nullopt,

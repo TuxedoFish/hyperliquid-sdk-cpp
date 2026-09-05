@@ -249,4 +249,47 @@ nlohmann::ordered_json InfoRequestBuilder::delegatorRewards(const std::string& u
     return body;
 }
 
+
+nlohmann::ordered_json InfoRequestBuilder::vaultDetails(const std::string& vaultAddress,
+                                                        const std::optional<std::string>& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::VaultDetails);
+    body["vaultAddress"] = vaultAddress;
+    if (user) body["user"] = *user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::userVaultEquities(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserVaultEquities);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::portfolio(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::Portfolio);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::referral(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::Referral);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::userRole(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserRole);
+    body["user"] = user;
+    return body;
+}
+
 }

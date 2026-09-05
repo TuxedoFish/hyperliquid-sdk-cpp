@@ -34,6 +34,11 @@ public:
     virtual void onUserFees(const UserFeesResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onMaxBuilderFee(const MaxBuilderFeeResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onApprovedBuilders(const ApprovedBuildersResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onVaultDetails(const VaultDetailsResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onUserVaultEquities(const UserVaultEquitiesResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onPortfolio(const PortfolioResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onReferral(const ReferralResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
+    virtual void onUserRole(const UserRoleResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onPlaceOrder(const PlaceOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onCancelOrder(const CancelOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}
     virtual void onModifyOrder(const ModifyOrderResponse& response, std::optional<uint64_t> correlationId = std::nullopt) {}

@@ -120,11 +120,11 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | General | `historicalOrders` | ✅ | `RestApi::historicalOrders` |
 | General | `userTwapSliceFills` | ✅ | `RestApi::userTwapSliceFills` |
 | General | `subAccounts` | ✅ | `RestApi::subAccounts` |
-| General | `vaultDetails` | ⬜ | |
-| General | `userVaultEquities` | ⬜ | |
-| General | `userRole` | ⬜ | |
-| General | `portfolio` | ⬜ | |
-| General | `referral` | ⬜ | |
+| General | `vaultDetails` | ✅ | `RestApi::vaultDetails` |
+| General | `userVaultEquities` | ✅ | `RestApi::userVaultEquities` |
+| General | `userRole` | ✅ | `RestApi::userRole` |
+| General | `portfolio` | ✅ | `RestApi::portfolio` |
+| General | `referral` | ✅ | `RestApi::referral` |
 | General | `userFees` | ✅ | `RestApi::userFees` |
 | General | `delegations` | ✅ | `RestApi::delegations` |
 | General | `delegatorSummary` | ✅ | `RestApi::delegatorSummary` |
@@ -163,7 +163,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `settledOutcome` | ⬜ | |
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 
-27 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
+32 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 
