@@ -98,6 +98,15 @@ int main() {
 
 More complete examples, including order placement/modification over both REST and WebSocket, are in `examples/`.
 
+## Thread safety
+
+`RestApi`'s sync/async methods may be freely mixed and called concurrently from any
+number of threads on the same instance. `WebsocketApi` has a known, unfixed data race in
+its post-request/response correlation path (`placeOrder`, `cancelOrder`,
+`modifyOrder`, etc.) that ordinary usage can hit even with a single application thread.
+See [docs/THREAD_SAFETY.md](docs/THREAD_SAFETY.md) for the full audit, evidence, and the
+recommended safe usage pattern.
+
 ## API coverage
 
 The tables below track which parts of the Hyperliquid API this SDK implements, cross-referenced against the current docs. This reflects `main` as of this writing — parallel work in the issue tracker is filling in gaps, so treat "not yet" as a snapshot, not a permanent gap.
