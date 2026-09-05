@@ -110,7 +110,7 @@ TEST(ApproveAgentSigning, UnnamedApprovalOmitsAgentNameFromOutgoingBodyButSignsW
             {"agentName", "string"},
             {"nonce", "uint64"},
         },
-        "HyperliquidTransaction:ApproveAgent", false);
+        "HyperliquidTransaction:ApproveAgent");
 
     EXPECT_EQ(body["signature"]["r"], expectedSig.r);
     EXPECT_EQ(body["signature"]["s"], expectedSig.s);

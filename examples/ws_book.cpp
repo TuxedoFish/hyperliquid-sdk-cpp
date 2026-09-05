@@ -20,7 +20,7 @@ public:
     }
 
     void onDisconnected(bool hasError, const std::string& errMsg) override {
-        spdlog::info("Disconnected");
+        spdlog::info("Disconnected: hasError={} errMsg={}", hasError, errMsg);
     }
 
     // hyperliquid::WSMessageHandler

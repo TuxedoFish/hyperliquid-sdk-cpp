@@ -40,8 +40,7 @@ public:
         const Wallet& wallet,
         const nlohmann::ordered_json& action,
         const std::vector<EIP712Field>& payloadTypes,
-        const std::string& primaryType,
-        bool isMainnet);
+        const std::string& primaryType);
 
     static nlohmann::ordered_json prepareBody(
         const ApiConfig& config,

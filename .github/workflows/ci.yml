@@ -36,7 +36,7 @@ jobs:
           "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
 
       - name: Configure (CMake preset "default")
-        run: cmake --preset default
+        run: cmake --preset default -DHYPERLIQUID_WARNINGS_AS_ERRORS=ON
 
       - name: Build
         run: cmake --build build -j"$(nproc)"

@@ -49,7 +49,7 @@ int main()
         spdlog::info("[poll {}] userTwapSliceFills: {} total fills", i + 1, slices.fills.size());
         for (const auto& slice : slices.fills)
         {
-            if (slice.twapId != static_cast<int>(*twapResp.twapId)) continue;
+            if (slice.twapId != *twapResp.twapId) continue;
             spdlog::info("  MATCH twapId={} coin={} px={} sz={} time={}",
                          slice.twapId, slice.fill.coin, slice.fill.px, slice.fill.sz, slice.fill.time);
         }

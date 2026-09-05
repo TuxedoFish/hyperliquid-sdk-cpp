@@ -22,7 +22,7 @@ public:
     }
 
     void onDisconnected(bool hasError, const std::string& errMsg) override {
-        spdlog::info("Disconnected");
+        spdlog::info("Disconnected: hasError={} errMsg={}", hasError, errMsg);
     }
 
     void onL2Book(const hyperliquid::L2BookSnapshot& snapshot) override {

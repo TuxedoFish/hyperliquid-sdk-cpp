@@ -47,8 +47,7 @@ Signature Signing::signUserSignedAction(
     const Wallet& wallet,
     const nlohmann::ordered_json& action,
     const std::vector<EIP712Field>& payloadTypes,
-    const std::string& primaryType,
-    bool isMainnet)
+    const std::string& primaryType)
 {
     uint64_t chainId = 0x66eee;
 
@@ -94,7 +93,7 @@ nlohmann::ordered_json Signing::prepareApproveAgentBody(
             {"agentName", "string"},
             {"nonce", "uint64"},
         },
-        "HyperliquidTransaction:ApproveAgent", isMainnet);
+        "HyperliquidTransaction:ApproveAgent");
 
     if (!agentName) action.erase("agentName");
 
@@ -198,7 +197,7 @@ nlohmann::ordered_json Signing::prepareUserSignedActionBody(
     action["signatureChainId"] = "0x66eee";
     action["hyperliquidChain"] = isMainnet ? "Mainnet" : "Testnet";
 
-    auto signature = signUserSignedAction(config.wallet.value(), action, payloadTypes, primaryType, isMainnet);
+    auto signature = signUserSignedAction(config.wallet.value(), action, payloadTypes, primaryType);
 
     body["action"] = action;
     body["nonce"] = nonce;
