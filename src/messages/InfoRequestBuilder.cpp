@@ -99,11 +99,10 @@ nlohmann::ordered_json InfoRequestBuilder::perpDexStatus(const std::string& dex)
     return body;
 }
 
-nlohmann::ordered_json InfoRequestBuilder::perpDeployAuctionStatus(const std::string& dex)
+nlohmann::ordered_json InfoRequestBuilder::perpDeployAuctionStatus()
 {
     nlohmann::ordered_json body;
     body["type"] = toString(RestEndpointType::PerpDeployAuctionStatus);
-    body["dex"] = dex;
     return body;
 }
 

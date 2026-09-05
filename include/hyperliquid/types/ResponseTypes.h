@@ -1548,19 +1548,28 @@ namespace hyperliquid
 
     // --- HIP-3 deployer (perp dex abstraction) ---
 
-    struct PerpDexLimitsResponse
+    struct PerpDexLimitsCoinCap
     {
-        std::string dex;
-        int maxAssets = 0;
-        int usedAssets = 0;
+        std::string coin;
+        double oiCap = 0.0;
     };
 
+    // The API returns a bare JSON null for the main dex (empty string) or an unknown dex name;
+    // `exists` is false in that case and the other fields are left default.
+    struct PerpDexLimitsResponse
+    {
+        bool exists = false;
+        double totalOiCap = 0.0;
+        double oiSzCapPerPerp = 0.0;
+        double maxTransferNtl = 0.0;
+        std::vector<PerpDexLimitsCoinCap> coinToOiCap;
+    };
+
+    // The API returns a bare JSON null for an unknown dex name; `exists` is false in that case.
     struct PerpDexStatusResponse
     {
-        std::string dex;
-        // Raw status string from the API - not enumerated, since the full set of
-        // possible values isn't confidently known for this endpoint.
-        std::string status;
+        bool exists = false;
+        double totalNetDeposit = 0.0;
     };
 
     struct PerpDeployAuctionStatusResponse
@@ -1568,7 +1577,7 @@ namespace hyperliquid
         uint64_t startTimeSeconds = 0;
         uint64_t durationSeconds = 0;
         double startGas = 0.0;
-        double currentGas = 0.0;
-        double endGas = 0.0;
+        std::optional<double> currentGas;
+        std::optional<double> endGas;
     };
 }

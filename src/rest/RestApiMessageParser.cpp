@@ -735,19 +735,27 @@ namespace hyperliquid
 
             try
             {
+                if (doc.type().value() == simdjson::ondemand::json_type::null)
+                    return response;
+
                 auto obj = doc.get_object().value();
+                response.exists = true;
+                response.totalOiCap = parseNumberField(obj, "totalOiCap");
+                response.oiSzCapPerPerp = parseNumberField(obj, "oiSzCapPerPerp");
+                response.maxTransferNtl = parseNumberField(obj, "maxTransferNtl");
 
-                std::string_view dex;
-                if (!obj["dex"].get_string().get(dex))
-                    response.dex = std::string(dex);
+                auto coinToOiCap = obj["coinToOiCap"].get_array().value();
+                for (auto entry : coinToOiCap)
+                {
+                    auto pair = entry.get_array().value();
+                    auto iter = pair.begin();
 
-                int64_t maxAssets;
-                if (!obj["maxAssets"].get_int64().get(maxAssets))
-                    response.maxAssets = static_cast<int>(maxAssets);
-
-                int64_t usedAssets;
-                if (!obj["usedAssets"].get_int64().get(usedAssets))
-                    response.usedAssets = static_cast<int>(usedAssets);
+                    PerpDexLimitsCoinCap cap;
+                    cap.coin = std::string((*iter).get_string().value());
+                    ++iter;
+                    cap.oiCap = toDouble((*iter).get_string().value());
+                    response.coinToOiCap.push_back(std::move(cap));
+                }
             }
             catch (const simdjson::simdjson_error& err)
             {
@@ -823,15 +831,12 @@ namespace hyperliquid
 
             try
             {
+                if (doc.type().value() == simdjson::ondemand::json_type::null)
+                    return response;
+
                 auto obj = doc.get_object().value();
-
-                std::string_view dex;
-                if (!obj["dex"].get_string().get(dex))
-                    response.dex = std::string(dex);
-
-                std::string_view status;
-                if (!obj["status"].get_string().get(status))
-                    response.status = std::string(status);
+                response.exists = true;
+                response.totalNetDeposit = parseNumberField(obj, "totalNetDeposit");
             }
             catch (const simdjson::simdjson_error& err)
             {
@@ -1133,8 +1138,14 @@ namespace hyperliquid
                 response.startTimeSeconds = obj["startTimeSeconds"].get_uint64().value();
                 response.durationSeconds = obj["durationSeconds"].get_uint64().value();
                 response.startGas = parseNumberField(obj, "startGas");
-                response.currentGas = parseNumberField(obj, "currentGas");
-                response.endGas = parseNumberField(obj, "endGas");
+
+                simdjson::ondemand::value currentGasVal;
+                if (obj["currentGas"].get(currentGasVal) == simdjson::SUCCESS && !currentGasVal.is_null())
+                    response.currentGas = toDouble(currentGasVal.get_string().value());
+
+                simdjson::ondemand::value endGasVal;
+                if (obj["endGas"].get(endGasVal) == simdjson::SUCCESS && !endGasVal.is_null())
+                    response.endGas = toDouble(endGasVal.get_string().value());
             }
             catch (const simdjson::simdjson_error& err)
             {

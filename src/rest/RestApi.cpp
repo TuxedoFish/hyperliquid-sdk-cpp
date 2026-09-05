@@ -238,10 +238,10 @@ PerpDexStatusResponse RestApi::perpDexStatus(const std::string& dex)
         impl_->signAndSendSync(RestEndpointType::PerpDexStatus, InfoRequestBuilder::perpDexStatus(dex)));
 }
 
-PerpDeployAuctionStatusResponse RestApi::perpDeployAuctionStatus(const std::string& dex)
+PerpDeployAuctionStatusResponse RestApi::perpDeployAuctionStatus()
 {
     return RestApiMessageParser().parsePerpDeployAuctionStatus(
-        impl_->signAndSendSync(RestEndpointType::PerpDeployAuctionStatus, InfoRequestBuilder::perpDeployAuctionStatus(dex)));
+        impl_->signAndSendSync(RestEndpointType::PerpDeployAuctionStatus, InfoRequestBuilder::perpDeployAuctionStatus()));
 }
 
 L2BookResponse RestApi::l2Book(const std::string& coin,
@@ -717,9 +717,9 @@ void RestApi::perpDexStatusAsync(const std::string& dex)
     impl_->signAndSend(RestEndpointType::PerpDexStatus, InfoRequestBuilder::perpDexStatus(dex));
 }
 
-void RestApi::perpDeployAuctionStatusAsync(const std::string& dex)
+void RestApi::perpDeployAuctionStatusAsync()
 {
-    impl_->signAndSend(RestEndpointType::PerpDeployAuctionStatus, InfoRequestBuilder::perpDeployAuctionStatus(dex));
+    impl_->signAndSend(RestEndpointType::PerpDeployAuctionStatus, InfoRequestBuilder::perpDeployAuctionStatus());
 }
 
 void RestApi::l2BookAsync(const std::string& coin,

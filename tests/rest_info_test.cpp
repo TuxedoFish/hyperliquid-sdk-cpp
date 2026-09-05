@@ -887,64 +887,105 @@ TEST(RestApiMessageParserInfoTest, ParseSettledOutcomeQuestionActive)
 
 TEST(InfoRequestBuilderTest, PerpDexLimits)
 {
-    auto body = InfoRequestBuilder::perpDexLimits("test-dex");
+    auto body = InfoRequestBuilder::perpDexLimits("hyna");
     EXPECT_EQ(body["type"], "perpDexLimits");
-    EXPECT_EQ(body["dex"], "test-dex");
+    EXPECT_EQ(body["dex"], "hyna");
 }
 
 TEST(InfoRequestBuilderTest, PerpDexStatus)
 {
-    auto body = InfoRequestBuilder::perpDexStatus("test-dex");
+    auto body = InfoRequestBuilder::perpDexStatus("hyna");
     EXPECT_EQ(body["type"], "perpDexStatus");
-    EXPECT_EQ(body["dex"], "test-dex");
+    EXPECT_EQ(body["dex"], "hyna");
 }
 
 TEST(InfoRequestBuilderTest, PerpDeployAuctionStatus)
 {
-    auto body = InfoRequestBuilder::perpDeployAuctionStatus("test-dex");
+    // Unlike perpDexLimits/perpDexStatus, this endpoint takes no dex parameter - confirmed
+    // against both the official TS SDK (@nktkas/hyperliquid) and real testnet responses,
+    // which are identical whether or not a "dex" field is sent.
+    auto body = InfoRequestBuilder::perpDeployAuctionStatus();
     EXPECT_EQ(body["type"], "perpDeployAuctionStatus");
-    EXPECT_EQ(body["dex"], "test-dex");
+    EXPECT_FALSE(body.contains("dex"));
 }
 
-TEST(RestApiMessageParserInfoTest, ParsePerpDexLimits)
+TEST(RestApiMessageParserInfoTest, ParsePerpDexLimitsNull)
 {
-    std::string message = R"({"dex": "test-dex", "maxAssets": 10, "usedAssets": 3})";
+    // Real testnet response for the main dex (empty string) or an unknown dex name.
+    std::string message = "null";
 
     RestApiMessageParser parser;
     auto response = parser.parsePerpDexLimits(message);
 
-    EXPECT_EQ(response.dex, "test-dex");
-    EXPECT_EQ(response.maxAssets, 10);
-    EXPECT_EQ(response.usedAssets, 3);
+    EXPECT_FALSE(response.exists);
 }
 
-TEST(RestApiMessageParserInfoTest, ParsePerpDexStatus)
+TEST(RestApiMessageParserInfoTest, ParsePerpDexLimits)
 {
-    std::string message = R"({"dex": "test-dex", "status": "active"})";
+    // Real testnet response for a live HIP-3 dex ("hyna").
+    std::string message =
+        R"({"totalOiCap":"50000000.0","oiSzCapPerPerp":"10000000000.0","maxTransferNtl":"1000000000.0","coinToOiCap":[["hyna:BTC","100000.0"]]})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parsePerpDexLimits(message);
+
+    EXPECT_TRUE(response.exists);
+    EXPECT_DOUBLE_EQ(response.totalOiCap, 50000000.0);
+    EXPECT_DOUBLE_EQ(response.oiSzCapPerPerp, 10000000000.0);
+    EXPECT_DOUBLE_EQ(response.maxTransferNtl, 1000000000.0);
+    ASSERT_EQ(response.coinToOiCap.size(), 1u);
+    EXPECT_EQ(response.coinToOiCap[0].coin, "hyna:BTC");
+    EXPECT_DOUBLE_EQ(response.coinToOiCap[0].oiCap, 100000.0);
+}
+
+TEST(RestApiMessageParserInfoTest, ParsePerpDexStatusNull)
+{
+    // Real testnet response for an unknown dex name.
+    std::string message = "null";
 
     RestApiMessageParser parser;
     auto response = parser.parsePerpDexStatus(message);
 
-    EXPECT_EQ(response.dex, "test-dex");
-    EXPECT_EQ(response.status, "active");
+    EXPECT_FALSE(response.exists);
 }
 
-TEST(RestApiMessageParserInfoTest, ParsePerpDeployAuctionStatus)
+TEST(RestApiMessageParserInfoTest, ParsePerpDexStatus)
 {
-    std::string message = R"({
-        "startTimeSeconds": 1690000000,
-        "durationSeconds": 3600,
-        "startGas": "1000000.0",
-        "currentGas": "500000.0",
-        "endGas": "100000.0"
-    })";
+    // Real testnet response for a live HIP-3 dex ("hyna").
+    std::string message = R"({"totalNetDeposit":"2518.912535"})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parsePerpDexStatus(message);
+
+    EXPECT_TRUE(response.exists);
+    EXPECT_DOUBLE_EQ(response.totalNetDeposit, 2518.912535);
+}
+
+TEST(RestApiMessageParserInfoTest, ParsePerpDeployAuctionStatusEndGasNull)
+{
+    // Real testnet response - the auction is still in progress, so endGas is null.
+    std::string message = R"({"startTimeSeconds":1788613200,"durationSeconds":111600,"startGas":"500.0","currentGas":"500.0","endGas":null})";
 
     RestApiMessageParser parser;
     auto response = parser.parsePerpDeployAuctionStatus(message);
 
-    EXPECT_EQ(response.startTimeSeconds, 1690000000ULL);
-    EXPECT_EQ(response.durationSeconds, 3600ULL);
-    EXPECT_DOUBLE_EQ(response.startGas, 1000000.0);
-    EXPECT_DOUBLE_EQ(response.currentGas, 500000.0);
-    EXPECT_DOUBLE_EQ(response.endGas, 100000.0);
+    EXPECT_EQ(response.startTimeSeconds, 1788613200ULL);
+    EXPECT_EQ(response.durationSeconds, 111600ULL);
+    EXPECT_DOUBLE_EQ(response.startGas, 500.0);
+    ASSERT_TRUE(response.currentGas.has_value());
+    EXPECT_DOUBLE_EQ(*response.currentGas, 500.0);
+    EXPECT_FALSE(response.endGas.has_value());
+}
+
+TEST(RestApiMessageParserInfoTest, ParsePerpDeployAuctionStatusEndGasPresent)
+{
+    // Synthetic - covers the completed-auction case where endGas is a non-null string.
+    std::string message = R"({"startTimeSeconds":1690000000,"durationSeconds":3600,"startGas":"1000000.0","currentGas":null,"endGas":"100000.0"})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parsePerpDeployAuctionStatus(message);
+
+    EXPECT_FALSE(response.currentGas.has_value());
+    ASSERT_TRUE(response.endGas.has_value());
+    EXPECT_DOUBLE_EQ(*response.endGas, 100000.0);
 }

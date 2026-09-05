@@ -25,7 +25,7 @@ public:
     static nlohmann::ordered_json allPerpMetas();
     static nlohmann::ordered_json perpDexLimits(const std::string& dex);
     static nlohmann::ordered_json perpDexStatus(const std::string& dex);
-    static nlohmann::ordered_json perpDeployAuctionStatus(const std::string& dex);
+    static nlohmann::ordered_json perpDeployAuctionStatus();
 
     static nlohmann::ordered_json l2Book(const std::string& coin,
                                          const std::optional<int>& nSigFigs = std::nullopt,
