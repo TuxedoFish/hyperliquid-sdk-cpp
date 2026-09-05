@@ -771,15 +771,6 @@ namespace hyperliquid
         std::vector<SpotAssetCtx> assetCtxs;
     };
 
-    struct SpotBalance
-    {
-        std::string coin;
-        int token;
-        double hold;
-        double total;
-        double entryNtl;
-    };
-
     struct SpotClearinghouseStateResponse
     {
         std::vector<SpotBalance> balances;
