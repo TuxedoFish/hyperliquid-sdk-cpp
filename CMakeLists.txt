@@ -9,6 +9,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(simdjson CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -36,6 +37,7 @@ set(SDK_SOURCES
         src/websocket/WebsocketRunner.cpp
         src/websocket/WebsocketApi.cpp
         src/websocket/WebsocketMessageParser.cpp
+        src/websocket/WebsocketParsingUtils.cpp
 
         src/signing/Signing.cpp
         src/signing/SigningHelpers.cpp
@@ -63,6 +65,7 @@ target_link_libraries(hyperliquid-sdk
         simdjson::simdjson
         secp256k1
         spdlog::spdlog
+        ZLIB::ZLIB
 )
 
 if(NOT MSVC)

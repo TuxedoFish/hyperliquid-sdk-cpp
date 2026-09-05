@@ -9,6 +9,7 @@
     "simdjson",
     "nlohmann-json",
     "spdlog",
+    "zlib",
     "gtest"
   ]
 }

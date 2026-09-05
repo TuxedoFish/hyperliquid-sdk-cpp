@@ -73,6 +73,10 @@ namespace hyperliquid
         ActiveAssetData,
         UserTwapSliceFills,
         UserTwapHistory,
+        SpotState,
+        AllDexsClearinghouseState,
+        AllDexsAssetCtxs,
+        FastAssetCtxs,
         Unknown,
     };
 
@@ -99,6 +103,10 @@ namespace hyperliquid
         case SubscriptionType::ActiveAssetData: return "activeAssetData";
         case SubscriptionType::UserTwapSliceFills: return "userTwapSliceFills";
         case SubscriptionType::UserTwapHistory: return "userTwapHistory";
+        case SubscriptionType::SpotState: return "spotState";
+        case SubscriptionType::AllDexsClearinghouseState: return "allDexsClearinghouseState";
+        case SubscriptionType::AllDexsAssetCtxs: return "allDexsAssetCtxs";
+        case SubscriptionType::FastAssetCtxs: return "fastAssetCtxs";
         default: throw std::invalid_argument("Unknown SubscriptionType");
         }
     }
@@ -124,6 +132,10 @@ namespace hyperliquid
         if (type == "activeAssetData") return SubscriptionType::ActiveAssetData;
         if (type == "userTwapSliceFills") return SubscriptionType::UserTwapSliceFills;
         if (type == "userTwapHistory") return SubscriptionType::UserTwapHistory;
+        if (type == "spotState") return SubscriptionType::SpotState;
+        if (type == "allDexsClearinghouseState") return SubscriptionType::AllDexsClearinghouseState;
+        if (type == "allDexsAssetCtxs") return SubscriptionType::AllDexsAssetCtxs;
+        if (type == "fastAssetCtxs") return SubscriptionType::FastAssetCtxs;
         return SubscriptionType::Unknown;
     }
 

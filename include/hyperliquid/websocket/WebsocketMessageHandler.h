@@ -27,6 +27,16 @@ public:
     virtual void onWebData3(const WebData3Update& update) {}
     virtual void onClearinghouseState(const ClearinghouseStateUpdate& update) {}
     virtual void onOpenOrdersSnapshot(const OpenOrdersUpdate& update) {}
+
+    virtual void onTwapStates(const TwapStatesUpdate& update) {}
+    virtual void onNotification(const Notification& notification) {}
+    virtual void onUserTwapSliceFill(const TwapSliceFill& fill) {}
+    virtual void onUserTwapHistory(const TwapHistoryEntry& entry) {}
+    virtual void onActiveAssetData(const ActiveAssetData& data) {}
+    virtual void onSpotState(const SpotStateUpdate& update) {}
+    virtual void onAllDexsClearinghouseState(const AllDexsClearinghouseStateUpdate& update) {}
+    virtual void onAllDexsAssetCtxs(const AllDexsAssetCtxsUpdate& update) {}
+    virtual void onFastAssetCtx(const FastAssetCtx& ctx) {}
 };
 
 }

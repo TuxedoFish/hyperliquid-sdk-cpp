@@ -8,7 +8,7 @@ This SDK signs and submits real transactions on mainnet. Test against `Environme
 
 ## Build
 
-Requires CMake 3.16+, a C++23 compiler, and [vcpkg](https://github.com/microsoft/vcpkg) for dependencies (OpenSSL, Boost.Asio/Beast, simdjson, nlohmann-json, spdlog, GTest). `secp256k1` is fetched and built automatically via `FetchContent`.
+Requires CMake 3.16+, a C++23 compiler, and [vcpkg](https://github.com/microsoft/vcpkg) for dependencies (OpenSSL, Boost.Asio/Beast, simdjson, nlohmann-json, spdlog, zlib, GTest). `secp256k1` is fetched and built automatically via `FetchContent`.
 
 ```bash
 git clone https://github.com/TuxedoFish/hyperliquid-sdk-cpp.git
@@ -217,18 +217,18 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `webData3` | ✅ | `WebData3` → `onWebData3` |
 | `clearinghouseState` | ✅ | `ClearingHouseState` → `onClearinghouseState` |
 | `openOrders` | ✅ | `OpenOrders` → `onOpenOrdersSnapshot` |
-| `notification` | ⬜ | `Notification` enum exists; subscribable, response not yet parsed |
-| `twapStates` | ⬜ | `TwapStates` enum exists; subscribable, response not yet parsed |
-| `activeAssetData` | ⬜ | `ActiveAssetData` enum exists; subscribable, response not yet parsed |
-| `userTwapSliceFills` | ⬜ | `UserTwapSliceFills` enum exists; subscribable, response not yet parsed |
-| `userTwapHistory` | ⬜ | `UserTwapHistory` enum exists; subscribable, response not yet parsed |
-| `spotState` | ⬜ | |
-| `allDexsClearinghouseState` | ⬜ | |
-| `allDexsAssetCtxs` | ⬜ | |
+| `notification` | ✅ | `Notification` → `onNotification` |
+| `twapStates` | ✅ | `TwapStates` → `onTwapStates` |
+| `activeAssetData` | ✅ | `ActiveAssetData` → `onActiveAssetData` |
+| `userTwapSliceFills` | ✅ | `UserTwapSliceFills` → `onUserTwapSliceFill` |
+| `userTwapHistory` | ✅ | `UserTwapHistory` → `onUserTwapHistory` |
+| `spotState` | ✅ | `SpotState` → `onSpotState` |
+| `allDexsClearinghouseState` | ✅ | `AllDexsClearinghouseState` → `onAllDexsClearinghouseState` |
+| `allDexsAssetCtxs` | ✅ | `AllDexsAssetCtxs` → `onAllDexsAssetCtxs` |
+| `fastAssetCtxs` | ✅ | `FastAssetCtxs` → `onFastAssetCtx` |
 | `outcomeMetaUpdates` | ⬜ | |
-| `fastAssetCtxs` | ⬜ | |
 
-14 of 24 documented channels have full typed parsing. Five more (`notification`, `twapStates`, `activeAssetData`, `userTwapSliceFills`, `userTwapHistory`) can be subscribed to — the server will stream them — but the SDK doesn't yet decode the payload into a typed callback; unrecognized messages are logged and dropped. The remaining five channels have no subscription support at all yet.
+23 of 24 documented channels have full typed parsing. `fastAssetCtxs` payloads are raw-DEFLATE (RFC 1951) compressed on the wire and decompressed internally (zlib) before parsing. Only `outcomeMetaUpdates` remains - tracked separately in #18.
 
 ## Status
 

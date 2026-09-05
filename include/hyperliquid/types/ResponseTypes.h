@@ -324,7 +324,7 @@ namespace hyperliquid
 
     struct TwapState
     {
-        int id;
+        uint64_t id; // only populated for the twapStates channel, where states are keyed as [id, TwapState] pairs
         std::string coin;
         std::string user;
         char side;
@@ -337,18 +337,49 @@ namespace hyperliquid
         uint64_t timestamp;
     };
 
+    struct TwapStatesUpdate
+    {
+        std::string dex;
+        std::string user;
+        std::vector<TwapState> states;
+    };
+
+    enum class TwapHistoryStatus { Activated, Terminated, Finished, Error, Unknown };
+
+    inline TwapHistoryStatus stringToTwapHistoryStatus(std::string_view s)
+    {
+        if (s == "activated") return TwapHistoryStatus::Activated;
+        if (s == "terminated") return TwapHistoryStatus::Terminated;
+        if (s == "finished") return TwapHistoryStatus::Finished;
+        if (s == "error") return TwapHistoryStatus::Error;
+        return TwapHistoryStatus::Unknown;
+    }
+
+    inline std::string toString(TwapHistoryStatus status)
+    {
+        switch (status)
+        {
+        case TwapHistoryStatus::Activated: return "activated";
+        case TwapHistoryStatus::Terminated: return "terminated";
+        case TwapHistoryStatus::Finished: return "finished";
+        case TwapHistoryStatus::Error: return "error";
+        default: return "unknown";
+        }
+    }
+
     struct TwapHistoryEntry
     {
         TwapState state;
-        std::string status;
+        TwapHistoryStatus status;
         std::string description;
         uint64_t time;
+        bool isSnapshot = false;
     };
 
     struct TwapSliceFill
     {
         Fill fill;
-        int twapId;
+        uint64_t twapId;
     };
 
     enum class LedgerUpdateType
@@ -461,6 +492,7 @@ namespace hyperliquid
     {
         std::string user;
         std::string coin;
+        LeverageType leverageType;
         double maxTradeSzLong;
         double maxTradeSzShort;
         double availableToTradeLong;
@@ -470,6 +502,53 @@ namespace hyperliquid
     struct Notification
     {
         std::string notification;
+    };
+
+    struct SpotBalance
+    {
+        std::string coin;
+        int token;
+        double hold;
+        double total;
+        double entryNtl;
+    };
+
+    struct SpotStateUpdate
+    {
+        std::string user;
+        std::vector<SpotBalance> balances;
+    };
+
+    struct DexClearinghouseState
+    {
+        std::string dex;
+        ClearinghouseState state;
+    };
+
+    struct AllDexsClearinghouseStateUpdate
+    {
+        std::string user;
+        std::vector<DexClearinghouseState> states;
+    };
+
+    struct DexAssetCtxs
+    {
+        std::string dex;
+        std::vector<PerpAssetCtx> ctxs;
+    };
+
+    struct AllDexsAssetCtxsUpdate
+    {
+        std::vector<DexAssetCtxs> dexs;
+    };
+
+    struct FastAssetCtx
+    {
+        std::string coin;
+        bool hasMarkPx;
+        double markPx;
+        bool hasMidPx;
+        double midPx;
     };
 
     struct LeadingVault
@@ -688,15 +767,6 @@ namespace hyperliquid
     {
         SpotMetaAndAssetCtxsMeta meta;
         std::vector<SpotAssetCtx> assetCtxs;
-    };
-
-    struct SpotBalance
-    {
-        std::string coin;
-        int token;
-        double hold;
-        double total;
-        double entryNtl;
     };
 
     struct SpotClearinghouseStateResponse

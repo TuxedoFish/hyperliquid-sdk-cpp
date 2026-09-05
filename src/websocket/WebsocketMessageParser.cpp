@@ -1,32 +1,15 @@
 #include "hyperliquid/websocket/WebsocketMessageParser.h"
+#include <array>
 #include <charconv>
 #include <cstring>
 #include <simdjson.h>
 #include "../config/Logger.h"
+#include "WebsocketParsingUtils.h"
 
 #include "../../include/hyperliquid/types/ResponseTypes.h"
 
 namespace hyperliquid
 {
-    // Find pattern in [p, end), return pointer past the pattern, or nullptr
-    static inline const char* scanTo(const char* p, const char* end,
-                                     const char* pattern, size_t len)
-    {
-        const char* found = static_cast<const char*>(memmem(p, end - p, pattern, len));
-        return found ? found + len : nullptr;
-    }
-
-    static inline uint64_t parseUint64Fast(const char*& p, const char* end)
-    {
-        uint64_t val = 0;
-        while (p < end && *p >= '0' && *p <= '9')
-        {
-            val = val * 10 + (*p - '0');
-            p++;
-        }
-        return val;
-    }
-
     static void parseLevels(const char*& p, const char* end,
                             std::array<PriceLevel, L2_BOOK_MAX_LEVELS>& levels,
                             uint8_t& count, Side side)
@@ -34,7 +17,7 @@ namespace hyperliquid
         while (p < end && count < L2_BOOK_MAX_LEVELS)
         {
             // Find next "px":"
-            const char* px = scanTo(p, end, "\"px\":\"", 6);
+            const char* px = WebsocketParsingUtils::scanTo(p, end, "\"px\":\"", 6);
             if (!px) return;
 
             // Check if we crossed the ],[ boundary (bid/ask split)
@@ -51,12 +34,12 @@ namespace hyperliquid
             const char* pxEnd = static_cast<const char*>(memchr(px, '"', end - px));
             if (!pxEnd) return;
 
-            const char* sz = scanTo(pxEnd, end, "\"sz\":\"", 6);
+            const char* sz = WebsocketParsingUtils::scanTo(pxEnd, end, "\"sz\":\"", 6);
             if (!sz) return;
             const char* szEnd = static_cast<const char*>(memchr(sz, '"', end - sz));
             if (!szEnd) return;
 
-            const char* nPos = scanTo(szEnd, end, "\"n\":", 4);
+            const char* nPos = WebsocketParsingUtils::scanTo(szEnd, end, "\"n\":", 4);
             if (!nPos) return;
             int n = 0;
             while (nPos < end && *nPos >= '0' && *nPos <= '9')
@@ -85,19 +68,19 @@ namespace hyperliquid
         const char* end = p + msg.size();
 
         // Find "coin":" — extract coin name up to closing quote
-        p = scanTo(p, end, "\"coin\":\"", 8);
+        p = WebsocketParsingUtils::scanTo(p, end, "\"coin\":\"", 8);
         if (!p) return false;
         const char* coinEnd = static_cast<const char*>(memchr(p, '"', end - p));
         if (!coinEnd) return false;
         snapshot.coin = std::string(p, coinEnd - p);
 
         // Find "time": — parse uint64
-        p = scanTo(coinEnd, end, "\"time\":", 7);
+        p = WebsocketParsingUtils::scanTo(coinEnd, end, "\"time\":", 7);
         if (!p) return false;
-        snapshot.time = parseUint64Fast(p, end);
+        snapshot.time = WebsocketParsingUtils::parseUint64Fast(p, end);
 
         // Find start of levels array: "levels":[[
-        p = scanTo(p, end, "[[", 2);
+        p = WebsocketParsingUtils::scanTo(p, end, "[[", 2);
         if (!p) return false;
 
         // Parse bid levels until we hit ],[ boundary
@@ -105,7 +88,7 @@ namespace hyperliquid
 
         // If parseLevels exited due to count limit (not finding ],[),
         // we need to skip past the ],[ boundary before parsing asks.
-        const char* boundary = scanTo(p, end, "],[", 3);
+        const char* boundary = WebsocketParsingUtils::scanTo(p, end, "],[", 3);
         if (boundary) p = boundary;
 
         // Parse ask levels
@@ -237,6 +220,51 @@ namespace hyperliquid
                 {
                     auto data = doc["data"].get_object().value();
                     crackOpenOrders(data, listener);
+                }
+                else if (channel == "twapStates")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackTwapStates(data, listener);
+                }
+                else if (channel == "notification")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackNotification(data, listener);
+                }
+                else if (channel == "userTwapSliceFills")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackUserTwapSliceFills(data, listener);
+                }
+                else if (channel == "userTwapHistory")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackUserTwapHistory(data, listener);
+                }
+                else if (channel == "activeAssetData")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackActiveAssetData(data, listener);
+                }
+                else if (channel == "spotState")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackSpotState(data, listener);
+                }
+                else if (channel == "allDexsClearinghouseState")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackAllDexsClearinghouseState(data, listener);
+                }
+                else if (channel == "allDexsAssetCtxs")
+                {
+                    auto data = doc["data"].get_object().value();
+                    crackAllDexsAssetCtxs(data, listener);
+                }
+                else if (channel == "fastAssetCtxs")
+                {
+                    auto data = doc["data"].get_string().value();
+                    crackFastAssetCtxs(data, listener);
                 }
                 else if (channel == "error")
                 {
@@ -494,7 +522,7 @@ namespace hyperliquid
             }
         }
 
-        void crackFill(simdjson::ondemand::object& obj, WebsocketMessageHandler& listener, bool isSnapshot)
+        Fill parseFillObject(simdjson::ondemand::object& obj, bool isSnapshot)
         {
             Fill fill;
             fill.coin = std::string(obj["coin"].get_string().value());
@@ -542,7 +570,12 @@ namespace hyperliquid
             }
 
             fill.isSnapshot = isSnapshot;
-            listener.onUserFill(fill);
+            return fill;
+        }
+
+        void crackFill(simdjson::ondemand::object& obj, WebsocketMessageHandler& listener, bool isSnapshot)
+        {
+            listener.onUserFill(parseFillObject(obj, isSnapshot));
         }
 
         void crackOrderUpdates(simdjson::ondemand::array& data, WebsocketMessageHandler& listener)
@@ -1012,6 +1045,329 @@ namespace hyperliquid
             }
 
             listener.onOpenOrdersSnapshot(update);
+        }
+
+        void crackTwapState(simdjson::ondemand::object& obj, TwapState& state)
+        {
+            state.coin = std::string(obj["coin"].get_string().value());
+            state.user = std::string(obj["user"].get_string().value());
+            auto sideStr = obj["side"].get_string().value();
+            state.side = sideStr.size() > 0 ? sideStr[0] : '?';
+            state.sz = toDoubleField(obj, "sz");
+            state.executedSz = toDoubleField(obj, "executedSz");
+            state.executedNtl = toDoubleField(obj, "executedNtl");
+            state.minutes = static_cast<int>(obj["minutes"].get_int64().value());
+            state.reduceOnly = obj["reduceOnly"].get_bool().value();
+            state.randomize = obj["randomize"].get_bool().value();
+            state.timestamp = obj["timestamp"].get_uint64().value();
+        }
+
+        void crackTwapStates(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            TwapStatesUpdate update;
+            std::string_view dex;
+            if (!data["dex"].get_string().get(dex))
+                update.dex = std::string(dex);
+            update.user = std::string(data["user"].get_string().value());
+
+            auto states = data["states"].get_array().value();
+            for (auto entry : states)
+            {
+                try
+                {
+                    auto pair = entry.get_array().value();
+                    TwapState state{};
+                    size_t idx = 0;
+                    for (auto item : pair)
+                    {
+                        if (idx == 0)
+                        {
+                            state.id = item.get_uint64().value();
+                        }
+                        else
+                        {
+                            auto obj = item.get_object().value();
+                            crackTwapState(obj, state);
+                        }
+                        idx++;
+                    }
+                    update.states.push_back(std::move(state));
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in twapStates entry: {}", e.what());
+                }
+            }
+
+            listener.onTwapStates(update);
+        }
+
+        void crackNotification(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            Notification notification;
+            notification.notification = std::string(data["notification"].get_string().value());
+            listener.onNotification(notification);
+        }
+
+        void crackUserTwapSliceFills(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            bool isSnapshot = false;
+            bool snapshotVal;
+            if (!data["isSnapshot"].get_bool().get(snapshotVal))
+                isSnapshot = snapshotVal;
+
+            auto sliceFills = data["twapSliceFills"].get_array().value();
+            for (auto entry : sliceFills)
+            {
+                try
+                {
+                    auto obj = entry.get_object().value();
+                    auto fillObj = obj["fill"].get_object().value();
+
+                    TwapSliceFill sliceFill;
+                    sliceFill.fill = parseFillObject(fillObj, isSnapshot);
+                    sliceFill.twapId = obj["twapId"].get_uint64().value();
+
+                    listener.onUserTwapSliceFill(sliceFill);
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in userTwapSliceFills entry: {}", e.what());
+                }
+            }
+        }
+
+        void crackUserTwapHistory(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            bool isSnapshot = false;
+            bool snapshotVal;
+            if (!data["isSnapshot"].get_bool().get(snapshotVal))
+                isSnapshot = snapshotVal;
+
+            auto history = data["history"].get_array().value();
+            for (auto entry : history)
+            {
+                try
+                {
+                    auto obj = entry.get_object().value();
+
+                    TwapHistoryEntry hist{};
+                    auto stateObj = obj["state"].get_object().value();
+                    crackTwapState(stateObj, hist.state);
+
+                    auto statusObj = obj["status"].get_object().value();
+                    hist.status = stringToTwapHistoryStatus(statusObj["status"].get_string().value());
+                    std::string_view desc;
+                    if (!statusObj["description"].get_string().get(desc))
+                        hist.description = std::string(desc);
+
+                    hist.time = obj["time"].get_uint64().value();
+                    hist.isSnapshot = isSnapshot;
+
+                    listener.onUserTwapHistory(hist);
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in userTwapHistory entry: {}", e.what());
+                }
+            }
+        }
+
+        void crackActiveAssetData(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            ActiveAssetData result{};
+            result.user = std::string(data["user"].get_string().value());
+            result.coin = std::string(data["coin"].get_string().value());
+
+            simdjson::ondemand::object leverage;
+            if (!data["leverage"].get_object().get(leverage))
+                result.leverageType = stringToLeverageType(leverage["type"].get_string().value());
+
+            auto maxTradeSzs = data["maxTradeSzs"].get_array().value();
+            size_t idx = 0;
+            for (auto v : maxTradeSzs)
+            {
+                std::string_view sv;
+                double val = !v.get_string().get(sv) ? toDouble(sv) : v.get_double().value();
+                if (idx == 0) result.maxTradeSzLong = val;
+                else if (idx == 1) result.maxTradeSzShort = val;
+                idx++;
+            }
+
+            auto availableToTrade = data["availableToTrade"].get_array().value();
+            idx = 0;
+            for (auto v : availableToTrade)
+            {
+                std::string_view sv;
+                double val = !v.get_string().get(sv) ? toDouble(sv) : v.get_double().value();
+                if (idx == 0) result.availableToTradeLong = val;
+                else if (idx == 1) result.availableToTradeShort = val;
+                idx++;
+            }
+
+            listener.onActiveAssetData(result);
+        }
+
+        void crackSpotState(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            SpotStateUpdate update;
+            update.user = std::string(data["user"].get_string().value());
+
+            auto spotState = data["spotState"].get_object().value();
+            auto balances = spotState["balances"].get_array().value();
+            for (auto entry : balances)
+            {
+                try
+                {
+                    auto obj = entry.get_object().value();
+                    SpotBalance balance;
+                    balance.coin = std::string(obj["coin"].get_string().value());
+                    balance.token = static_cast<int>(obj["token"].get_int64().value());
+                    balance.hold = toDoubleField(obj, "hold");
+                    balance.total = toDoubleField(obj, "total");
+                    balance.entryNtl = toDoubleField(obj, "entryNtl");
+                    update.balances.push_back(std::move(balance));
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in spotState balance: {}", e.what());
+                }
+            }
+
+            listener.onSpotState(update);
+        }
+
+        void crackAllDexsClearinghouseState(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            AllDexsClearinghouseStateUpdate update;
+            update.user = std::string(data["user"].get_string().value());
+
+            auto states = data["clearinghouseStates"].get_array().value();
+            for (auto entry : states)
+            {
+                try
+                {
+                    auto pair = entry.get_array().value();
+                    DexClearinghouseState dexState{};
+                    size_t idx = 0;
+                    for (auto item : pair)
+                    {
+                        if (idx == 0)
+                        {
+                            dexState.dex = std::string(item.get_string().value());
+                        }
+                        else
+                        {
+                            auto obj = item.get_object().value();
+                            crackInnerClearinghouseState(obj, dexState.state);
+                        }
+                        idx++;
+                    }
+                    update.states.push_back(std::move(dexState));
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in allDexsClearinghouseState entry: {}", e.what());
+                }
+            }
+
+            listener.onAllDexsClearinghouseState(update);
+        }
+
+        void crackAllDexsAssetCtxs(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        {
+            AllDexsAssetCtxsUpdate update;
+
+            auto ctxs = data["ctxs"].get_array().value();
+            for (auto entry : ctxs)
+            {
+                try
+                {
+                    auto pair = entry.get_array().value();
+                    DexAssetCtxs dexCtxs{};
+                    size_t idx = 0;
+                    for (auto item : pair)
+                    {
+                        if (idx == 0)
+                        {
+                            dexCtxs.dex = std::string(item.get_string().value());
+                        }
+                        else
+                        {
+                            auto ctxArr = item.get_array().value();
+                            for (auto ctxEntry : ctxArr)
+                            {
+                                auto obj = ctxEntry.get_object().value();
+                                PerpAssetCtx ctx{};
+                                ctx.dayNtlVlm = toDoubleField(obj, "dayNtlVlm");
+                                ctx.prevDayPx = toDoubleField(obj, "prevDayPx");
+                                ctx.markPx = toDoubleField(obj, "markPx");
+                                std::string_view midStr;
+                                ctx.hasMidPx = !obj["midPx"].get_string().get(midStr);
+                                ctx.midPx = ctx.hasMidPx ? toDouble(midStr) : 0.0;
+                                ctx.funding = toDoubleField(obj, "funding");
+                                ctx.openInterest = toDoubleField(obj, "openInterest");
+                                ctx.oraclePx = toDoubleField(obj, "oraclePx");
+                                dexCtxs.ctxs.push_back(ctx);
+                            }
+                        }
+                        idx++;
+                    }
+                    update.dexs.push_back(std::move(dexCtxs));
+                }
+                catch (const simdjson::simdjson_error& e)
+                {
+                    getLogger()->error("parse error in allDexsAssetCtxs entry: {}", e.what());
+                }
+            }
+
+            listener.onAllDexsAssetCtxs(update);
+        }
+
+        void crackFastAssetCtxs(std::string_view base64Data, WebsocketMessageHandler& listener)
+        {
+            auto compressed = WebsocketParsingUtils::base64Decode(base64Data);
+            std::string decompressed;
+            if (!WebsocketParsingUtils::inflateRawDeflate(compressed, decompressed))
+            {
+                getLogger()->error("failed to inflate fastAssetCtxs payload");
+                return;
+            }
+
+            try
+            {
+                simdjson::ondemand::parser localParser;
+                simdjson::padded_string padded(decompressed);
+                auto localDoc = localParser.iterate(padded);
+                auto obj = localDoc.get_object().value();
+                for (auto field : obj)
+                {
+                    try
+                    {
+                        FastAssetCtx ctx{};
+                        ctx.coin = std::string(field.unescaped_key().value());
+                        auto entry = field.value().get_object().value();
+
+                        std::string_view markStr;
+                        ctx.hasMarkPx = !entry["markPx"].get_string().get(markStr);
+                        ctx.markPx = ctx.hasMarkPx ? toDouble(markStr) : 0.0;
+
+                        std::string_view midStr;
+                        ctx.hasMidPx = !entry["midPx"].get_string().get(midStr);
+                        ctx.midPx = ctx.hasMidPx ? toDouble(midStr) : 0.0;
+
+                        listener.onFastAssetCtx(ctx);
+                    }
+                    catch (const simdjson::simdjson_error& e)
+                    {
+                        getLogger()->error("parse error in fastAssetCtxs entry: {}", e.what());
+                    }
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("parse error in decompressed fastAssetCtxs payload: {}", e.what());
+            }
         }
     };
 
