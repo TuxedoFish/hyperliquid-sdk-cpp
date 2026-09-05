@@ -268,7 +268,7 @@ namespace hyperliquid
                 }
                 else if (channel == "outcomeMetaUpdates")
                 {
-                    auto data = doc["data"].get_object().value();
+                    auto data = doc["data"].get_array().value();
                     crackOutcomeMetaUpdates(data, listener);
                 }
                 else if (channel == "error")
@@ -1421,54 +1421,60 @@ namespace hyperliquid
                     question.settledNamedOutcomes.push_back(static_cast<int>(entry.get_int64().value()));
         }
 
-        // The wire format is a discriminated union keyed by variant name (outcomeCreated/
+        // Each array entry is a discriminated union keyed by variant name (outcomeCreated/
         // outcomeSettled/questionUpdated/questionSettled), mirroring the shape of the
-        // delegatorHistory delta union - exactly one key is present per message.
-        void crackOutcomeMetaUpdates(simdjson::ondemand::object& data, WebsocketMessageHandler& listener)
+        // delegatorHistory delta union - exactly one key is present per entry. The top-level
+        // "data" is itself an array of these entries (confirmed live: a single message can
+        // read `[{"outcomeSettled":17424}]`), not a bare object.
+        void crackOutcomeMetaUpdates(simdjson::ondemand::array& data, WebsocketMessageHandler& listener)
         {
-            OutcomeMetaUpdate update{};
-
-            simdjson::ondemand::value outcomeCreatedVal;
-            simdjson::ondemand::value outcomeSettledVal;
-            simdjson::ondemand::value questionUpdatedVal;
-            simdjson::ondemand::value questionSettledVal;
-
-            try
+            for (auto entry : data)
             {
-                if (data["outcomeCreated"].get(outcomeCreatedVal) == simdjson::SUCCESS)
+                try
                 {
-                    update.type = OutcomeMetaUpdateType::OutcomeCreated;
-                    auto obj = outcomeCreatedVal.get_object().value();
-                    parseOutcomeSpecForUpdate(obj, update.outcome);
+                    auto obj = entry.get_object().value();
+                    OutcomeMetaUpdate update{};
+
+                    simdjson::ondemand::value outcomeCreatedVal;
+                    simdjson::ondemand::value outcomeSettledVal;
+                    simdjson::ondemand::value questionUpdatedVal;
+                    simdjson::ondemand::value questionSettledVal;
+
+                    if (obj["outcomeCreated"].get(outcomeCreatedVal) == simdjson::SUCCESS)
+                    {
+                        update.type = OutcomeMetaUpdateType::OutcomeCreated;
+                        auto createdObj = outcomeCreatedVal.get_object().value();
+                        parseOutcomeSpecForUpdate(createdObj, update.outcome);
+                    }
+                    else if (obj["outcomeSettled"].get(outcomeSettledVal) == simdjson::SUCCESS)
+                    {
+                        update.type = OutcomeMetaUpdateType::OutcomeSettled;
+                        update.settledOutcome = static_cast<int>(outcomeSettledVal.get_int64().value());
+                    }
+                    else if (obj["questionUpdated"].get(questionUpdatedVal) == simdjson::SUCCESS)
+                    {
+                        update.type = OutcomeMetaUpdateType::QuestionUpdated;
+                        auto updatedObj = questionUpdatedVal.get_object().value();
+                        parseQuestionSpecForUpdate(updatedObj, update.question);
+                    }
+                    else if (obj["questionSettled"].get(questionSettledVal) == simdjson::SUCCESS)
+                    {
+                        update.type = OutcomeMetaUpdateType::QuestionSettled;
+                        update.settledQuestion = static_cast<int>(questionSettledVal.get_int64().value());
+                    }
+                    else
+                    {
+                        update.type = OutcomeMetaUpdateType::Unknown;
+                        getLogger()->warn("outcomeMetaUpdates: unrecognized update variant");
+                    }
+
+                    listener.onOutcomeMetaUpdate(update);
                 }
-                else if (data["outcomeSettled"].get(outcomeSettledVal) == simdjson::SUCCESS)
+                catch (const simdjson::simdjson_error& e)
                 {
-                    update.type = OutcomeMetaUpdateType::OutcomeSettled;
-                    update.settledOutcome = static_cast<int>(outcomeSettledVal.get_int64().value());
-                }
-                else if (data["questionUpdated"].get(questionUpdatedVal) == simdjson::SUCCESS)
-                {
-                    update.type = OutcomeMetaUpdateType::QuestionUpdated;
-                    auto obj = questionUpdatedVal.get_object().value();
-                    parseQuestionSpecForUpdate(obj, update.question);
-                }
-                else if (data["questionSettled"].get(questionSettledVal) == simdjson::SUCCESS)
-                {
-                    update.type = OutcomeMetaUpdateType::QuestionSettled;
-                    update.settledQuestion = static_cast<int>(questionSettledVal.get_int64().value());
-                }
-                else
-                {
-                    update.type = OutcomeMetaUpdateType::Unknown;
-                    getLogger()->warn("outcomeMetaUpdates: unrecognized update variant");
+                    getLogger()->error("parse error in outcomeMetaUpdates entry: {}", e.what());
                 }
             }
-            catch (const simdjson::simdjson_error& e)
-            {
-                getLogger()->error("parse error in outcomeMetaUpdates: {}", e.what());
-            }
-
-            listener.onOutcomeMetaUpdate(update);
         }
     };
 

@@ -161,10 +161,10 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `spotPairDeployAuctionStatus` | ⬜ | |
 | Spot / Outcomes | `tokenDetails` | ⬜ | |
 | Spot / Outcomes | `outcomeMeta` | ✅ | `RestApi::outcomeMeta` |
-| Spot / Outcomes | `settledOutcome` | ⬜ | |
+| Spot / Outcomes | `settledOutcome` | ✅ | `RestApi::settledOutcome` |
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 
-41 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
+42 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 
@@ -227,9 +227,9 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `allDexsClearinghouseState` | ✅ | `AllDexsClearinghouseState` → `onAllDexsClearinghouseState` |
 | `allDexsAssetCtxs` | ✅ | `AllDexsAssetCtxs` → `onAllDexsAssetCtxs` |
 | `fastAssetCtxs` | ✅ | `FastAssetCtxs` → `onFastAssetCtx` |
-| `outcomeMetaUpdates` | ⬜ | |
+| `outcomeMetaUpdates` | ✅ | `OutcomeMetaUpdates` → `onOutcomeMetaUpdate` |
 
-23 of 24 documented channels have full typed parsing. `fastAssetCtxs` payloads are raw-DEFLATE (RFC 1951) compressed on the wire and decompressed internally (zlib) before parsing. Only `outcomeMetaUpdates` remains - tracked separately in #18.
+24 of 24 documented channels have full typed parsing. `fastAssetCtxs` payloads are raw-DEFLATE (RFC 1951) compressed on the wire and decompressed internally (zlib) before parsing. `outcomeMetaUpdates`'s `data` is itself an array of discriminated-union entries (one of `outcomeCreated`/`outcomeSettled`/`questionUpdated`/`questionSettled` per entry) - each entry dispatches its own `onOutcomeMetaUpdate` call.
 
 ## Status
 
