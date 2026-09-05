@@ -22,7 +22,7 @@ namespace hyperliquid
         int index = 0;
         for (const auto& asset : defaultMetaResponse.universe)
         {
-            symbolMap_.add(asset.name, index);
+            symbolMap_.set(asset.name, index);
             index++;
         }
 
@@ -32,7 +32,9 @@ namespace hyperliquid
         // assetCtxs is itself keyed by). Confirmed against live testnet data: joining
         // universe[i] to assetCtxs by array position matched ~4 pairs out of 1300+; joining by
         // `index` field matched all of them. Every pair also gets a "BASE/QUOTE" convenience
-        // alias (first pair to claim a given string wins), regardless of canonical status.
+        // alias (first pair to claim a given string wins, regardless of canonical status) - but
+        // a pair's own real name always wins over an alias, even one registered earlier, so
+        // `set` (unconditional) is used for real names and `add` (first-wins) only for aliases.
         auto spotMetaResponse = api->spotMetaAndAssetCtxs();
         std::unordered_map<int, const SpotAssetMeta*> tokenByIndex;
         for (const auto& token : spotMetaResponse.meta.tokens)
@@ -42,7 +44,7 @@ namespace hyperliquid
         for (const auto& pair : spotMetaResponse.meta.universe)
         {
             int assetId = pair.index + 10000;
-            symbolMap_.add(pair.name, assetId);
+            symbolMap_.set(pair.name, assetId);
             if (pair.tokens.size() == 2)
             {
                 const auto* baseToken = tokenByIndex.at(pair.tokens[0]);
@@ -67,7 +69,7 @@ namespace hyperliquid
             index = 0;
             for (const auto& asset : dexMetaResponse.universe)
             {
-                symbolMap_.add(asset.name, 100000 + (perpIdx * 10000) + index);
+                symbolMap_.set(asset.name, 100000 + (perpIdx * 10000) + index);
                 index++;
             }
             perpIdx++;

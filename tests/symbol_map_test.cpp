@@ -43,6 +43,28 @@ TEST(SymbolMapTest, FirstAddWinsOnDuplicateSymbol)
     EXPECT_EQ(map.resolve("ETH"), 4);
 }
 
+TEST(SymbolMapTest, SetUnconditionallyOverwrites)
+{
+    SymbolMap map;
+    map.add("ETH", 4);
+    map.set("ETH", 999);
+    EXPECT_EQ(map.resolve("ETH"), 999);
+}
+
+TEST(SymbolMapTest, RealNameRegisteredWithSetWinsOverAnEarlierAliasRegisteredWithAdd)
+{
+    // Mirrors the Python SDK's asymmetry: a pair's own real name always wins, even over an
+    // alias that claimed the same string first, because raw names are registered with an
+    // unconditional overwrite while aliases only claim a string if it's still free. Without
+    // this, a non-canonical pair's derived "BASE/QUOTE" alias processed before the real
+    // canonical pair of the same name would permanently steal that name.
+    SymbolMap map;
+    map.add("PURR/USDC", 10050);  // non-canonical duplicate's derived alias, claimed first
+    map.set("PURR/USDC", 10000);  // canonical pair's own real name, processed second
+
+    EXPECT_EQ(map.resolve("PURR/USDC"), 10000);
+}
+
 // --- Asset-id range scheme mirrored from ExchangeRequestBuilder::initializeMapping ---
 //
 // Perp assets (default meta universe): raw index, e.g. 0, 1, 2, ...
