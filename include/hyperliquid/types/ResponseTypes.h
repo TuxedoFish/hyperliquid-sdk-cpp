@@ -761,29 +761,9 @@ namespace hyperliquid
         int collateralToken;
     };
 
-    struct PerpDexAssetCtx
-    {
-        double dayNtlVlm;
-        double funding;
-        std::vector<double> impactPxs;
-        double markPx;
-        double midPx;
-        bool hasMidPx;
-        double openInterest;
-        double oraclePx;
-        double premium;
-        double prevDayPx;
-    };
-
-    struct AllPerpMetasEntry
-    {
-        PerpDexMeta meta;
-        std::vector<PerpDexAssetCtx> assetCtxs;
-    };
-
     struct AllPerpMetasResponse
     {
-        std::vector<AllPerpMetasEntry> dexMetas;
+        std::vector<PerpDexMeta> dexMetas;
     };
 
     struct RestBookLevel

@@ -150,35 +150,25 @@ TEST(RestApiMessageParserMiscTest, ParsePerpConciseAnnotations)
 
 TEST(RestApiMessageParserMiscTest, ParseAllPerpMetas)
 {
+    // Each entry is a flat per-dex meta object - unlike metaAndAssetCtxs, this endpoint does
+    // not pair each dex with live asset-context data (confirmed against real testnet responses;
+    // an earlier version of this test assumed a [meta, assetCtxs] pair shape that doesn't match
+    // what the exchange actually returns).
     std::string message = R"([
-        [
-            {
-                "universe": [
-                    {"name": "BTC", "szDecimals": 5, "maxLeverage": 50},
-                    {"name": "ETH", "szDecimals": 4, "maxLeverage": 50}
-                ],
-                "marginTables": [
-                    [50, {"description": "", "marginTiers": [{"lowerBound": "0.0", "maxLeverage": 50}]}],
-                    [51, {"description": "tiered 10x", "marginTiers": [
-                        {"lowerBound": "0.0", "maxLeverage": 10},
-                        {"lowerBound": "3000000.0", "maxLeverage": 5}
-                    ]}]
-                ],
-                "collateralToken": 0
-            },
-            [
-                {
-                    "dayNtlVlm": "123456.7", "funding": "0.0001", "impactPxs": ["100.1", "100.2"],
-                    "markPx": "100.15", "midPx": "100.14", "openInterest": "500.0",
-                    "oraclePx": "100.16", "premium": "0.0002", "prevDayPx": "99.5"
-                },
-                {
-                    "dayNtlVlm": "7654.3", "funding": "0.00005", "impactPxs": ["3000.1", "3000.2"],
-                    "markPx": "3000.15", "midPx": null, "openInterest": "1200.0",
-                    "oraclePx": "3000.16", "premium": "-0.0001", "prevDayPx": "2990.5"
-                }
-            ]
-        ]
+        {
+            "universe": [
+                {"name": "BTC", "szDecimals": 5, "maxLeverage": 50},
+                {"name": "ETH", "szDecimals": 4, "maxLeverage": 50}
+            ],
+            "marginTables": [
+                [50, {"description": "", "marginTiers": [{"lowerBound": "0.0", "maxLeverage": 50}]}],
+                [51, {"description": "tiered 10x", "marginTiers": [
+                    {"lowerBound": "0.0", "maxLeverage": 10},
+                    {"lowerBound": "3000000.0", "maxLeverage": 5}
+                ]}]
+            ],
+            "collateralToken": 0
+        }
     ])";
 
     RestApiMessageParser parser;
@@ -187,33 +177,21 @@ TEST(RestApiMessageParserMiscTest, ParseAllPerpMetas)
     ASSERT_EQ(response.dexMetas.size(), 1u);
     const auto& dex = response.dexMetas[0];
 
-    ASSERT_EQ(dex.meta.universe.size(), 2u);
-    EXPECT_EQ(dex.meta.universe[0].name, "BTC");
-    EXPECT_EQ(dex.meta.universe[0].szDecimals, 5);
-    EXPECT_EQ(dex.meta.universe[0].maxLeverage, 50);
-    EXPECT_EQ(dex.meta.collateralToken, 0);
+    ASSERT_EQ(dex.universe.size(), 2u);
+    EXPECT_EQ(dex.universe[0].name, "BTC");
+    EXPECT_EQ(dex.universe[0].szDecimals, 5);
+    EXPECT_EQ(dex.universe[0].maxLeverage, 50);
+    EXPECT_EQ(dex.collateralToken, 0);
 
-    ASSERT_EQ(dex.meta.marginTables.size(), 2u);
-    EXPECT_EQ(dex.meta.marginTables[0].id, 50);
-    ASSERT_EQ(dex.meta.marginTables[0].marginTiers.size(), 1u);
-    EXPECT_DOUBLE_EQ(dex.meta.marginTables[0].marginTiers[0].lowerBound, 0.0);
-    EXPECT_EQ(dex.meta.marginTables[0].marginTiers[0].maxLeverage, 50);
+    ASSERT_EQ(dex.marginTables.size(), 2u);
+    EXPECT_EQ(dex.marginTables[0].id, 50);
+    ASSERT_EQ(dex.marginTables[0].marginTiers.size(), 1u);
+    EXPECT_DOUBLE_EQ(dex.marginTables[0].marginTiers[0].lowerBound, 0.0);
+    EXPECT_EQ(dex.marginTables[0].marginTiers[0].maxLeverage, 50);
 
-    EXPECT_EQ(dex.meta.marginTables[1].id, 51);
-    EXPECT_EQ(dex.meta.marginTables[1].description, "tiered 10x");
-    ASSERT_EQ(dex.meta.marginTables[1].marginTiers.size(), 2u);
-    EXPECT_DOUBLE_EQ(dex.meta.marginTables[1].marginTiers[1].lowerBound, 3000000.0);
-    EXPECT_EQ(dex.meta.marginTables[1].marginTiers[1].maxLeverage, 5);
-
-    ASSERT_EQ(dex.assetCtxs.size(), 2u);
-    EXPECT_DOUBLE_EQ(dex.assetCtxs[0].dayNtlVlm, 123456.7);
-    EXPECT_DOUBLE_EQ(dex.assetCtxs[0].funding, 0.0001);
-    ASSERT_EQ(dex.assetCtxs[0].impactPxs.size(), 2u);
-    EXPECT_DOUBLE_EQ(dex.assetCtxs[0].impactPxs[0], 100.1);
-    EXPECT_TRUE(dex.assetCtxs[0].hasMidPx);
-    EXPECT_DOUBLE_EQ(dex.assetCtxs[0].midPx, 100.14);
-    EXPECT_DOUBLE_EQ(dex.assetCtxs[0].premium, 0.0002);
-
-    EXPECT_FALSE(dex.assetCtxs[1].hasMidPx);
-    EXPECT_DOUBLE_EQ(dex.assetCtxs[1].premium, -0.0001);
+    EXPECT_EQ(dex.marginTables[1].id, 51);
+    EXPECT_EQ(dex.marginTables[1].description, "tiered 10x");
+    ASSERT_EQ(dex.marginTables[1].marginTiers.size(), 2u);
+    EXPECT_DOUBLE_EQ(dex.marginTables[1].marginTiers[1].lowerBound, 3000000.0);
+    EXPECT_EQ(dex.marginTables[1].marginTiers[1].maxLeverage, 5);
 }

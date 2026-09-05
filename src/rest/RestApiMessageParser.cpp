@@ -800,18 +800,25 @@ namespace hyperliquid
                         venue.venue = std::string((*vIter).get_string().value());
                         ++vIter;
 
-                        auto obj = (*vIter).get_object().value();
-
-                        simdjson::ondemand::value rateVal;
-                        if (obj["fundingRate"].get(rateVal) == simdjson::SUCCESS && !rateVal.is_null())
+                        // The exchange returns null here (rather than an object) when it has no
+                        // funding data for this coin on this venue - leave fundingRate/
+                        // nextFundingTime unset in that case rather than treating it as an error.
+                        simdjson::ondemand::value objVal;
+                        if ((*vIter).get(objVal) == simdjson::SUCCESS && !objVal.is_null())
                         {
-                            std::string_view sv;
-                            venue.fundingRate = !rateVal.get_string().get(sv) ? toDouble(sv) : rateVal.get_double().value();
-                        }
+                            auto obj = objVal.get_object().value();
 
-                        simdjson::ondemand::value timeVal;
-                        if (obj["nextFundingTime"].get(timeVal) == simdjson::SUCCESS && !timeVal.is_null())
-                            venue.nextFundingTime = timeVal.get_uint64().value();
+                            simdjson::ondemand::value rateVal;
+                            if (obj["fundingRate"].get(rateVal) == simdjson::SUCCESS && !rateVal.is_null())
+                            {
+                                std::string_view sv;
+                                venue.fundingRate = !rateVal.get_string().get(sv) ? toDouble(sv) : rateVal.get_double().value();
+                            }
+
+                            simdjson::ondemand::value timeVal;
+                            if (obj["nextFundingTime"].get(timeVal) == simdjson::SUCCESS && !timeVal.is_null())
+                                venue.nextFundingTime = timeVal.get_uint64().value();
+                        }
 
                         pf.venues.push_back(std::move(venue));
                     }
@@ -835,9 +842,15 @@ namespace hyperliquid
 
             try
             {
-                auto obj = doc.get_object().value();
-                response.category = std::string(obj["category"].get_string().value());
-                response.description = std::string(obj["description"].get_string().value());
+                // The exchange returns a bare `null` (rather than an object) for a coin with no
+                // annotation data - leave category/description empty in that case, it's not a
+                // parse error.
+                if (doc.type().value() != simdjson::ondemand::json_type::null)
+                {
+                    auto obj = doc.get_object().value();
+                    response.category = std::string(obj["category"].get_string().value());
+                    response.description = std::string(obj["description"].get_string().value());
+                }
             }
             catch (const simdjson::simdjson_error& e)
             {
@@ -924,15 +937,15 @@ namespace hyperliquid
 
             try
             {
+                // Each top-level entry is a flat per-dex meta object ({universe, marginTables,
+                // collateralToken}) - unlike metaAndAssetCtxs, this endpoint does not pair each
+                // dex with live asset-context data (confirmed against real testnet responses).
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
-                    auto pair = entry.get_array().value();
-                    auto iter = pair.begin();
+                    auto metaObj = entry.get_object().value();
 
-                    AllPerpMetasEntry dexEntry;
-
-                    auto metaObj = (*iter).get_object().value();
+                    PerpDexMeta dexMeta;
 
                     auto universe = metaObj["universe"].get_array().value();
                     for (auto u : universe)
@@ -942,7 +955,7 @@ namespace hyperliquid
                         asset.name = std::string(uObj["name"].get_string().value());
                         asset.szDecimals = static_cast<int>(uObj["szDecimals"].get_int64().value());
                         asset.maxLeverage = static_cast<int>(uObj["maxLeverage"].get_int64().value());
-                        dexEntry.meta.universe.push_back(std::move(asset));
+                        dexMeta.universe.push_back(std::move(asset));
                     }
 
                     simdjson::ondemand::array marginTables;
@@ -970,55 +983,16 @@ namespace hyperliquid
                                 table.marginTiers.push_back(tier);
                             }
 
-                            dexEntry.meta.marginTables.push_back(std::move(table));
+                            dexMeta.marginTables.push_back(std::move(table));
                         }
                     }
 
-                    dexEntry.meta.collateralToken = 0;
+                    dexMeta.collateralToken = 0;
                     simdjson::ondemand::value collateralVal;
                     if (metaObj["collateralToken"].get(collateralVal) == simdjson::SUCCESS && !collateralVal.is_null())
-                        dexEntry.meta.collateralToken = static_cast<int>(collateralVal.get_int64().value());
+                        dexMeta.collateralToken = static_cast<int>(collateralVal.get_int64().value());
 
-                    ++iter;
-                    simdjson::ondemand::array assetCtxs;
-                    if (!(*iter).get_array().get(assetCtxs))
-                    {
-                        for (auto ctxEntry : assetCtxs)
-                        {
-                            auto ctxObj = ctxEntry.get_object().value();
-                            PerpDexAssetCtx ctx;
-                            ctx.dayNtlVlm = parseNumberField(ctxObj, "dayNtlVlm");
-                            ctx.funding = parseNumberField(ctxObj, "funding");
-                            ctx.markPx = parseNumberField(ctxObj, "markPx");
-                            ctx.openInterest = parseNumberField(ctxObj, "openInterest");
-                            ctx.oraclePx = parseNumberField(ctxObj, "oraclePx");
-                            ctx.premium = parseNumberField(ctxObj, "premium");
-                            ctx.prevDayPx = parseNumberField(ctxObj, "prevDayPx");
-
-                            simdjson::ondemand::value midVal;
-                            ctx.hasMidPx = ctxObj["midPx"].get(midVal) == simdjson::SUCCESS && !midVal.is_null();
-                            ctx.midPx = 0.0;
-                            if (ctx.hasMidPx)
-                            {
-                                std::string_view sv;
-                                ctx.midPx = !midVal.get_string().get(sv) ? toDouble(sv) : midVal.get_double().value();
-                            }
-
-                            simdjson::ondemand::array impactPxs;
-                            if (!ctxObj["impactPxs"].get_array().get(impactPxs))
-                            {
-                                for (auto px : impactPxs)
-                                {
-                                    std::string_view sv;
-                                    ctx.impactPxs.push_back(!px.get_string().get(sv) ? toDouble(sv) : px.get_double().value());
-                                }
-                            }
-
-                            dexEntry.assetCtxs.push_back(std::move(ctx));
-                        }
-                    }
-
-                    response.dexMetas.push_back(std::move(dexEntry));
+                    response.dexMetas.push_back(std::move(dexMeta));
                 }
             }
             catch (const simdjson::simdjson_error& e)

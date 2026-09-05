@@ -6,7 +6,7 @@ int main() {
     hyperliquid::setLogLevel(hyperliquid::LogLevel::Debug);
 
     hyperliquid::ApiConfig config;
-    config.env = hyperliquid::Environment::Mainnet;
+    config.env = hyperliquid::Environment::Testnet;
 
     hyperliquid::RestApi api(config);
 
@@ -44,8 +44,7 @@ int main() {
     auto allMetas = api.allPerpMetas();
     spdlog::info("{} perp dexes", allMetas.dexMetas.size());
     for (const auto& dex : allMetas.dexMetas) {
-        spdlog::info("  {} assets, {} margin tables, {} asset contexts",
-                     dex.meta.universe.size(), dex.meta.marginTables.size(), dex.assetCtxs.size());
+        spdlog::info("  {} assets, {} margin tables", dex.universe.size(), dex.marginTables.size());
     }
 
     return 0;
