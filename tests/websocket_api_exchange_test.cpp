@@ -8,14 +8,6 @@ using namespace hyperliquid;
 
 namespace
 {
-    // No wallet is configured, so WebsocketApi's constructor skips the network call it would
-    // otherwise make to build its symbol map, and Signing::prepareBody logs-and-returns instead
-    // of throwing when it finds no wallet to sign with. start()/stop() are never called either,
-    // so WebsocketRunner::send() just enqueues onto an io_context that's never run. This exercises
-    // the real WebsocketApi::x -> ExchangeRequestBuilder::x -> signAndSend wiring for each of the
-    // newly-backfilled exchange action wrappers without touching the network - a bug in the wiring
-    // (wrong builder call, wrong RestEndpointType, wrong parameter forwarding) would either fail to
-    // compile or throw here.
     ApiConfig makeConfig()
     {
         ApiConfig config;
