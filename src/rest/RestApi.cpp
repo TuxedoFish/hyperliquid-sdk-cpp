@@ -63,25 +63,13 @@ struct RestApi::Impl {
     // spotSend/withdraw3/approveBuilderFee/userSetAbstraction/cDeposit/cWithdraw/tokenDelegate; see
     // isUserSignedAction) are routed to Signing::prepareApproveAgentBody /
     // Signing::prepareUserSignedActionBody instead of the generic vaultAddress/expiresAfter path
-    // used by the other (L1) exchange endpoints.
+    // used by the other (L1) exchange endpoints - see Signing::prepareBodyForType, shared with
+    // WebsocketApi so both transports dispatch identically.
     nlohmann::ordered_json prepareBodyForType(RestEndpointType type, nlohmann::ordered_json body,
                                               const std::optional<std::string>& vaultAddress,
                                               const std::optional<uint64_t>& expiresAfter)
     {
-        if (type == RestEndpointType::ApproveAgent)
-        {
-            std::string agentAddress = body["action"].at("agentAddress").get<std::string>();
-            std::optional<std::string> agentName;
-            if (body["action"].contains("agentName"))
-                agentName = body["action"].at("agentName").get<std::string>();
-            return Signing::prepareApproveAgentBody(config, agentAddress, agentName);
-        }
-
-        if (isUserSignedAction(type))
-            return Signing::prepareUserSignedActionBody(config, type, body.at("action"));
-
-        auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
-        return Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
+        return Signing::prepareBodyForType(config, type, std::move(body), vaultAddress, expiresAfter);
     }
 
     void signAndSend(RestEndpointType type, nlohmann::ordered_json body,

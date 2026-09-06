@@ -109,8 +109,10 @@ namespace hyperliquid
                          const std::optional<uint64_t>& expiresAfter = std::nullopt,
                          std::optional<uint64_t> correlationId = std::nullopt)
         {
-            auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
-            auto payload = Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
+            // See Signing::prepareBodyForType: approveAgent and the other EIP-712 user-signed
+            // actions need distinct signing paths, not the generic Signing::prepareBody used for
+            // plain L1 actions - shared with RestApi so both transports dispatch identically.
+            auto payload = Signing::prepareBodyForType(config, type, std::move(body), vaultAddress, expiresAfter);
             auto payloadType = isAuthenticated(type) ? "action" : "info";
             int postRequestId = postRequestCounter.fetch_add(1);
             postRequestInfo[postRequestId] = {type, correlationId};

@@ -62,6 +62,19 @@ public:
         const ApiConfig& config,
         RestEndpointType type,
         nlohmann::ordered_json action);
+
+    // Routes to the correct one of the three functions above based on `type`: approveAgent needs
+    // prepareApproveAgentBody's distinct body shape, the other EIP-712 user-signed actions (see
+    // isUserSignedAction) need prepareUserSignedActionBody, and everything else (plain L1 actions)
+    // uses the generic prepareBody. Shared by RestApi and WebsocketApi so both transports dispatch
+    // identically - calling prepareBody directly for a user-signed type throws, since its own
+    // local EIP-712 tables only cover SendToEvmWithData.
+    static nlohmann::ordered_json prepareBodyForType(
+        const ApiConfig& config,
+        RestEndpointType type,
+        nlohmann::ordered_json body,
+        const std::optional<std::string>& vaultAddress = std::nullopt,
+        const std::optional<uint64_t>& expiresAfter = std::nullopt);
 };
 
 }
