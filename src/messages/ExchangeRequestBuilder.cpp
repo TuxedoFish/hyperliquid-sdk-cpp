@@ -398,6 +398,48 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::perpDeployRegisterAsset2(
+        const PerpDeployRegisterAsset2Request& request) const
+    {
+        nlohmann::ordered_json assetRequest;
+        assetRequest["coin"] = request.assetRequest.coin;
+        assetRequest["szDecimals"] = request.assetRequest.szDecimals;
+        assetRequest["oraclePx"] = floatToWire(request.assetRequest.oraclePx);
+        assetRequest["marginTableId"] = request.assetRequest.marginTableId;
+        assetRequest["marginMode"] = toString(request.assetRequest.marginMode);
+
+        nlohmann::ordered_json registerAsset2;
+        // maxGas/schema/oracleUpdater are nullable fields the exchange distinguishes from
+        // "absent" - they must be sent as explicit JSON null, not omitted, when not provided.
+        registerAsset2["maxGas"] = request.maxGas
+            ? nlohmann::ordered_json(*request.maxGas)
+            : nlohmann::ordered_json(nullptr);
+        registerAsset2["assetRequest"] = assetRequest;
+        registerAsset2["dex"] = request.dex;
+        if (request.schema)
+        {
+            nlohmann::ordered_json schema;
+            schema["fullName"] = request.schema->fullName;
+            schema["collateralToken"] = request.schema->collateralToken;
+            schema["oracleUpdater"] = request.schema->oracleUpdater
+                ? nlohmann::ordered_json(*request.schema->oracleUpdater)
+                : nlohmann::ordered_json(nullptr);
+            registerAsset2["schema"] = schema;
+        }
+        else
+        {
+            registerAsset2["schema"] = nullptr;
+        }
+
+        nlohmann::ordered_json action;
+        action["type"] = "perpDeploy";
+        action["registerAsset2"] = registerAsset2;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     nlohmann::ordered_json ExchangeRequestBuilder::usdClassTransfer(const UsdClassTransferRequest& request) const
     {
         nlohmann::ordered_json action;

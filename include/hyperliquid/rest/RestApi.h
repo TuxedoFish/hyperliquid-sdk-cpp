@@ -123,6 +123,7 @@ public:
     // methods they do not take a vaultAddress parameter.
     SimpleResponse vaultTransfer(const VaultTransferRequest& request);
     SimpleResponse hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request);
+    SimpleResponse perpDeployRegisterAsset2(const PerpDeployRegisterAsset2Request& request);
     SimpleResponse usdClassTransfer(const UsdClassTransferRequest& request);
     SimpleResponse sendAsset(const SendAssetRequest& request);
     SimpleResponse usdSend(const UsdSendRequest& request);
@@ -231,6 +232,7 @@ public:
                                    const std::optional<std::string>& vaultAddress = std::nullopt);
     void vaultTransferAsync(const VaultTransferRequest& request);
     void hip3LiquidatorTransferAsync(const Hip3LiquidatorTransferRequest& request);
+    void perpDeployRegisterAsset2Async(const PerpDeployRegisterAsset2Request& request);
     void usdClassTransferAsync(const UsdClassTransferRequest& request);
     void sendAssetAsync(const SendAssetRequest& request);
     void usdSendAsync(const UsdSendRequest& request);

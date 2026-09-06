@@ -563,6 +563,13 @@ SimpleResponse RestApi::hip3LiquidatorTransfer(const Hip3LiquidatorTransferReque
                                    impl_->exchangeRequestBuilder.hip3LiquidatorTransfer(request)));
 }
 
+SimpleResponse RestApi::perpDeployRegisterAsset2(const PerpDeployRegisterAsset2Request& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::PerpDeployRegisterAsset2,
+                                   impl_->exchangeRequestBuilder.perpDeployRegisterAsset2(request)));
+}
+
 SimpleResponse RestApi::usdClassTransfer(const UsdClassTransferRequest& request)
 {
     return RestApiMessageParser().parseSimpleResponse(
@@ -1029,6 +1036,12 @@ void RestApi::hip3LiquidatorTransferAsync(const Hip3LiquidatorTransferRequest& r
 {
     impl_->signAndSend(RestEndpointType::Hip3LiquidatorTransfer,
                        impl_->exchangeRequestBuilder.hip3LiquidatorTransfer(request));
+}
+
+void RestApi::perpDeployRegisterAsset2Async(const PerpDeployRegisterAsset2Request& request)
+{
+    impl_->signAndSend(RestEndpointType::PerpDeployRegisterAsset2,
+                       impl_->exchangeRequestBuilder.perpDeployRegisterAsset2(request));
 }
 
 void RestApi::usdClassTransferAsync(const UsdClassTransferRequest& request)
