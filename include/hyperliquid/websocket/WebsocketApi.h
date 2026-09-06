@@ -89,6 +89,20 @@ namespace hyperliquid
                                 const std::optional<std::string>& dex = std::nullopt,
                                 std::optional<uint64_t> correlationId = std::nullopt);
 
+        // examples/ws_funding_history.cpp
+        void userFunding(const std::string& user,
+                         uint64_t startTime,
+                         const std::optional<uint64_t>& endTime = std::nullopt,
+                         std::optional<uint64_t> correlationId = std::nullopt);
+        void userNonFundingLedgerUpdates(const std::string& user,
+                                         uint64_t startTime,
+                                         const std::optional<uint64_t>& endTime = std::nullopt,
+                                         std::optional<uint64_t> correlationId = std::nullopt);
+        void fundingHistory(const std::string& coin,
+                            uint64_t startTime,
+                            const std::optional<uint64_t>& endTime = std::nullopt,
+                            std::optional<uint64_t> correlationId = std::nullopt);
+
         // examples/ws_vaults.cpp
         void vaultDetails(const std::string& vaultAddress,
                           const std::optional<std::string>& user = std::nullopt,
