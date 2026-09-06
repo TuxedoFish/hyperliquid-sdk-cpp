@@ -588,6 +588,20 @@ TEST(SimpleResponseParsing, UserSetAbstractionPortfolioMarginRejected)
     EXPECT_EQ(*resp.error, "Portfolio margin requires account value of $10000 or total volume of $5000000.");
 }
 
+// Real testnet response: a signed userSetAbstraction(Disabled) request against an account
+// already in UnifiedAccount mode with open positions - confirms the request/signing/response
+// round-trip end-to-end.
+TEST(SimpleResponseParsing, UserSetAbstractionDisableRejectedWithOpenPositions)
+{
+    static const std::string kErr =
+        R"({"status":"err","response":"Cannot disable unified account with open positions, open orders, or active TWAP orders"})";
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kErr);
+    EXPECT_EQ(resp.status, "err");
+    ASSERT_TRUE(resp.error.has_value());
+    EXPECT_EQ(*resp.error, "Cannot disable unified account with open positions, open orders, or active TWAP orders");
+}
+
 TEST(TwapOrderResponseParsing, RunningResponse)
 {
     static const std::string kRunning = R"({
