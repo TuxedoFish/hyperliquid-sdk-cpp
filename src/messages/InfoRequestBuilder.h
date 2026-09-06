@@ -79,6 +79,9 @@ public:
     static nlohmann::ordered_json borrowLendUserState(const std::string& user);
     static nlohmann::ordered_json borrowLendReserveState(int token);
     static nlohmann::ordered_json allBorrowLendReserveStates();
+
+    static nlohmann::ordered_json userDexAbstractionState(const std::string& user);
+    static nlohmann::ordered_json userAbstraction(const std::string& user);
 };
 
 } // namespace hyperliquid

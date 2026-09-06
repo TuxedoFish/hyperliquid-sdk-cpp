@@ -200,6 +200,12 @@ namespace hyperliquid
             case RestEndpointType::DelegatorRewards:
                 listener.onDelegatorRewards(parseDelegatorRewards(message), correlationId);
                 break;
+            case RestEndpointType::UserDexAbstractionState:
+                listener.onUserDexAbstractionState(parseUserDexAbstractionState(message), correlationId);
+                break;
+            case RestEndpointType::UserAbstraction:
+                listener.onUserAbstraction(parseUserAbstraction(message), correlationId);
+                break;
             default:
                 getLogger()->error("RestMessageParser: unhandled RestEndpointType: {}", toString(type));
                 break;
@@ -2232,6 +2238,45 @@ namespace hyperliquid
             return response;
         }
 
+        UserDexAbstractionResponse parseUserDexAbstractionState(const std::string& message)
+        {
+            UserDexAbstractionResponse response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                if (doc.type().value() == simdjson::ondemand::json_type::null)
+                    response.enabled = std::nullopt;
+                else
+                    response.enabled = doc.get_bool().value();
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in userDexAbstractionState: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        UserAbstractionResponse parseUserAbstraction(const std::string& message)
+        {
+            UserAbstractionResponse response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                response.state = stringToUserAbstractionState(doc.get_string().value());
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in userAbstraction: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
         ApprovedBuildersResponse parseApprovedBuilders(const std::string& message)
         {
             ApprovedBuildersResponse response;
@@ -2931,5 +2976,15 @@ namespace hyperliquid
     DelegatorRewardsResponse RestApiMessageParser::parseDelegatorRewards(const std::string& message)
     {
         return impl_->parseDelegatorRewards(message);
+    }
+
+    UserDexAbstractionResponse RestApiMessageParser::parseUserDexAbstractionState(const std::string& message)
+    {
+        return impl_->parseUserDexAbstractionState(message);
+    }
+
+    UserAbstractionResponse RestApiMessageParser::parseUserAbstraction(const std::string& message)
+    {
+        return impl_->parseUserAbstraction(message);
     }
 } // namespace hyperliquid

@@ -405,4 +405,20 @@ nlohmann::ordered_json InfoRequestBuilder::allBorrowLendReserveStates()
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::userDexAbstractionState(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserDexAbstractionState);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::userAbstraction(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserAbstraction);
+    body["user"] = user;
+    return body;
+}
+
 }

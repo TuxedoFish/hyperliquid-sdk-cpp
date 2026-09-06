@@ -64,6 +64,8 @@ public:
     virtual void onBorrowLendUserState(const BorrowLendUserStateResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onBorrowLendReserveState(const BorrowLendReserveState&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onAllBorrowLendReserveStates(const AllBorrowLendReserveStatesResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onUserDexAbstractionState(const UserDexAbstractionResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onUserAbstraction(const UserAbstractionResponse&, std::optional<uint64_t> = std::nullopt) {}
 };
 
 }
