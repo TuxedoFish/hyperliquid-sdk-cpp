@@ -1,0 +1,4 @@
+,{
+        "status": "err",
+        "response": "Cannot set scheduled cancel time until enough volume traded."
+    }

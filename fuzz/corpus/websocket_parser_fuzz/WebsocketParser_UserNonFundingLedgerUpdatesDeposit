@@ -1,0 +1,14 @@
+{
+        "channel": "userNonFundingLedgerUpdates",
+        "data": {
+            "isSnapshot": false,
+            "user": "0x0000000000000000000000000000000000000a",
+            "nonFundingLedgerUpdates": [
+                {
+                    "time": 1700000000000,
+                    "hash": "0xabc123",
+                    "delta": {"type": "deposit", "usdc": "100.5"}
+                }
+            ]
+        }
+    }

@@ -1,0 +1,26 @@
+{
+        "channel": "userNonFundingLedgerUpdates",
+        "data": {
+            "user": "0x0000000000000000000000000000000000000a",
+            "nonFundingLedgerUpdates": [
+                {
+                    "time": 1700000004000,
+                    "hash": "0xsend001",
+                    "delta": {
+                        "type": "send",
+                        "user": "0xaaaa",
+                        "destination": "0xbbbb",
+                        "sourceDex": "spot",
+                        "destinationDex": "spot",
+                        "token": "USDC",
+                        "amount": "88.0",
+                        "usdcValue": "88.0",
+                        "fee": "1.0",
+                        "nativeTokenFee": "0.0",
+                        "nonce": 1778486945010,
+                        "feeToken": "USDC"
+                    }
+                }
+            ]
+        }
+    }

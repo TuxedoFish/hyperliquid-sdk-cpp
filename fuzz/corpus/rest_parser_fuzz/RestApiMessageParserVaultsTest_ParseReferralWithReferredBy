@@ -1,0 +1,10 @@
+${
+        "referredBy": {"referrer": "0xreferrer", "code": "ABC123"},
+        "cumVlm": "0.0",
+        "unclaimedRewards": "0.0",
+        "claimedRewards": "0.0",
+        "builderRewards": "0.0",
+        "referrerState": null,
+        "rewardHistory": [],
+        "tokenToState": null
+    }

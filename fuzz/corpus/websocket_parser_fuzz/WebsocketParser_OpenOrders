@@ -1,0 +1,28 @@
+{
+        "channel": "openOrders",
+        "data": {
+            "dex": "",
+            "user": "0x0000000000000000000000000000000000000a",
+            "orders": [
+                {
+                    "coin": "BTC",
+                    "side": "B",
+                    "limitPx": "29792.0",
+                    "sz": "0.001",
+                    "oid": 91490942,
+                    "timestamp": 1681247412012,
+                    "origSz": "0.001"
+                },
+                {
+                    "coin": "ETH",
+                    "side": "A",
+                    "limitPx": "2000.0",
+                    "sz": "0.5",
+                    "oid": 91490943,
+                    "timestamp": 1681247412100,
+                    "origSz": "1.0",
+                    "cloid": "0xdeadbeef"
+                }
+            ]
+        }
+    }

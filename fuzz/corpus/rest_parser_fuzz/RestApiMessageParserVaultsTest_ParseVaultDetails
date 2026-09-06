@@ -1,0 +1,18 @@
+!{
+        "name": "Liquidator",
+        "vaultAddress": "0x1719884eb866cb12b2287399b15f7db5e7d775ea",
+        "leader": "0x295afc65e3557c75dacdb88d495c1f8ceb068173",
+        "description": "Liquidates positions on all coins as soon as they become liquidatable.",
+        "portfolio": [["day", {"accountValueHistory": [[1788514080005, "2001.704118"]], "pnlHistory": [[1788514080005, "0.0"]], "vlm": "0.0"}]],
+        "apr": 0.0,
+        "followerState": null,
+        "leaderFraction": 0.050032450320323885,
+        "leaderCommission": 0.0,
+        "followers": [{"user": "0x04c962ac53b6ca309902a5a96784e6fd64e77704", "vaultEquity": "0.9177635649", "pnl": "0.0013295649", "allTimePnl": "-0.0086734351", "daysFollowing": 597, "vaultEntryTime": 1736976712771, "lockupUntil": 1737484285796}],
+        "maxDistributable": 3.001289,
+        "maxWithdrawable": 0.0,
+        "isClosed": false,
+        "relationship": {"type": "normal"},
+        "allowDeposits": true,
+        "alwaysCloseOnWithdraw": false
+    }

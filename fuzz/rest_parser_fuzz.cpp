@@ -20,6 +20,11 @@
 // normal behavior for hostile/malformed input and are swallowed here so
 // libFuzzer's crash detection stays focused on real robustness bugs: crashes,
 // ASan/UBSan violations, and hangs.
+//
+// fuzz/corpus/rest_parser_fuzz/ seeds this harness with real captured response
+// payloads pulled from tests/*.cpp, each prefixed with the selector byte for
+// the parser it was captured against (index into kParsers[] below) - that
+// prefix is what makes a corpus file valid input here, not just the JSON body.
 
 namespace
 {
@@ -45,6 +50,9 @@ namespace
         invoke<&RestApiMessageParser::parsePerpCategories>,
         invoke<&RestApiMessageParser::parsePerpConciseAnnotations>,
         invoke<&RestApiMessageParser::parseAllPerpMetas>,
+        invoke<&RestApiMessageParser::parsePerpDexLimits>,
+        invoke<&RestApiMessageParser::parsePerpDexStatus>,
+        invoke<&RestApiMessageParser::parsePerpDeployAuctionStatus>,
         invoke<&RestApiMessageParser::parseL2Book>,
         invoke<&RestApiMessageParser::parseCandleSnapshot>,
         invoke<&RestApiMessageParser::parseAllMids>,

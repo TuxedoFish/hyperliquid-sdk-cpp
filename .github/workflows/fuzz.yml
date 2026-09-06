@@ -48,10 +48,10 @@ jobs:
         run: cmake --build build-fuzz -j"$(nproc)"
 
       - name: Fuzz REST response parser
-        run: ./build-fuzz/rest_parser_fuzz -max_total_time=180
+        run: ./build-fuzz/rest_parser_fuzz -max_total_time=180 fuzz/corpus/rest_parser_fuzz
 
       - name: Fuzz websocket message parser
-        run: ./build-fuzz/websocket_parser_fuzz -max_total_time=180
+        run: ./build-fuzz/websocket_parser_fuzz -max_total_time=180 fuzz/corpus/websocket_parser_fuzz
 
       - name: Upload crash artifacts
         if: failure()

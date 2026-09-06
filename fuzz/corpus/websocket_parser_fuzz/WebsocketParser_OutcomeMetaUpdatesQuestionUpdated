@@ -1,0 +1,13 @@
+{
+        "channel": "outcomeMetaUpdates",
+        "data": [{
+            "questionUpdated": {
+                "question": 3,
+                "name": "Election outcome",
+                "description": "who wins",
+                "fallbackOutcome": 1,
+                "namedOutcomes": [1, 2, 3],
+                "settledNamedOutcomes": [1]
+            }
+        }]
+    }

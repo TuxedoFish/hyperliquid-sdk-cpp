@@ -1,0 +1,17 @@
+
+[
+        {
+            "universe": [
+                {"name": "BTC", "szDecimals": 5, "maxLeverage": 50},
+                {"name": "ETH", "szDecimals": 4, "maxLeverage": 50}
+            ],
+            "marginTables": [
+                [50, {"description": "", "marginTiers": [{"lowerBound": "0.0", "maxLeverage": 50}]}],
+                [51, {"description": "tiered 10x", "marginTiers": [
+                    {"lowerBound": "0.0", "maxLeverage": 10},
+                    {"lowerBound": "3000000.0", "maxLeverage": 5}
+                ]}]
+            ],
+            "collateralToken": 0
+        }
+    ]
