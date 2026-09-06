@@ -129,6 +129,74 @@ namespace hyperliquid
         void batchModifyOrder(const std::vector<ModifyRequest>& modifies,
                               std::optional<uint64_t> correlationId = std::nullopt,
                               const std::optional<std::string>& vaultAddress = std::nullopt);
+        void updateLeverage(const UpdateLeverageRequest& request,
+                            std::optional<uint64_t> correlationId = std::nullopt,
+                            const std::optional<std::string>& vaultAddress = std::nullopt);
+        void updateIsolatedMargin(const UpdateIsolatedMarginRequest& request,
+                                  std::optional<uint64_t> correlationId = std::nullopt,
+                                  const std::optional<std::string>& vaultAddress = std::nullopt);
+        void approveAgent(const ApproveAgentRequest& request,
+                          std::optional<uint64_t> correlationId = std::nullopt,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
+        void agentSetAbstraction(UserAbstractionMode abstraction,
+                                 std::optional<uint64_t> correlationId = std::nullopt,
+                                 const std::optional<std::string>& vaultAddress = std::nullopt);
+        void twapOrder(const TwapOrderRequest& request,
+                       std::optional<uint64_t> correlationId = std::nullopt,
+                       const std::optional<std::string>& vaultAddress = std::nullopt);
+        void twapCancel(const TwapCancelRequest& request,
+                        std::optional<uint64_t> correlationId = std::nullopt,
+                        const std::optional<std::string>& vaultAddress = std::nullopt);
+        void vaultTransfer(const VaultTransferRequest& request,
+                           std::optional<uint64_t> correlationId = std::nullopt,
+                           const std::optional<std::string>& vaultAddress = std::nullopt);
+        void hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request,
+                                    std::optional<uint64_t> correlationId = std::nullopt,
+                                    const std::optional<std::string>& vaultAddress = std::nullopt);
+        void usdClassTransfer(const UsdClassTransferRequest& request,
+                              std::optional<uint64_t> correlationId = std::nullopt,
+                              const std::optional<std::string>& vaultAddress = std::nullopt);
+        void sendAsset(const SendAssetRequest& request,
+                       std::optional<uint64_t> correlationId = std::nullopt,
+                       const std::optional<std::string>& vaultAddress = std::nullopt);
+        void usdSend(const UsdSendRequest& request,
+                    std::optional<uint64_t> correlationId = std::nullopt,
+                    const std::optional<std::string>& vaultAddress = std::nullopt);
+        void spotSend(const SpotSendRequest& request,
+                     std::optional<uint64_t> correlationId = std::nullopt,
+                     const std::optional<std::string>& vaultAddress = std::nullopt);
+        void withdraw3(const Withdraw3Request& request,
+                       std::optional<uint64_t> correlationId = std::nullopt,
+                       const std::optional<std::string>& vaultAddress = std::nullopt);
+        void approveBuilderFee(const ApproveBuilderFeeRequest& request,
+                               std::optional<uint64_t> correlationId = std::nullopt,
+                               const std::optional<std::string>& vaultAddress = std::nullopt);
+        void userSetAbstraction(const UserSetAbstractionRequest& request,
+                                std::optional<uint64_t> correlationId = std::nullopt,
+                                const std::optional<std::string>& vaultAddress = std::nullopt);
+        void cDeposit(uint64_t wei,
+                     std::optional<uint64_t> correlationId = std::nullopt,
+                     const std::optional<std::string>& vaultAddress = std::nullopt);
+        void cWithdraw(uint64_t wei,
+                      std::optional<uint64_t> correlationId = std::nullopt,
+                      const std::optional<std::string>& vaultAddress = std::nullopt);
+        void tokenDelegate(const TokenDelegateRequest& request,
+                           std::optional<uint64_t> correlationId = std::nullopt,
+                           const std::optional<std::string>& vaultAddress = std::nullopt);
+        void sendToEvmWithData(const SendToEvmWithDataRequest& request,
+                               std::optional<uint64_t> correlationId = std::nullopt,
+                               const std::optional<std::string>& vaultAddress = std::nullopt);
+        void userDexAbstraction(const UserDexAbstractionRequest& request,
+                                std::optional<uint64_t> correlationId = std::nullopt,
+                                const std::optional<std::string>& vaultAddress = std::nullopt);
+        void agentSendAsset(const AgentSendAssetRequest& request,
+                            std::optional<uint64_t> correlationId = std::nullopt,
+                            const std::optional<std::string>& vaultAddress = std::nullopt);
+        void reserveRequestWeight(const ReserveRequestWeightRequest& request,
+                                  std::optional<uint64_t> correlationId = std::nullopt,
+                                  const std::optional<std::string>& vaultAddress = std::nullopt);
+        void noop(std::optional<uint64_t> correlationId = std::nullopt,
+                 const std::optional<std::string>& vaultAddress = std::nullopt);
 
         void start();
         void stop();
