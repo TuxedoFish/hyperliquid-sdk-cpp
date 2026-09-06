@@ -226,6 +226,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `reserveRequestWeight` | ✅ | `RestApi::reserveRequestWeight` |
 | `noop` | ✅ | `RestApi::noop` |
 | `userDexAbstraction` (deprecated, use `userSetAbstraction`) | ✅ | `RestApi::userDexAbstraction` |
+| `perpDeploy` (`registerAsset2` only - see note below) | ✅ | `RestApi::perpDeployRegisterAsset2` |
 | `activateOutcomeDeployer` | ⬜ | |
 | `agentEnableDexAbstraction` (deprecated, use `agentSetAbstraction`) | ⬜ | |
 | `authorizeAqav2Role` | ⬜ | |
@@ -240,7 +241,6 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `finalizeEvmContract` | ⬜ | |
 | `gossipPriorityBid` | ⬜ | |
 | `linkStakingUser` | ⬜ | |
-| `perpDeploy` | ⬜ | |
 | `registerReferrer` | ⬜ | |
 | `setDisplayName` | ⬜ | |
 | `setReferrer` | ⬜ | |
@@ -257,7 +257,9 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `vaultDistribute` | ⬜ | |
 | `vaultModify` | ⬜ | |
 
-29 of 59 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
+30 of 59 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
+
+`perpDeploy` is a large multi-variant action (16 sub-actions sharing `"type": "perpDeploy"`); only `registerAsset2` (deploying a new HIP-3 perp asset, optionally creating a new dex) is implemented. The other 15 variants (`registerAsset`, `setOracle`, `setFundingMultipliers`, `setFundingInterestRates`, `haltTrading`, `setMarginTableIds`, `insertMarginTable`, `setFeeRecipient`, `setOpenInterestCaps`, `setSubDeployers`, `setMarginModes`, `setFeeScale`, `setGrowthModes`, `setPerpAnnotation`, `disableDex`) are post-deployment admin/config actions for an already-deployed dex and are not yet implemented.
 
 ### WebSocket subscriptions
 

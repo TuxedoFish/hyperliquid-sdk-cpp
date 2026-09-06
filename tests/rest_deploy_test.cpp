@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "messages/InfoRequestBuilder.h"
+#include "messages/ExchangeRequestBuilder.h"
 #include "hyperliquid/rest/RestApiMessageParser.h"
 
 #include <nlohmann/json.hpp>
@@ -228,4 +229,152 @@ TEST(RestApiMessageParserInfoTest, ParseSpotDeployStateWithNullFullNameAndMaxSup
     EXPECT_FALSE(response.states[1].fullName.has_value());
     EXPECT_FALSE(response.states[1].maxSupply.has_value());
     EXPECT_TRUE(response.states[1].spots.empty());
+}
+
+// perpDeploy/registerAsset2 field shapes below (action = {type: "perpDeploy",
+// registerAsset2: {maxGas, assetRequest: {coin, szDecimals, oraclePx, marginTableId,
+// marginMode}, dex, schema}}, plain L1-action signing with no embedded nonce/hyperliquidChain
+// fields) are verified against the official TS SDK (@nktkas/hyperliquid,
+// src/api/exchange/_methods/perpDeploy.ts) and the HIP-3 deployer actions docs page, not a live
+// capture of a successful deployment. Only registerAsset2 is implemented - the other 15
+// perpDeploy sub-actions (setOracle, setFundingMultipliers, haltTrading, margin table config,
+// fee config, sub-deployers, etc.) are out of scope for this issue.
+
+TEST(PerpDeployRegisterAsset2Builder, NewDexIncludesSchemaAndMaxGas)
+{
+    ExchangeRequestBuilder builder;
+
+    PerpDeployRegisterAsset2Request request;
+    request.maxGas = 5000ULL;
+    request.assetRequest.coin = "NEWCOIN";
+    request.assetRequest.szDecimals = 2;
+    request.assetRequest.oraclePx = 100.5;
+    request.assetRequest.marginTableId = 3;
+    request.assetRequest.marginMode = PerpMarginMode::NoCross;
+    request.dex = "newdex";
+    PerpDeploySchema schema;
+    schema.fullName = "New Dex";
+    schema.collateralToken = 0;
+    schema.oracleUpdater = "0x051dbfc562d44e4a01ebb986da35a47ab4f346db";
+    request.schema = schema;
+
+    auto body = builder.perpDeployRegisterAsset2(request);
+
+    ASSERT_TRUE(body.contains("action"));
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "perpDeploy");
+    ASSERT_TRUE(action.contains("registerAsset2"));
+    const auto& reg = action["registerAsset2"];
+
+    EXPECT_EQ(reg["maxGas"].get<uint64_t>(), 5000ULL);
+
+    const auto& assetRequest = reg["assetRequest"];
+    EXPECT_EQ(assetRequest["coin"], "NEWCOIN");
+    EXPECT_EQ(assetRequest["szDecimals"].get<uint32_t>(), 2u);
+    EXPECT_EQ(assetRequest["oraclePx"], "100.5");
+    EXPECT_EQ(assetRequest["marginTableId"].get<uint32_t>(), 3u);
+    EXPECT_EQ(assetRequest["marginMode"], "noCross");
+
+    EXPECT_EQ(reg["dex"], "newdex");
+
+    ASSERT_TRUE(reg.contains("schema"));
+    ASSERT_FALSE(reg["schema"].is_null());
+    EXPECT_EQ(reg["schema"]["fullName"], "New Dex");
+    EXPECT_EQ(reg["schema"]["collateralToken"].get<uint64_t>(), 0u);
+    EXPECT_EQ(reg["schema"]["oracleUpdater"], "0x051dbfc562d44e4a01ebb986da35a47ab4f346db");
+}
+
+TEST(PerpDeployRegisterAsset2Builder, ExistingDexSendsNullSchema)
+{
+    ExchangeRequestBuilder builder;
+
+    PerpDeployRegisterAsset2Request request;
+    request.maxGas = std::nullopt;
+    request.assetRequest.coin = "NEWCOIN2";
+    request.assetRequest.szDecimals = 4;
+    request.assetRequest.oraclePx = 0.001;
+    request.assetRequest.marginTableId = 1;
+    request.assetRequest.marginMode = PerpMarginMode::StrictIsolated;
+    request.dex = "test";
+    request.schema = std::nullopt;
+
+    auto body = builder.perpDeployRegisterAsset2(request);
+
+    const auto& reg = body["action"]["registerAsset2"];
+
+    // maxGas/schema must be sent as explicit JSON null, not omitted, when not provided.
+    ASSERT_TRUE(reg.contains("maxGas"));
+    EXPECT_TRUE(reg["maxGas"].is_null());
+    ASSERT_TRUE(reg.contains("schema"));
+    EXPECT_TRUE(reg["schema"].is_null());
+
+    EXPECT_EQ(reg["assetRequest"]["marginMode"], "strictIsolated");
+    EXPECT_EQ(reg["dex"], "test");
+}
+
+TEST(PerpDeployRegisterAsset2Builder, SchemaWithNullOracleUpdater)
+{
+    ExchangeRequestBuilder builder;
+
+    PerpDeployRegisterAsset2Request request;
+    request.maxGas = std::nullopt;
+    request.assetRequest.coin = "NEWCOIN3";
+    request.assetRequest.szDecimals = 0;
+    request.assetRequest.oraclePx = 1.0;
+    request.assetRequest.marginTableId = 0;
+    request.assetRequest.marginMode = PerpMarginMode::Normal;
+    request.dex = "brandnewdex";
+    PerpDeploySchema schema;
+    schema.fullName = "Brand New Dex";
+    schema.collateralToken = 5;
+    schema.oracleUpdater = std::nullopt;
+    request.schema = schema;
+
+    auto body = builder.perpDeployRegisterAsset2(request);
+
+    const auto& reg = body["action"]["registerAsset2"];
+    ASSERT_FALSE(reg["schema"].is_null());
+    EXPECT_EQ(reg["schema"]["collateralToken"].get<uint64_t>(), 5u);
+    // null oracleUpdater means the deployer itself is assumed to be the oracle updater - must
+    // still be sent explicitly, not omitted.
+    ASSERT_TRUE(reg["schema"].contains("oracleUpdater"));
+    EXPECT_TRUE(reg["schema"]["oracleUpdater"].is_null());
+    EXPECT_EQ(reg["assetRequest"]["marginMode"], "normal");
+}
+
+TEST(PerpDeployRegisterAsset2ResponseParsing, SuccessResponse)
+{
+    // Synthetic - shape verified against the official TS SDK/docs; a genuine successful
+    // deployment creates permanent, irreversible on-chain state, so this isn't live-captured.
+    static const std::string kOk = R"({
+        "status": "ok",
+        "response": {
+            "type": "default"
+        }
+    })";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kOk);
+
+    EXPECT_EQ(resp.status, "ok");
+    EXPECT_FALSE(resp.error.has_value());
+}
+
+TEST(PerpDeployRegisterAsset2ResponseParsing, ErrorResponse)
+{
+    // Synthetic - a plausible rejection message for a wallet that isn't the target dex's
+    // deployer. This isn't a real, live-captured payload (deliberately not executed - see the
+    // TODO in examples/rest_perp_deploy_action.cpp); parseSimpleResponse's shape is already
+    // covered by real captures elsewhere (e.g. hip3_liquidator_transfer_test.cpp), so this only
+    // exercises this test file's err-status wiring, not a claim about the exact wording.
+    static const std::string kErr = R"({
+        "status": "err",
+        "response": "Only the dex deployer can register new assets."
+    })";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kErr);
+
+    EXPECT_EQ(resp.status, "err");
+    ASSERT_TRUE(resp.error.has_value());
 }
