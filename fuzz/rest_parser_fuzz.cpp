@@ -58,6 +58,7 @@ namespace
         invoke<&RestApiMessageParser::parsePerpDeployAuctionStatus>,
         invoke<&RestApiMessageParser::parseL2Book>,
         invoke<&RestApiMessageParser::parseCandleSnapshot>,
+        invoke<&RestApiMessageParser::parseRecentTrades>,
         invoke<&RestApiMessageParser::parseAllMids>,
         invoke<&RestApiMessageParser::parseOpenOrders>,
         invoke<&RestApiMessageParser::parseOrderStatus>,

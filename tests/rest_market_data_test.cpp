@@ -36,6 +36,13 @@ TEST(InfoRequestBuilderTest, CandleSnapshot)
     EXPECT_EQ(body["req"]["endTime"], 1681223254710ULL);
 }
 
+TEST(InfoRequestBuilderTest, RecentTrades)
+{
+    auto body = InfoRequestBuilder::recentTrades("BTC");
+    EXPECT_EQ(body["type"], "recentTrades");
+    EXPECT_EQ(body["coin"], "BTC");
+}
+
 TEST(InfoRequestBuilderTest, AllMidsNoDex)
 {
     auto body = InfoRequestBuilder::allMids();
@@ -163,6 +170,41 @@ TEST(RestApiMessageParserInfoTest, ParseCandleSnapshot)
     EXPECT_DOUBLE_EQ(c.low, 29250.0);
     EXPECT_DOUBLE_EQ(c.volume, 10.5);
     EXPECT_EQ(c.numTrades, 12);
+}
+
+TEST(RestApiMessageParserInfoTest, ParseRecentTrades)
+{
+    std::string message = R"([
+        {"coin": "BTC", "side": "B", "px": "113377.0", "sz": "0.5", "time": 1754450974231,
+         "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8", "tid": 12345,
+         "users": ["0x0000000000000000000000000000000000000001", "0x0000000000000000000000000000000000000002"]},
+        {"coin": "BTC", "side": "A", "px": "113375.5", "sz": "0.1", "time": 1754450975000,
+         "hash": "0xb277f4fb74d36774135c14f3f1eb122b11418f5128576e9131321e4e543f8dc9", "tid": 12346,
+         "users": ["0x0000000000000000000000000000000000000003", "0x0000000000000000000000000000000000000004"]}
+    ])";
+
+    RestApiMessageParser parser;
+    auto trades = parser.parseRecentTrades(message);
+
+    ASSERT_EQ(trades.trades.size(), 2u);
+
+    const auto& t0 = trades.trades[0];
+    EXPECT_EQ(t0.coin, "BTC");
+    EXPECT_EQ(t0.side, 'B');
+    EXPECT_DOUBLE_EQ(t0.px, 113377.0);
+    EXPECT_DOUBLE_EQ(t0.sz, 0.5);
+    EXPECT_EQ(t0.time, 1754450974231ULL);
+    EXPECT_EQ(t0.hash, "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8");
+    EXPECT_EQ(t0.tid, 12345u);
+    EXPECT_EQ(t0.users[0], "0x0000000000000000000000000000000000000001");
+    EXPECT_EQ(t0.users[1], "0x0000000000000000000000000000000000000002");
+
+    const auto& t1 = trades.trades[1];
+    EXPECT_EQ(t1.side, 'A');
+    EXPECT_DOUBLE_EQ(t1.px, 113375.5);
+    EXPECT_EQ(t1.tid, 12346u);
+    EXPECT_EQ(t1.users[0], "0x0000000000000000000000000000000000000003");
+    EXPECT_EQ(t1.users[1], "0x0000000000000000000000000000000000000004");
 }
 
 TEST(RestApiMessageParserInfoTest, ParseAllMids)

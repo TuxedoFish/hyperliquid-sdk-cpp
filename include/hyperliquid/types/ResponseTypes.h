@@ -974,6 +974,23 @@ namespace hyperliquid
         std::vector<Candle> candles;
     };
 
+    struct RecentTrade
+    {
+        std::string coin;
+        char side; // 'B' or 'A'
+        double px;
+        double sz;
+        uint64_t time;
+        std::string hash;
+        uint64_t tid;
+        std::array<std::string, 2> users; // [buyer, seller]
+    };
+
+    struct RecentTradesResponse
+    {
+        std::vector<RecentTrade> trades;
+    };
+
     struct AllMidsResponse
     {
         std::vector<AllMidsEntry> mids;
