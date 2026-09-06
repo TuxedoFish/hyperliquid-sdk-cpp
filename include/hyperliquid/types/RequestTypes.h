@@ -215,6 +215,7 @@ namespace hyperliquid
         TwapCancel,
         VaultTransfer,
         Hip3LiquidatorTransfer,
+        BorrowLend,
         UsdClassTransfer,
         SendAsset,
         UsdSend,
@@ -304,6 +305,7 @@ namespace hyperliquid
         case RestEndpointType::TwapCancel: return "twapCancel";
         case RestEndpointType::VaultTransfer: return "vaultTransfer";
         case RestEndpointType::Hip3LiquidatorTransfer: return "hip3LiquidatorTransfer";
+        case RestEndpointType::BorrowLend: return "borrowLend";
         case RestEndpointType::UsdClassTransfer: return "usdClassTransfer";
         case RestEndpointType::SendAsset: return "sendAsset";
         case RestEndpointType::UsdSend: return "usdSend";
@@ -394,6 +396,7 @@ namespace hyperliquid
         case RestEndpointType::TwapCancel: return true;
         case RestEndpointType::VaultTransfer: return true;
         case RestEndpointType::Hip3LiquidatorTransfer: return true;
+        case RestEndpointType::BorrowLend: return true;
         case RestEndpointType::UsdClassTransfer: return true;
         case RestEndpointType::SendAsset: return true;
         case RestEndpointType::UsdSend: return true;
@@ -617,6 +620,29 @@ namespace hyperliquid
         // Quote-token 1e-6 units; must be a multiple of 1000 quote tokens (i.e. 1_000_000_000).
         uint64_t ntl;
         bool isDeposit;
+    };
+
+    enum class BorrowLendOperation { Supply, Withdraw, Repay, Borrow };
+
+    inline std::string toString(BorrowLendOperation operation)
+    {
+        switch (operation)
+        {
+        case BorrowLendOperation::Supply: return "supply";
+        case BorrowLendOperation::Withdraw: return "withdraw";
+        case BorrowLendOperation::Repay: return "repay";
+        case BorrowLendOperation::Borrow: return "borrow";
+        default: throw std::invalid_argument("Unknown BorrowLendOperation");
+        }
+    }
+
+    struct BorrowLendRequest
+    {
+        BorrowLendOperation operation;
+        uint32_t token;
+        // Amount to supply/withdraw/repay/borrow, as a decimal quantity of the token. std::nullopt
+        // means "full amount" (e.g. withdraw/repay everything outstanding).
+        std::optional<double> amount;
     };
 
     struct UsdClassTransferRequest

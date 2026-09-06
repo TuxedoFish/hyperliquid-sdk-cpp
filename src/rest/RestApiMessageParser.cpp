@@ -165,6 +165,7 @@ namespace hyperliquid
             case RestEndpointType::AgentSetAbstraction:
             case RestEndpointType::VaultTransfer:
             case RestEndpointType::Hip3LiquidatorTransfer:
+            case RestEndpointType::BorrowLend:
             case RestEndpointType::UsdClassTransfer:
             case RestEndpointType::SendAsset:
             case RestEndpointType::UsdSend:

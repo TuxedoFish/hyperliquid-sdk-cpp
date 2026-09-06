@@ -226,10 +226,10 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `reserveRequestWeight` | ✅ | `RestApi::reserveRequestWeight` |
 | `noop` | ✅ | `RestApi::noop` |
 | `userDexAbstraction` (deprecated, use `userSetAbstraction`) | ✅ | `RestApi::userDexAbstraction` |
+| `borrowLend` | ✅ | `RestApi::borrowLend` |
 | `activateOutcomeDeployer` | ⬜ | |
 | `agentEnableDexAbstraction` (deprecated, use `agentSetAbstraction`) | ⬜ | |
 | `authorizeAqav2Role` | ⬜ | |
-| `borrowLend` | ⬜ | |
 | `claimRewards` | ⬜ | |
 | `convertToMultiSigUser` | ⬜ | |
 | `createSubAccount` | ⬜ | |
@@ -257,7 +257,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `vaultDistribute` | ⬜ | |
 | `vaultModify` | ⬜ | |
 
-29 of 59 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
+30 of 59 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
 
 ### WebSocket subscriptions
 

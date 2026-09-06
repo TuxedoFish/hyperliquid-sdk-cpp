@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "messages/ExchangeRequestBuilder.h"
 #include "messages/InfoRequestBuilder.h"
 #include "hyperliquid/rest/RestApiMessageParser.h"
 
@@ -117,4 +118,119 @@ TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateHealthFactorPresent)
 
     ASSERT_TRUE(response.healthFactor.has_value());
     EXPECT_DOUBLE_EQ(*response.healthFactor, 1.5);
+}
+
+// --- borrowLend exchange action (write side) ---
+//
+// Field shapes below (action = {type, operation, token, amount}, plain L1-action signing with no
+// embedded nonce/hyperliquidChain fields) are verified against the official TS SDK
+// (@nktkas/hyperliquid), not a live capture - this action isn't in the public gitbook docs.
+
+TEST(BorrowLendBuilder, SupplyWithAmountIncludesAllFieldsInOrder)
+{
+    ExchangeRequestBuilder builder;
+
+    BorrowLendRequest request;
+    request.operation = BorrowLendOperation::Supply;
+    request.token = 0;
+    request.amount = 1.5;
+
+    auto body = builder.borrowLend(request);
+
+    ASSERT_TRUE(body.contains("action"));
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "borrowLend");
+    EXPECT_EQ(action["operation"], "supply");
+    EXPECT_EQ(action["token"].get<uint32_t>(), 0u);
+    EXPECT_EQ(action["amount"], "1.5");
+
+    auto keys = std::vector<std::string>();
+    for (auto it = action.begin(); it != action.end(); ++it) keys.push_back(it.key());
+    EXPECT_EQ(keys, (std::vector<std::string>{"type", "operation", "token", "amount"}));
+}
+
+TEST(BorrowLendBuilder, WithdrawWithNulloptAmountSendsExplicitNull)
+{
+    ExchangeRequestBuilder builder;
+
+    BorrowLendRequest request;
+    request.operation = BorrowLendOperation::Withdraw;
+    request.token = 3;
+    request.amount = std::nullopt;
+
+    auto body = builder.borrowLend(request);
+
+    const auto& action = body["action"];
+    EXPECT_EQ(action["operation"], "withdraw");
+    EXPECT_EQ(action["token"].get<uint32_t>(), 3u);
+    ASSERT_TRUE(action.contains("amount"));
+    EXPECT_TRUE(action["amount"].is_null());
+}
+
+TEST(BorrowLendBuilder, RepaySetsOperation)
+{
+    ExchangeRequestBuilder builder;
+
+    BorrowLendRequest request;
+    request.operation = BorrowLendOperation::Repay;
+    request.token = 1;
+    request.amount = 10.0;
+
+    auto body = builder.borrowLend(request);
+
+    const auto& action = body["action"];
+    EXPECT_EQ(action["operation"], "repay");
+    EXPECT_EQ(action["amount"], "10");
+}
+
+TEST(BorrowLendBuilder, BorrowSetsOperation)
+{
+    ExchangeRequestBuilder builder;
+
+    BorrowLendRequest request;
+    request.operation = BorrowLendOperation::Borrow;
+    request.token = 2;
+    request.amount = 25.25;
+
+    auto body = builder.borrowLend(request);
+
+    const auto& action = body["action"];
+    EXPECT_EQ(action["operation"], "borrow");
+    EXPECT_EQ(action["amount"], "25.25");
+}
+
+TEST(BorrowLendResponseParsing, SuccessResponse)
+{
+    // Real testnet response: confirmed live via a supply-then-withdraw pair of $1 USDC (token 0),
+    // both of which returned this exact shape (see examples/rest_borrow_lend_action.cpp).
+    static const std::string kOk = R"({
+        "status": "ok",
+        "response": {
+            "type": "default"
+        }
+    })";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kOk);
+
+    EXPECT_EQ(resp.status, "ok");
+    EXPECT_FALSE(resp.error.has_value());
+}
+
+TEST(BorrowLendResponseParsing, ErrorResponse)
+{
+    // Synthetic but plausible - shape (status/response error string) verified against other
+    // rejected L1 actions in this codebase (e.g. hip3LiquidatorTransfer's insufficient-funds
+    // response); not a live capture for borrowLend specifically.
+    static const std::string kErr = R"({
+        "status": "err",
+        "response": "Insufficient balance to supply."
+    })";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kErr);
+
+    EXPECT_EQ(resp.status, "err");
+    ASSERT_TRUE(resp.error.has_value());
+    EXPECT_EQ(*resp.error, "Insufficient balance to supply.");
 }
