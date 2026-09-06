@@ -295,3 +295,91 @@ TEST(SigningPrepareBody, VaultAddressIsIncludedInSignedBody)
     EXPECT_EQ(result["vaultAddress"], "0x1719884eb866cb12b2287399b15f7db5e7d775ea");
     ASSERT_TRUE(result.contains("signature"));
 }
+
+// --- Signing::prepareBodyForType (per-call vaultAddress vs ApiConfig::vaultAddress fallback) ---
+
+TEST(SigningPrepareBodyForType, PerCallVaultAddressIsUsedWhenProvided)
+{
+    ApiConfig config;
+    config.env = Environment::Mainnet;
+    config.wallet = Wallet{"", TEST_PRIVATE_KEY};
+    config.vaultAddress = "0x2222222222222222222222222222222222222222";
+
+    auto result = Signing::prepareBodyForType(
+        config, RestEndpointType::PlaceOrder, actionBody(),
+        std::string("0x1719884eb866cb12b2287399b15f7db5e7d775ea"));
+
+    EXPECT_EQ(result["vaultAddress"], "0x1719884eb866cb12b2287399b15f7db5e7d775ea");
+}
+
+TEST(SigningPrepareBodyForType, FallsBackToConfigVaultAddressWhenOmitted)
+{
+    ApiConfig config;
+    config.env = Environment::Mainnet;
+    config.wallet = Wallet{"", TEST_PRIVATE_KEY};
+    config.vaultAddress = "0x2222222222222222222222222222222222222222";
+
+    auto result = Signing::prepareBodyForType(config, RestEndpointType::PlaceOrder, actionBody());
+
+    EXPECT_EQ(result["vaultAddress"], "0x2222222222222222222222222222222222222222");
+}
+
+TEST(SigningPrepareBodyForType, NoVaultAddressWhenNeitherPerCallNorConfigIsSet)
+{
+    ApiConfig config;
+    config.env = Environment::Mainnet;
+    config.wallet = Wallet{"", TEST_PRIVATE_KEY};
+
+    auto result = Signing::prepareBodyForType(config, RestEndpointType::PlaceOrder, actionBody());
+
+    EXPECT_FALSE(result.contains("vaultAddress"));
+}
+
+TEST(SigningPrepareBodyForType, VaultTransferNeverPicksUpConfigVaultAddressFallback)
+{
+    // vaultTransfer's target vault is a field of the action itself, not the wrapper - so unlike
+    // PlaceOrder above, ApiConfig::vaultAddress must never leak into its request body.
+    ApiConfig config;
+    config.env = Environment::Mainnet;
+    config.wallet = Wallet{"", TEST_PRIVATE_KEY};
+    config.vaultAddress = "0x2222222222222222222222222222222222222222";
+
+    auto result = Signing::prepareBodyForType(config, RestEndpointType::VaultTransfer, actionBody());
+
+    EXPECT_FALSE(result.contains("vaultAddress"));
+}
+
+TEST(SigningPrepareBodyForType, Hip3LiquidatorTransferNeverPicksUpConfigVaultAddressFallback)
+{
+    ApiConfig config;
+    config.env = Environment::Mainnet;
+    config.wallet = Wallet{"", TEST_PRIVATE_KEY};
+    config.vaultAddress = "0x2222222222222222222222222222222222222222";
+
+    auto result = Signing::prepareBodyForType(config, RestEndpointType::Hip3LiquidatorTransfer, actionBody());
+
+    EXPECT_FALSE(result.contains("vaultAddress"));
+}
+
+TEST(SigningPrepareBodyForType, UserSignedActionIgnoresVaultAddressEntirely)
+{
+    // usdSend is an EIP-712 user-signed action (see isUserSignedAction) - it's routed to
+    // prepareUserSignedActionBody, which never reads vaultAddress at all, regardless of whether
+    // one is passed per-call or configured as a default.
+    ApiConfig config;
+    config.env = Environment::Mainnet;
+    config.wallet = Wallet{"", TEST_PRIVATE_KEY};
+    config.vaultAddress = "0x2222222222222222222222222222222222222222";
+
+    nlohmann::ordered_json body;
+    body["action"]["destination"] = "0x5e9ee1089755c3435139848e47e6635505d5a13a";
+    body["action"]["amount"] = "1";
+
+    auto result = Signing::prepareBodyForType(
+        config, RestEndpointType::UsdSend, body,
+        std::string("0x1719884eb866cb12b2287399b15f7db5e7d775ea"));
+
+    EXPECT_FALSE(result.contains("vaultAddress"));
+    ASSERT_TRUE(result.contains("action"));
+    EXPECT_FALSE(result["action"].contains("vaultAddress"));
+}

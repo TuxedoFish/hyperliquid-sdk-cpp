@@ -171,8 +171,7 @@ namespace hyperliquid
 
         // examples/ws_approve_agent.cpp
         void approveAgent(const ApproveAgentRequest& request,
-                          std::optional<uint64_t> correlationId = std::nullopt,
-                          const std::optional<std::string>& vaultAddress = std::nullopt);
+                          std::optional<uint64_t> correlationId = std::nullopt);
 
         // examples/ws_agent_set_abstraction.cpp
         void agentSetAbstraction(UserAbstractionMode abstraction,
@@ -188,58 +187,56 @@ namespace hyperliquid
                         const std::optional<std::string>& vaultAddress = std::nullopt);
 
         // examples/ws_vault_transfer.cpp
+        // vaultTransfer/hip3LiquidatorTransfer/usdClassTransfer/sendAsset/usdSend/spotSend/
+        // withdraw3/approveBuilderFee/userSetAbstraction/cDeposit/cWithdraw/tokenDelegate/
+        // sendToEvmWithData/userDexAbstraction move funds or state against the calling wallet
+        // directly (their target vault/dex/destination/etc. is a field of the request itself, or
+        // they're EIP-712 user-signed actions that Hyperliquid never accepts a vaultAddress for),
+        // so unlike the other exchange methods they do not take a vaultAddress parameter - see
+        // RestApi.h for the matching rationale, shared across both transports.
         void vaultTransfer(const VaultTransferRequest& request,
-                           std::optional<uint64_t> correlationId = std::nullopt,
-                           const std::optional<std::string>& vaultAddress = std::nullopt);
+                           std::optional<uint64_t> correlationId = std::nullopt);
 
         // examples/ws_hip3_liquidator_transfer.cpp
         void hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request,
-                                    std::optional<uint64_t> correlationId = std::nullopt,
-                                    const std::optional<std::string>& vaultAddress = std::nullopt);
+                                    std::optional<uint64_t> correlationId = std::nullopt);
 
         // examples/ws_transfers.cpp
         void usdClassTransfer(const UsdClassTransferRequest& request,
-                              std::optional<uint64_t> correlationId = std::nullopt,
-                              const std::optional<std::string>& vaultAddress = std::nullopt);
+                              std::optional<uint64_t> correlationId = std::nullopt);
         void sendAsset(const SendAssetRequest& request,
-                       std::optional<uint64_t> correlationId = std::nullopt,
-                       const std::optional<std::string>& vaultAddress = std::nullopt);
+                       std::optional<uint64_t> correlationId = std::nullopt);
         void usdSend(const UsdSendRequest& request,
-                    std::optional<uint64_t> correlationId = std::nullopt,
-                    const std::optional<std::string>& vaultAddress = std::nullopt);
+                    std::optional<uint64_t> correlationId = std::nullopt);
         void spotSend(const SpotSendRequest& request,
-                     std::optional<uint64_t> correlationId = std::nullopt,
-                     const std::optional<std::string>& vaultAddress = std::nullopt);
+                     std::optional<uint64_t> correlationId = std::nullopt);
         void withdraw3(const Withdraw3Request& request,
-                       std::optional<uint64_t> correlationId = std::nullopt,
-                       const std::optional<std::string>& vaultAddress = std::nullopt);
+                       std::optional<uint64_t> correlationId = std::nullopt);
 
         // examples/ws_approve_builder_fee.cpp
         void approveBuilderFee(const ApproveBuilderFeeRequest& request,
-                               std::optional<uint64_t> correlationId = std::nullopt,
-                               const std::optional<std::string>& vaultAddress = std::nullopt);
+                               std::optional<uint64_t> correlationId = std::nullopt);
 
         // examples/ws_user_set_abstraction.cpp
         void userSetAbstraction(const UserSetAbstractionRequest& request,
-                                std::optional<uint64_t> correlationId = std::nullopt,
-                                const std::optional<std::string>& vaultAddress = std::nullopt);
+                                std::optional<uint64_t> correlationId = std::nullopt);
 
         // examples/ws_staking.cpp (exchange half; delegations/delegatorSummary/delegatorHistory/
         // delegatorRewards above are the info half)
         void cDeposit(uint64_t wei,
-                     std::optional<uint64_t> correlationId = std::nullopt,
-                     const std::optional<std::string>& vaultAddress = std::nullopt);
+                     std::optional<uint64_t> correlationId = std::nullopt);
         void cWithdraw(uint64_t wei,
-                      std::optional<uint64_t> correlationId = std::nullopt,
-                      const std::optional<std::string>& vaultAddress = std::nullopt);
+                      std::optional<uint64_t> correlationId = std::nullopt);
         void tokenDelegate(const TokenDelegateRequest& request,
-                           std::optional<uint64_t> correlationId = std::nullopt,
-                           const std::optional<std::string>& vaultAddress = std::nullopt);
+                           std::optional<uint64_t> correlationId = std::nullopt);
 
         // examples/ws_misc_actions.cpp
         void sendToEvmWithData(const SendToEvmWithDataRequest& request,
-                               std::optional<uint64_t> correlationId = std::nullopt,
-                               const std::optional<std::string>& vaultAddress = std::nullopt);
+                               std::optional<uint64_t> correlationId = std::nullopt);
+        // agentSendAsset/reserveRequestWeight/noop retain a vaultAddress parameter (matching
+        // RestApi) even though Hyperliquid's real /exchange API and the official TS SDK's request
+        // schemas don't define a vaultAddress field for these actions - see the tracking issue
+        // referenced from the vaultAddress standardization PR for a possible follow-up to remove it.
         void agentSendAsset(const AgentSendAssetRequest& request,
                             std::optional<uint64_t> correlationId = std::nullopt,
                             const std::optional<std::string>& vaultAddress = std::nullopt);
@@ -251,8 +248,7 @@ namespace hyperliquid
 
         // examples/ws_user_dex_abstraction.cpp
         void userDexAbstraction(const UserDexAbstractionRequest& request,
-                                std::optional<uint64_t> correlationId = std::nullopt,
-                                const std::optional<std::string>& vaultAddress = std::nullopt);
+                                std::optional<uint64_t> correlationId = std::nullopt);
 
         void start();
         void stop();
