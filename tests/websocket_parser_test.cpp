@@ -14,6 +14,7 @@ namespace
         std::optional<WebData3Update> webData3;
         std::optional<ClearinghouseStateUpdate> clearinghouseState;
         std::optional<OpenOrdersUpdate> openOrders;
+        std::optional<TwapStatesUpdate> twapStates;
         std::optional<L2BookSnapshot> l2Book;
         std::optional<OutcomeMetaUpdate> outcomeMetaUpdate;
 
@@ -40,6 +41,11 @@ namespace
         void onOpenOrdersSnapshot(const OpenOrdersUpdate& update) override
         {
             openOrders = update;
+        }
+
+        void onTwapStates(const TwapStatesUpdate& update) override
+        {
+            twapStates = update;
         }
 
         void onL2Book(const L2BookSnapshot& snapshot) override
@@ -448,6 +454,51 @@ TEST(WebsocketParser, OpenOrders)
     EXPECT_EQ(update.orders[1].coin, "ETH");
     EXPECT_EQ(update.orders[1].side, 'A');
     EXPECT_EQ(update.orders[1].cloid, "0xdeadbeef");
+}
+
+TEST(WebsocketParser, TwapStates)
+{
+    static const std::string kMsg = R"({
+        "channel": "twapStates",
+        "data": {
+            "dex": "",
+            "user": "0x0000000000000000000000000000000000000a",
+            "states": [[42, {
+                "coin": "ETH",
+                "user": "0x0000000000000000000000000000000000000a",
+                "side": "B",
+                "sz": "1.25",
+                "executedSz": "0.5",
+                "executedNtl": "1250.75",
+                "minutes": 30,
+                "reduceOnly": false,
+                "randomize": true,
+                "timestamp": 1700000000000
+            }]]
+        }
+    })";
+
+    WebsocketMessageParser parser;
+    CapturingHandler handler;
+    parser.crack(kMsg, handler);
+
+    ASSERT_TRUE(handler.twapStates.has_value());
+    EXPECT_EQ(handler.twapStates->dex, "");
+    EXPECT_EQ(handler.twapStates->user, "0x0000000000000000000000000000000000000a");
+    ASSERT_EQ(handler.twapStates->states.size(), 1u);
+
+    const auto& state = handler.twapStates->states[0];
+    EXPECT_EQ(state.id, 42u);
+    EXPECT_EQ(state.coin, "ETH");
+    EXPECT_EQ(state.user, "0x0000000000000000000000000000000000000a");
+    EXPECT_EQ(state.side, 'B');
+    EXPECT_DOUBLE_EQ(state.sz, 1.25);
+    EXPECT_DOUBLE_EQ(state.executedSz, 0.5);
+    EXPECT_DOUBLE_EQ(state.executedNtl, 1250.75);
+    EXPECT_EQ(state.minutes, 30);
+    EXPECT_FALSE(state.reduceOnly);
+    EXPECT_TRUE(state.randomize);
+    EXPECT_EQ(state.timestamp, 1700000000000u);
 }
 
 TEST(WebsocketParser, L2BookFastPath)
