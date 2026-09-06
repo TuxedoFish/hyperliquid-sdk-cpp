@@ -29,6 +29,84 @@ namespace hyperliquid
                   std::optional<uint64_t> correlationId = std::nullopt);
         void outcomeMeta(std::optional<uint64_t> correlationId = std::nullopt);
         void perpDexs(std::optional<uint64_t> correlationId = std::nullopt);
+        void settledOutcome(int outcome, std::optional<uint64_t> correlationId = std::nullopt);
+        void perpsAtOpenInterestCap(const std::optional<std::string>& dex = std::nullopt,
+                                    std::optional<uint64_t> correlationId = std::nullopt);
+        void predictedFundings(std::optional<uint64_t> correlationId = std::nullopt);
+        void perpAnnotation(const std::string& coin, std::optional<uint64_t> correlationId = std::nullopt);
+        void perpCategories(std::optional<uint64_t> correlationId = std::nullopt);
+        void perpConciseAnnotations(std::optional<uint64_t> correlationId = std::nullopt);
+        void allPerpMetas(std::optional<uint64_t> correlationId = std::nullopt);
+        void perpDexLimits(const std::string& dex, std::optional<uint64_t> correlationId = std::nullopt);
+        void perpDexStatus(const std::string& dex, std::optional<uint64_t> correlationId = std::nullopt);
+        void perpDeployAuctionStatus(std::optional<uint64_t> correlationId = std::nullopt);
+
+        void l2Book(const std::string& coin,
+                   const std::optional<int>& nSigFigs = std::nullopt,
+                   const std::optional<int>& mantissa = std::nullopt,
+                   std::optional<uint64_t> correlationId = std::nullopt);
+        void candleSnapshot(const std::string& coin,
+                            const std::string& interval,
+                            uint64_t startTime,
+                            uint64_t endTime,
+                            std::optional<uint64_t> correlationId = std::nullopt);
+        void allMids(const std::optional<std::string>& dex = std::nullopt,
+                    std::optional<uint64_t> correlationId = std::nullopt);
+        void openOrders(const std::string& user,
+                        const std::optional<std::string>& dex = std::nullopt,
+                        std::optional<uint64_t> correlationId = std::nullopt);
+        void orderStatus(const std::string& user, const OrderId& oid,
+                         std::optional<uint64_t> correlationId = std::nullopt);
+        void userFills(const std::string& user,
+                       const std::optional<bool>& aggregateByTime = std::nullopt,
+                       const std::optional<std::string>& dex = std::nullopt,
+                       std::optional<uint64_t> correlationId = std::nullopt);
+        void userFillsByTime(const std::string& user,
+                             uint64_t startTime,
+                             const std::optional<uint64_t>& endTime = std::nullopt,
+                             const std::optional<bool>& aggregateByTime = std::nullopt,
+                             const std::optional<std::string>& dex = std::nullopt,
+                             std::optional<uint64_t> correlationId = std::nullopt);
+        void clearinghouseState(const std::string& user,
+                                const std::optional<std::string>& dex = std::nullopt,
+                                std::optional<uint64_t> correlationId = std::nullopt);
+        void userRateLimit(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void metaAndAssetCtxs(const std::optional<std::string>& dex = std::nullopt,
+                              std::optional<uint64_t> correlationId = std::nullopt);
+        void spotMetaAndAssetCtxs(std::optional<uint64_t> correlationId = std::nullopt);
+        void spotClearinghouseState(const std::string& user,
+                                    const std::optional<std::string>& dex = std::nullopt,
+                                    std::optional<uint64_t> correlationId = std::nullopt);
+        void spotDeployState(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void spotPairDeployAuctionStatus(std::optional<uint64_t> correlationId = std::nullopt);
+        void frontendOpenOrders(const std::string& user,
+                                const std::optional<std::string>& dex = std::nullopt,
+                                std::optional<uint64_t> correlationId = std::nullopt);
+        void historicalOrders(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void userTwapSliceFills(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void subAccounts(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void userFees(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void maxBuilderFee(const std::string& user, const std::string& builder,
+                           std::optional<uint64_t> correlationId = std::nullopt);
+        void approvedBuilders(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+
+        void delegations(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void delegatorSummary(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void delegatorHistory(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void delegatorRewards(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+
+        void vaultDetails(const std::string& vaultAddress,
+                          const std::optional<std::string>& user = std::nullopt,
+                          std::optional<uint64_t> correlationId = std::nullopt);
+        void userVaultEquities(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void portfolio(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void referral(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void userRole(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+
+        void borrowLendUserState(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void borrowLendReserveState(int token, std::optional<uint64_t> correlationId = std::nullopt);
+        void allBorrowLendReserveStates(std::optional<uint64_t> correlationId = std::nullopt);
+
         void placeOrder(const std::vector<OrderRequest>& orders,
                                Grouping grouping,
                                const std::optional<Builder>& builder = std::nullopt,
