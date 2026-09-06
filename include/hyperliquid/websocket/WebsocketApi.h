@@ -89,6 +89,9 @@ namespace hyperliquid
                                 const std::optional<std::string>& dex = std::nullopt,
                                 std::optional<uint64_t> correlationId = std::nullopt);
 
+        // examples/ws_recent_trades.cpp
+        void recentTrades(const std::string& coin, std::optional<uint64_t> correlationId = std::nullopt);
+
         // examples/ws_funding_history.cpp
         void userFunding(const std::string& user,
                          uint64_t startTime,
