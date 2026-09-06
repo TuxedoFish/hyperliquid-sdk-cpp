@@ -227,6 +227,7 @@ namespace hyperliquid
         CWithdraw,
         TokenDelegate,
         SendToEvmWithData,
+        UserDexAbstraction,
         AgentSendAsset,
         ReserveRequestWeight,
         Noop,
@@ -313,6 +314,7 @@ namespace hyperliquid
         case RestEndpointType::CWithdraw: return "cWithdraw";
         case RestEndpointType::TokenDelegate: return "tokenDelegate";
         case RestEndpointType::SendToEvmWithData: return "sendToEvmWithData";
+        case RestEndpointType::UserDexAbstraction: return "userDexAbstraction";
         case RestEndpointType::AgentSendAsset: return "agentSendAsset";
         case RestEndpointType::ReserveRequestWeight: return "reserveRequestWeight";
         case RestEndpointType::Noop: return "noop";
@@ -401,6 +403,7 @@ namespace hyperliquid
         case RestEndpointType::CWithdraw: return true;
         case RestEndpointType::TokenDelegate: return true;
         case RestEndpointType::SendToEvmWithData: return true;
+        case RestEndpointType::UserDexAbstraction: return true;
         case RestEndpointType::AgentSendAsset: return true;
         case RestEndpointType::ReserveRequestWeight: return true;
         case RestEndpointType::Noop: return true;
@@ -414,10 +417,11 @@ namespace hyperliquid
     }
 
     // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee/userSetAbstraction,
-    // the staking actions (cDeposit/cWithdraw/tokenDelegate), and sendToEvmWithData are EIP-712
-    // user-signed actions (see Signing::prepareUserSignedActionBody), not L1 actions. All other
-    // authenticated actions here (including agentSendAsset/reserveRequestWeight/noop) are L1
-    // actions signed with the agent/master key directly.
+    // the staking actions (cDeposit/cWithdraw/tokenDelegate), sendToEvmWithData, and
+    // userDexAbstraction are EIP-712 user-signed actions (see
+    // Signing::prepareUserSignedActionBody), not L1 actions. All other authenticated actions here
+    // (including agentSendAsset/reserveRequestWeight/noop) are L1 actions signed with the
+    // agent/master key directly.
     inline bool isUserSignedAction(RestEndpointType type)
     {
         switch (type)
@@ -433,6 +437,7 @@ namespace hyperliquid
         case RestEndpointType::CWithdraw:
         case RestEndpointType::TokenDelegate:
         case RestEndpointType::SendToEvmWithData:
+        case RestEndpointType::UserDexAbstraction:
             return true;
         default:
             return false;
@@ -698,6 +703,12 @@ namespace hyperliquid
         uint32_t destinationChainId;
         uint64_t gasLimit;
         std::string data; // hex-encoded bytes, e.g. "0x..."
+    };
+
+    struct UserDexAbstractionRequest
+    {
+        std::string user;
+        bool enabled;
     };
 
     struct AgentSendAssetRequest

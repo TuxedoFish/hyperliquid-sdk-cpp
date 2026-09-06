@@ -67,6 +67,8 @@ public:
 
     nlohmann::ordered_json sendToEvmWithData(const SendToEvmWithDataRequest& request) const;
 
+    nlohmann::ordered_json userDexAbstraction(const UserDexAbstractionRequest& request) const;
+
     nlohmann::ordered_json agentSendAsset(const AgentSendAssetRequest& request) const;
 
     nlohmann::ordered_json reserveRequestWeight(const ReserveRequestWeightRequest& request) const;
