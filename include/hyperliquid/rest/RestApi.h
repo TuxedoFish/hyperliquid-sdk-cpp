@@ -137,6 +137,7 @@ public:
     DelegatorHistoryResponse delegatorHistory(const std::string& user);
     DelegatorRewardsResponse delegatorRewards(const std::string& user);
     SimpleResponse sendToEvmWithData(const SendToEvmWithDataRequest& request);
+    SimpleResponse userDexAbstraction(const UserDexAbstractionRequest& request);
     SimpleResponse agentSendAsset(const AgentSendAssetRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     SimpleResponse reserveRequestWeight(const ReserveRequestWeightRequest& request,
@@ -243,6 +244,7 @@ public:
     void delegatorHistoryAsync(const std::string& user);
     void delegatorRewardsAsync(const std::string& user);
     void sendToEvmWithDataAsync(const SendToEvmWithDataRequest& request);
+    void userDexAbstractionAsync(const UserDexAbstractionRequest& request);
     void agentSendAssetAsync(const AgentSendAssetRequest& request,
                              const std::optional<std::string>& vaultAddress = std::nullopt);
     void reserveRequestWeightAsync(const ReserveRequestWeightRequest& request,

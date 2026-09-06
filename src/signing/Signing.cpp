@@ -259,6 +259,13 @@ nlohmann::ordered_json Signing::prepareUserSignedActionBody(
             {"gasLimit", "uint64"}, {"data", "bytes"}, {"nonce", "uint64"}};
         timeField = "nonce";
         break;
+    case RestEndpointType::UserDexAbstraction:
+        primaryType = "HyperliquidTransaction:UserDexAbstraction";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"user", "address"},
+            {"enabled", "bool"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
     default:
         throw std::invalid_argument("Not a user-signed action: " + toString(type));
     }

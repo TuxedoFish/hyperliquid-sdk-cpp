@@ -197,6 +197,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     hyperliquid_add_test(symbol_map_test)
     hyperliquid_add_test(transfers_test)
     hyperliquid_add_test(misc_info_test)
+    hyperliquid_add_test(user_dex_abstraction_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)

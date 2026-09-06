@@ -654,6 +654,13 @@ SimpleResponse RestApi::sendToEvmWithData(const SendToEvmWithDataRequest& reques
                                    impl_->exchangeRequestBuilder.sendToEvmWithData(request)));
 }
 
+SimpleResponse RestApi::userDexAbstraction(const UserDexAbstractionRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::UserDexAbstraction,
+                                   impl_->exchangeRequestBuilder.userDexAbstraction(request)));
+}
+
 SimpleResponse RestApi::agentSendAsset(const AgentSendAssetRequest& request,
                                const std::optional<std::string>& vaultAddress)
 {
@@ -1092,6 +1099,12 @@ void RestApi::sendToEvmWithDataAsync(const SendToEvmWithDataRequest& request)
 {
     impl_->signAndSend(RestEndpointType::SendToEvmWithData,
                        impl_->exchangeRequestBuilder.sendToEvmWithData(request));
+}
+
+void RestApi::userDexAbstractionAsync(const UserDexAbstractionRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::UserDexAbstraction,
+                       impl_->exchangeRequestBuilder.userDexAbstraction(request));
 }
 
 void RestApi::agentSendAssetAsync(const AgentSendAssetRequest& request,

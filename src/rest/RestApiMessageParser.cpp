@@ -175,6 +175,7 @@ namespace hyperliquid
             case RestEndpointType::CWithdraw:
             case RestEndpointType::TokenDelegate:
             case RestEndpointType::SendToEvmWithData:
+            case RestEndpointType::UserDexAbstraction:
             case RestEndpointType::AgentSendAsset:
             case RestEndpointType::ReserveRequestWeight:
             case RestEndpointType::Noop:
