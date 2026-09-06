@@ -563,6 +563,41 @@ SimpleResponse RestApi::hip3LiquidatorTransfer(const Hip3LiquidatorTransferReque
                                    impl_->exchangeRequestBuilder.hip3LiquidatorTransfer(request)));
 }
 
+SimpleResponse RestApi::spotDeployRegisterToken2(const SpotDeployRegisterToken2Request& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SpotDeployRegisterToken2,
+                                   impl_->exchangeRequestBuilder.spotDeployRegisterToken2(request)));
+}
+
+SimpleResponse RestApi::spotDeployUserGenesis(const SpotDeployUserGenesisRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SpotDeployUserGenesis,
+                                   impl_->exchangeRequestBuilder.spotDeployUserGenesis(request)));
+}
+
+SimpleResponse RestApi::spotDeployGenesis(const SpotDeployGenesisRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SpotDeployGenesis,
+                                   impl_->exchangeRequestBuilder.spotDeployGenesis(request)));
+}
+
+SimpleResponse RestApi::spotDeployRegisterSpot(const SpotDeployRegisterSpotRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SpotDeployRegisterSpot,
+                                   impl_->exchangeRequestBuilder.spotDeployRegisterSpot(request)));
+}
+
+SimpleResponse RestApi::spotDeployRegisterHyperliquidity(const SpotDeployRegisterHyperliquidityRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SpotDeployRegisterHyperliquidity,
+                                   impl_->exchangeRequestBuilder.spotDeployRegisterHyperliquidity(request)));
+}
+
 SimpleResponse RestApi::usdClassTransfer(const UsdClassTransferRequest& request)
 {
     return RestApiMessageParser().parseSimpleResponse(
@@ -1029,6 +1064,36 @@ void RestApi::hip3LiquidatorTransferAsync(const Hip3LiquidatorTransferRequest& r
 {
     impl_->signAndSend(RestEndpointType::Hip3LiquidatorTransfer,
                        impl_->exchangeRequestBuilder.hip3LiquidatorTransfer(request));
+}
+
+void RestApi::spotDeployRegisterToken2Async(const SpotDeployRegisterToken2Request& request)
+{
+    impl_->signAndSend(RestEndpointType::SpotDeployRegisterToken2,
+                       impl_->exchangeRequestBuilder.spotDeployRegisterToken2(request));
+}
+
+void RestApi::spotDeployUserGenesisAsync(const SpotDeployUserGenesisRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::SpotDeployUserGenesis,
+                       impl_->exchangeRequestBuilder.spotDeployUserGenesis(request));
+}
+
+void RestApi::spotDeployGenesisAsync(const SpotDeployGenesisRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::SpotDeployGenesis,
+                       impl_->exchangeRequestBuilder.spotDeployGenesis(request));
+}
+
+void RestApi::spotDeployRegisterSpotAsync(const SpotDeployRegisterSpotRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::SpotDeployRegisterSpot,
+                       impl_->exchangeRequestBuilder.spotDeployRegisterSpot(request));
+}
+
+void RestApi::spotDeployRegisterHyperliquidityAsync(const SpotDeployRegisterHyperliquidityRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::SpotDeployRegisterHyperliquidity,
+                       impl_->exchangeRequestBuilder.spotDeployRegisterHyperliquidity(request));
 }
 
 void RestApi::usdClassTransferAsync(const UsdClassTransferRequest& request)

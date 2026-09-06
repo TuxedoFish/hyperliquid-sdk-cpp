@@ -244,7 +244,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `registerReferrer` | ⬜ | |
 | `setDisplayName` | ⬜ | |
 | `setReferrer` | ⬜ | |
-| `spotDeploy` | ⬜ | |
+| `spotDeploy` (5 of 10 variants: `registerToken2`/`userGenesis`/`genesis`/`registerSpot`/`registerHyperliquidity` - the "create and launch a new spot token" flow; the 5 post-deployment admin variants are a follow-up) | ✅ | `RestApi::spotDeployRegisterToken2`, `spotDeployUserGenesis`, `spotDeployGenesis`, `spotDeployRegisterSpot`, `spotDeployRegisterHyperliquidity` |
 | `spotUser` | ⬜ | |
 | `stakingLinkDisableTradingUser` | ⬜ | |
 | `subAccountModify` | ⬜ | |
@@ -257,7 +257,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `vaultDistribute` | ⬜ | |
 | `vaultModify` | ⬜ | |
 
-29 of 59 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
+30 of 59 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
 
 ### WebSocket subscriptions
 

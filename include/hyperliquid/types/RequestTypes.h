@@ -215,6 +215,11 @@ namespace hyperliquid
         TwapCancel,
         VaultTransfer,
         Hip3LiquidatorTransfer,
+        SpotDeployRegisterToken2,
+        SpotDeployUserGenesis,
+        SpotDeployGenesis,
+        SpotDeployRegisterSpot,
+        SpotDeployRegisterHyperliquidity,
         UsdClassTransfer,
         SendAsset,
         UsdSend,
@@ -304,6 +309,16 @@ namespace hyperliquid
         case RestEndpointType::TwapCancel: return "twapCancel";
         case RestEndpointType::VaultTransfer: return "vaultTransfer";
         case RestEndpointType::Hip3LiquidatorTransfer: return "hip3LiquidatorTransfer";
+        // All 5 spotDeploy variants share the same wire-level action type "spotDeploy" - the
+        // discriminator is which single nested key (registerToken2/userGenesis/genesis/
+        // registerSpot/registerHyperliquidity) is present in the action body, not this type
+        // string. See ExchangeRequestBuilder's spotDeploy* methods for the nested key each maps
+        // to.
+        case RestEndpointType::SpotDeployRegisterToken2: return "spotDeploy";
+        case RestEndpointType::SpotDeployUserGenesis: return "spotDeploy";
+        case RestEndpointType::SpotDeployGenesis: return "spotDeploy";
+        case RestEndpointType::SpotDeployRegisterSpot: return "spotDeploy";
+        case RestEndpointType::SpotDeployRegisterHyperliquidity: return "spotDeploy";
         case RestEndpointType::UsdClassTransfer: return "usdClassTransfer";
         case RestEndpointType::SendAsset: return "sendAsset";
         case RestEndpointType::UsdSend: return "usdSend";
@@ -394,6 +409,11 @@ namespace hyperliquid
         case RestEndpointType::TwapCancel: return true;
         case RestEndpointType::VaultTransfer: return true;
         case RestEndpointType::Hip3LiquidatorTransfer: return true;
+        case RestEndpointType::SpotDeployRegisterToken2: return true;
+        case RestEndpointType::SpotDeployUserGenesis: return true;
+        case RestEndpointType::SpotDeployGenesis: return true;
+        case RestEndpointType::SpotDeployRegisterSpot: return true;
+        case RestEndpointType::SpotDeployRegisterHyperliquidity: return true;
         case RestEndpointType::UsdClassTransfer: return true;
         case RestEndpointType::SendAsset: return true;
         case RestEndpointType::UsdSend: return true;
@@ -617,6 +637,61 @@ namespace hyperliquid
         // Quote-token 1e-6 units; must be a multiple of 1000 quote tokens (i.e. 1_000_000_000).
         uint64_t ntl;
         bool isDeposit;
+    };
+
+    // spotDeploy: registerToken2/userGenesis/genesis/registerSpot/registerHyperliquidity are the
+    // 5 variants that make up the "create and launch a new spot token" (HIP-1/HIP-2) flow. All
+    // share `type: "spotDeploy"` on the wire; the discriminator is which single nested key is
+    // present in the action body, not a `type`/enum field. Modeled here as 5 separate request
+    // structs + 5 separate RestApi methods (rather than one tagged variant type) to match how
+    // this codebase exposes one method per real user action - see RestApi::spotDeployRegisterToken2
+    // etc. Field shapes confirmed against the official TS SDK (@nktkas/hyperliquid,
+    // src/api/exchange/_methods/spotDeploy.ts). The remaining 5 spotDeploy variants
+    // (setDeployerTradingFeeShare/enableQuoteToken/disableQuoteToken/requestEvmContract/outcome)
+    // are post-deployment admin actions on an existing token and are out of scope - see issue #91.
+    struct SpotDeployTokenSpec
+    {
+        std::string name;
+        int szDecimals;
+        int weiDecimals;
+    };
+
+    struct SpotDeployRegisterToken2Request
+    {
+        SpotDeployTokenSpec spec;
+        uint64_t maxGas;
+        std::optional<std::string> fullName;
+    };
+
+    struct SpotDeployUserGenesisRequest
+    {
+        int token;
+        std::vector<std::pair<std::string, double>> userAndWei;
+        std::vector<std::pair<int, double>> existingTokenAndWei;
+        std::optional<std::vector<std::pair<std::string, bool>>> blacklistUsers;
+    };
+
+    struct SpotDeployGenesisRequest
+    {
+        int token;
+        double maxSupply;
+        std::optional<bool> noHyperliquidity;
+    };
+
+    struct SpotDeployRegisterSpotRequest
+    {
+        // tokens: [base_token_index, quote_token_index] on the wire.
+        int baseToken;
+        int quoteToken;
+    };
+
+    struct SpotDeployRegisterHyperliquidityRequest
+    {
+        int spot;
+        double startPx;
+        double orderSz;
+        int nOrders;
+        std::optional<int> nSeededLevels;
     };
 
     struct UsdClassTransferRequest
