@@ -117,11 +117,12 @@ public:
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     TwapCancelResponse twapCancel(const TwapCancelRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
-    // vaultTransfer/usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee move
-    // funds against the calling wallet directly (their target vault/destination/etc. is a field
-    // of the request itself), so unlike the other exchange methods they do not take a
-    // vaultAddress parameter.
+    // vaultTransfer/hip3LiquidatorTransfer/usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/
+    // approveBuilderFee move funds against the calling wallet directly (their target
+    // vault/dex/destination/etc. is a field of the request itself), so unlike the other exchange
+    // methods they do not take a vaultAddress parameter.
     SimpleResponse vaultTransfer(const VaultTransferRequest& request);
+    SimpleResponse hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request);
     SimpleResponse usdClassTransfer(const UsdClassTransferRequest& request);
     SimpleResponse sendAsset(const SendAssetRequest& request);
     SimpleResponse usdSend(const UsdSendRequest& request);
@@ -229,6 +230,7 @@ public:
     void twapCancelAsync(const TwapCancelRequest& request,
                                    const std::optional<std::string>& vaultAddress = std::nullopt);
     void vaultTransferAsync(const VaultTransferRequest& request);
+    void hip3LiquidatorTransferAsync(const Hip3LiquidatorTransferRequest& request);
     void usdClassTransferAsync(const UsdClassTransferRequest& request);
     void sendAssetAsync(const SendAssetRequest& request);
     void usdSendAsync(const UsdSendRequest& request);

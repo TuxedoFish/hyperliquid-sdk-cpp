@@ -556,6 +556,13 @@ SimpleResponse RestApi::vaultTransfer(const VaultTransferRequest& request)
                                    impl_->exchangeRequestBuilder.vaultTransfer(request)));
 }
 
+SimpleResponse RestApi::hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::Hip3LiquidatorTransfer,
+                                   impl_->exchangeRequestBuilder.hip3LiquidatorTransfer(request)));
+}
+
 SimpleResponse RestApi::usdClassTransfer(const UsdClassTransferRequest& request)
 {
     return RestApiMessageParser().parseSimpleResponse(
@@ -1016,6 +1023,12 @@ void RestApi::vaultTransferAsync(const VaultTransferRequest& request)
 {
     impl_->signAndSend(RestEndpointType::VaultTransfer,
                        impl_->exchangeRequestBuilder.vaultTransfer(request));
+}
+
+void RestApi::hip3LiquidatorTransferAsync(const Hip3LiquidatorTransferRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::Hip3LiquidatorTransfer,
+                       impl_->exchangeRequestBuilder.hip3LiquidatorTransfer(request));
 }
 
 void RestApi::usdClassTransferAsync(const UsdClassTransferRequest& request)
