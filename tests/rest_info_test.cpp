@@ -269,6 +269,24 @@ TEST(RestApiMessageParserInfoTest, ParseUserFills)
     EXPECT_EQ(f.feeToken, "USDC");
 }
 
+TEST(RestApiMessageParserInfoTest, ParseUserFillsByTime)
+{
+    // parseUserFillsByTime delegates straight to parseUserFills (same response shape) - reuses
+    // the exact payload from ParseUserFills above.
+    std::string message = R"([
+        {"coin": "ETH", "px": "1800.0", "sz": "0.1", "side": "B", "time": 1724361546645,
+         "startPosition": "0.0", "dir": "Open Long", "closedPnl": "0.0", "hash": "0xabc",
+         "oid": 55, "crossed": false, "fee": "0.01", "tid": 999, "feeToken": "USDC"}
+    ])";
+
+    RestApiMessageParser parser;
+    auto fills = parser.parseUserFillsByTime(message);
+
+    ASSERT_EQ(fills.fills.size(), 1u);
+    EXPECT_EQ(fills.fills[0].coin, "ETH");
+    EXPECT_EQ(fills.fills[0].oid, 55u);
+}
+
 TEST(RestApiMessageParserInfoTest, ParseClearinghouseState)
 {
     std::string message = R"({
@@ -389,6 +407,78 @@ TEST(InfoRequestBuilderTest, ApprovedBuilders)
 }
 
 // --- Metadata endpoints: response parsing ---
+
+TEST(RestApiMessageParserInfoTest, ParseSpotMeta)
+{
+    // Real testnet response, trimmed to 3 tokens covering the evmContract-present/fullName-null,
+    // evmContract-present/fullName-present, and evmContract-null/non-canonical variants. The
+    // parser only reads "tokens" - the real response's "universe" (trading-pair) array isn't
+    // currently parsed by parseSpotMeta.
+    std::string message = R"({"tokens": [
+        {"name": "USDC", "szDecimals": 8, "weiDecimals": 8, "index": 0, "tokenId": "0xeb62eee3685fc4c43992febcd9e75443", "isCanonical": true, "evmContract": {"address": "0x0b80659a4076e9e93c7dbe0f10675a16a3e5c206", "evm_extra_wei_decimals": -2}, "fullName": null},
+        {"name": "PURR", "szDecimals": 0, "weiDecimals": 5, "index": 1, "tokenId": "0xc4bf3f870c0e9465323c0b6ed28096c2", "isCanonical": true, "evmContract": {"address": "0xa9056c15938f9aff34cd497c722ce33db0c2fd57", "evm_extra_wei_decimals": 13}, "fullName": "Hypurr"},
+        {"name": "TEST", "szDecimals": 1, "weiDecimals": 8, "index": 2, "tokenId": "0x98b101daf4ff26697646131261c100bf", "isCanonical": false, "evmContract": null, "fullName": null}
+    ]})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseSpotMeta(message);
+
+    ASSERT_EQ(response.tokens.size(), 3u);
+    EXPECT_EQ(response.tokens[0].name, "USDC");
+    ASSERT_TRUE(response.tokens[0].evmContract.has_value());
+    EXPECT_EQ(response.tokens[0].evmContract->address, "0x0b80659a4076e9e93c7dbe0f10675a16a3e5c206");
+    EXPECT_FALSE(response.tokens[0].fullName.has_value());
+    EXPECT_EQ(response.tokens[1].name, "PURR");
+    ASSERT_TRUE(response.tokens[1].fullName.has_value());
+    EXPECT_EQ(*response.tokens[1].fullName, "Hypurr");
+    EXPECT_EQ(response.tokens[2].name, "TEST");
+    EXPECT_FALSE(response.tokens[2].isCanonical);
+    EXPECT_FALSE(response.tokens[2].evmContract.has_value());
+}
+
+TEST(RestApiMessageParserInfoTest, ParseOutcomeMeta)
+{
+    // Real testnet response, trimmed to 2 outcomes - one with an empty description, one with
+    // the pipe-delimited "class:X|underlying:Y|..." format parsed by parseOutcomeDescription.
+    std::string message = R"({"outcomes": [
+        {"outcome": 10217, "name": "Fallback", "description": "", "sideSpecs": [{"name": "Yes"}, {"name": "No"}], "quoteToken": "USDC"},
+        {"outcome": 17495, "name": "Recurring", "description": "class:priceBinary|underlying:BTC|expiry:20260907-0300|targetPrice:80115|period:1d", "sideSpecs": [{"name": "Yes"}, {"name": "No"}], "quoteToken": "USDC"}
+    ]})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseOutcomeMeta(message);
+
+    ASSERT_EQ(response.outcomes.size(), 2u);
+    EXPECT_EQ(response.outcomes[0].outcome, 10217);
+    EXPECT_EQ(response.outcomes[0].name, "Fallback");
+    EXPECT_TRUE(response.outcomes[0].descriptionRaw.empty());
+    EXPECT_EQ(response.outcomes[1].outcome, 17495);
+    EXPECT_EQ(response.outcomes[1].description.outcomeClass, "priceBinary");
+    EXPECT_EQ(response.outcomes[1].description.underlying, "BTC");
+    EXPECT_EQ(response.outcomes[1].description.targetPrice, "80115");
+}
+
+TEST(RestApiMessageParserInfoTest, ParsePerpDexs)
+{
+    // Real testnet response, trimmed to the leading null (always the main dex - skipped by the
+    // parser) plus 2 real HIP-3 dexes covering both the empty and populated
+    // assetToStreamingOiCap/assetToFundingMultiplier variants.
+    std::string message =
+        R"([null,{"name":"test","fullName":"test dex","deployer":"0x5e89b26d8d66da9888c835c9bfcc2aa51813e152","oracleUpdater":null,"feeRecipient":null,"assetToStreamingOiCap":[],"assetToFundingMultiplier":[]},{"name":"felix","fullName":"felix","deployer":"0x3a4ca3a93fc224c0a073d087c19ba8f0f04c7f00","oracleUpdater":null,"feeRecipient":"0x3a4ca3a93fc224c0a073d087c19ba8f0f04c7f00","assetToStreamingOiCap":[["felix:CRCL","2500000.0"]],"assetToFundingMultiplier":[["felix:CRCL","1.0"]]}])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parsePerpDexs(message);
+
+    ASSERT_EQ(response.dexes.size(), 2u);
+    EXPECT_EQ(response.dexes[0].name, "test");
+    EXPECT_FALSE(response.dexes[0].feeRecipient.has_value());
+    EXPECT_TRUE(response.dexes[0].assetToStreamingOiCap.empty());
+    EXPECT_EQ(response.dexes[1].name, "felix");
+    ASSERT_TRUE(response.dexes[1].feeRecipient.has_value());
+    EXPECT_EQ(*response.dexes[1].feeRecipient, "0x3a4ca3a93fc224c0a073d087c19ba8f0f04c7f00");
+    ASSERT_EQ(response.dexes[1].assetToStreamingOiCap.size(), 1u);
+    EXPECT_EQ(response.dexes[1].assetToStreamingOiCap[0].first, "felix:CRCL");
+}
 
 TEST(RestApiMessageParserInfoTest, ParseMetaAndAssetCtxs)
 {
