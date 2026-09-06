@@ -37,6 +37,8 @@ public:
 
     nlohmann::ordered_json approveAgent(const ApproveAgentRequest& request) const;
 
+    nlohmann::ordered_json agentSetAbstraction(UserAbstractionMode abstraction) const;
+
     nlohmann::ordered_json twapOrder(const TwapOrderRequest& request) const;
 
     nlohmann::ordered_json twapCancel(const TwapCancelRequest& request) const;

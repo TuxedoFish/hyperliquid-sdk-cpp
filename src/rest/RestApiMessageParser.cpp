@@ -156,6 +156,7 @@ namespace hyperliquid
             case RestEndpointType::UpdateIsolatedMargin:
             case RestEndpointType::ScheduleCancel:
             case RestEndpointType::ApproveAgent:
+            case RestEndpointType::AgentSetAbstraction:
             case RestEndpointType::VaultTransfer:
             case RestEndpointType::UsdClassTransfer:
             case RestEndpointType::SendAsset:

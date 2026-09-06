@@ -109,6 +109,8 @@ public:
     SimpleResponse updateIsolatedMargin(const UpdateIsolatedMarginRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     SimpleResponse approveAgent(const ApproveAgentRequest& request);
+    SimpleResponse agentSetAbstraction(UserAbstractionMode abstraction,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
     TwapOrderResponse twapOrder(const TwapOrderRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     TwapCancelResponse twapCancel(const TwapCancelRequest& request,
@@ -215,6 +217,8 @@ public:
     void updateIsolatedMarginAsync(const UpdateIsolatedMarginRequest& request,
                                    const std::optional<std::string>& vaultAddress = std::nullopt);
     void approveAgentAsync(const ApproveAgentRequest& request);
+    void agentSetAbstractionAsync(UserAbstractionMode abstraction,
+                          const std::optional<std::string>& vaultAddress = std::nullopt);
     void twapOrderAsync(const TwapOrderRequest& request,
                                    const std::optional<std::string>& vaultAddress = std::nullopt);
     void twapCancelAsync(const TwapCancelRequest& request,
