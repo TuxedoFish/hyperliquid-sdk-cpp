@@ -137,6 +137,24 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | General | `borrowLendReserveState` | ✅ | `RestApi::borrowLendReserveState` |
 | General | `allBorrowLendReserveStates` | ✅ | `RestApi::allBorrowLendReserveStates` |
 | General | `approvedBuilders` | ✅ | `RestApi::approvedBuilders` |
+| General | `exchangeStatus` | ⬜ | |
+| General | `extraAgents` | ⬜ | |
+| General | `gossipPriorityAuctionStatus` | ⬜ | |
+| General | `gossipRootIps` | ⬜ | |
+| General | `isVip` | ⬜ | |
+| General | `leadingVaults` | ⬜ | |
+| General | `legalCheck` | ⬜ | |
+| General | `preTransferCheck` | ⬜ | |
+| General | `subAccounts2` | ⬜ | |
+| General | `twapHistory` | ⬜ | |
+| General | `usdcRouting` | ⬜ | |
+| General | `userBorrowLendInterest` | ⬜ | |
+| General | `userToMultiSigSigners` | ⬜ | |
+| General | `userTwapSliceFillsByTime` | ⬜ | |
+| General | `validatorL1Votes` | ⬜ | |
+| General | `validatorSummaries` | ⬜ | |
+| General | `vaultSummaries` | ⬜ | |
+| General | `webData2` | ⬜ | |
 | Perpetuals | `perpDexs` | ✅ | `RestApi::perpDexs` |
 | Perpetuals | `meta` | ✅ | `RestApi::meta` |
 | Perpetuals | `metaAndAssetCtxs` | ✅ | `RestApi::metaAndAssetCtxs` |
@@ -154,6 +172,10 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Perpetuals | `perpAnnotation` | ✅ | `RestApi::perpAnnotation` |
 | Perpetuals | `perpCategories` | ✅ | `RestApi::perpCategories` |
 | Perpetuals | `perpConciseAnnotations` | ✅ | `RestApi::perpConciseAnnotations` |
+| Perpetuals | `liquidatable` | ⬜ | |
+| Perpetuals | `marginTable` | ⬜ | |
+| Perpetuals | `maxMarketOrderNtls` | ⬜ | |
+| Perpetuals | `recentTrades` | ⬜ | |
 | Spot / Outcomes | `spotMeta` | ✅ | `RestApi::spotMeta` |
 | Spot / Outcomes | `spotMetaAndAssetCtxs` | ✅ | `RestApi::spotMetaAndAssetCtxs` |
 | Spot / Outcomes | `spotClearinghouseState` | ✅ | `RestApi::spotClearinghouseState` |
@@ -163,8 +185,9 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `outcomeMeta` | ✅ | `RestApi::outcomeMeta` |
 | Spot / Outcomes | `settledOutcome` | ✅ | `RestApi::settledOutcome` |
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
+| Spot / Outcomes | `outcomeTemplates` | ⬜ | |
 
-45 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
+45 of 78 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 
@@ -199,8 +222,38 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `reserveRequestWeight` | ✅ | `RestApi::reserveRequestWeight` |
 | `noop` | ✅ | `RestApi::noop` |
 | `userDexAbstraction` (deprecated) | ⬜ | |
+| `activateOutcomeDeployer` | ⬜ | |
+| `agentEnableDexAbstraction` | ⬜ | |
+| `authorizeAqav2Role` | ⬜ | |
+| `borrowLend` | ⬜ | |
+| `claimRewards` | ⬜ | |
+| `convertToMultiSigUser` | ⬜ | |
+| `createSubAccount` | ⬜ | |
+| `createVault` | ⬜ | |
+| `cSignerAction` | ⬜ | |
+| `cValidatorAction` | ⬜ | |
+| `evmUserModify` | ⬜ | |
+| `finalizeEvmContract` | ⬜ | |
+| `gossipPriorityBid` | ⬜ | |
+| `linkStakingUser` | ⬜ | |
+| `perpDeploy` | ⬜ | |
+| `registerReferrer` | ⬜ | |
+| `setDisplayName` | ⬜ | |
+| `setReferrer` | ⬜ | |
+| `spotDeploy` | ⬜ | |
+| `spotUser` | ⬜ | |
+| `stakingLinkDisableTradingUser` | ⬜ | |
+| `subAccountModify` | ⬜ | |
+| `subAccountSpotTransfer` | ⬜ | |
+| `subAccountTransfer` | ⬜ | |
+| `topUpIsolatedOnlyMargin` | ⬜ | |
+| `userOutcome` | ⬜ | |
+| `userPortfolioMargin` | ⬜ | |
+| `validatorL1Stream` | ⬜ | |
+| `vaultDistribute` | ⬜ | |
+| `vaultModify` | ⬜ | |
 
-27 of 29 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
+27 of 59 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
 
 ### WebSocket subscriptions
 
