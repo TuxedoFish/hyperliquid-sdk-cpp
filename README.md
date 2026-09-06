@@ -244,7 +244,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `registerReferrer` | ⬜ | |
 | `setDisplayName` | ⬜ | |
 | `setReferrer` | ⬜ | |
-| `spotDeploy` | ⬜ | |
+| `spotDeploy` (5 of 10 variants: `registerToken2`/`userGenesis`/`genesis`/`registerSpot`/`registerHyperliquidity` - the "create and launch a new spot token" flow; the 5 post-deployment admin variants are a follow-up) | ✅ | `RestApi::spotDeployRegisterToken2`, `spotDeployUserGenesis`, `spotDeployGenesis`, `spotDeployRegisterSpot`, `spotDeployRegisterHyperliquidity` |
 | `spotUser` | ⬜ | |
 | `stakingLinkDisableTradingUser` | ⬜ | |
 | `subAccountModify` | ⬜ | |

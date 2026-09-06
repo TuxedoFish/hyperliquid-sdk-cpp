@@ -49,6 +49,16 @@ public:
 
     nlohmann::ordered_json borrowLend(const BorrowLendRequest& request) const;
 
+    nlohmann::ordered_json spotDeployRegisterToken2(const SpotDeployRegisterToken2Request& request) const;
+
+    nlohmann::ordered_json spotDeployUserGenesis(const SpotDeployUserGenesisRequest& request) const;
+
+    nlohmann::ordered_json spotDeployGenesis(const SpotDeployGenesisRequest& request) const;
+
+    nlohmann::ordered_json spotDeployRegisterSpot(const SpotDeployRegisterSpotRequest& request) const;
+
+    nlohmann::ordered_json spotDeployRegisterHyperliquidity(const SpotDeployRegisterHyperliquidityRequest& request) const;
+
     nlohmann::ordered_json usdClassTransfer(const UsdClassTransferRequest& request) const;
 
     nlohmann::ordered_json sendAsset(const SendAssetRequest& request) const;
