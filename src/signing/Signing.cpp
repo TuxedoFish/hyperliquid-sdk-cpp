@@ -227,6 +227,13 @@ nlohmann::ordered_json Signing::prepareUserSignedActionBody(
             {"builder", "address"}, {"nonce", "uint64"}};
         timeField = "nonce";
         break;
+    case RestEndpointType::UserSetAbstraction:
+        primaryType = "HyperliquidTransaction:UserSetAbstraction";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"user", "address"},
+            {"abstraction", "string"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
     case RestEndpointType::CDeposit:
     case RestEndpointType::CWithdraw:
         primaryType = type == RestEndpointType::CDeposit

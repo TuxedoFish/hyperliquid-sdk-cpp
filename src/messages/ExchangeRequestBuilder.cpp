@@ -451,6 +451,18 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::userSetAbstraction(const UserSetAbstractionRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "userSetAbstraction";
+        action["user"] = request.user;
+        action["abstraction"] = toString(request.abstraction);
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     nlohmann::ordered_json ExchangeRequestBuilder::tokenDelegate(const TokenDelegateRequest& request) const
     {
         nlohmann::ordered_json action;

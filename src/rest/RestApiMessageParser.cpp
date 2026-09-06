@@ -154,6 +154,7 @@ namespace hyperliquid
             case RestEndpointType::SpotSend:
             case RestEndpointType::Withdraw3:
             case RestEndpointType::ApproveBuilderFee:
+            case RestEndpointType::UserSetAbstraction:
             case RestEndpointType::CDeposit:
             case RestEndpointType::CWithdraw:
             case RestEndpointType::TokenDelegate:

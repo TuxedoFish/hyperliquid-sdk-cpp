@@ -216,6 +216,7 @@ namespace hyperliquid
         SpotSend,
         Withdraw3,
         ApproveBuilderFee,
+        UserSetAbstraction,
 
         // Exchange endpoints (signed, user-signed action)
         CDeposit,
@@ -298,6 +299,7 @@ namespace hyperliquid
         case RestEndpointType::SpotSend: return "spotSend";
         case RestEndpointType::Withdraw3: return "withdraw3";
         case RestEndpointType::ApproveBuilderFee: return "approveBuilderFee";
+        case RestEndpointType::UserSetAbstraction: return "userSetAbstraction";
 
         case RestEndpointType::CDeposit: return "cDeposit";
         case RestEndpointType::CWithdraw: return "cWithdraw";
@@ -381,6 +383,7 @@ namespace hyperliquid
         case RestEndpointType::SpotSend: return true;
         case RestEndpointType::Withdraw3: return true;
         case RestEndpointType::ApproveBuilderFee: return true;
+        case RestEndpointType::UserSetAbstraction: return true;
 
         case RestEndpointType::CDeposit: return true;
         case RestEndpointType::CWithdraw: return true;
@@ -398,11 +401,11 @@ namespace hyperliquid
         return isAuthenticated(type) ? "/exchange" : "/info";
     }
 
-    // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee, the staking
-    // actions (cDeposit/cWithdraw/tokenDelegate), and sendToEvmWithData are EIP-712 user-signed
-    // actions (see Signing::prepareUserSignedActionBody), not L1 actions. All other authenticated
-    // actions here (including agentSendAsset/reserveRequestWeight/noop) are L1 actions signed
-    // with the agent/master key directly.
+    // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee/userSetAbstraction,
+    // the staking actions (cDeposit/cWithdraw/tokenDelegate), and sendToEvmWithData are EIP-712
+    // user-signed actions (see Signing::prepareUserSignedActionBody), not L1 actions. All other
+    // authenticated actions here (including agentSendAsset/reserveRequestWeight/noop) are L1
+    // actions signed with the agent/master key directly.
     inline bool isUserSignedAction(RestEndpointType type)
     {
         switch (type)
@@ -413,6 +416,7 @@ namespace hyperliquid
         case RestEndpointType::SpotSend:
         case RestEndpointType::Withdraw3:
         case RestEndpointType::ApproveBuilderFee:
+        case RestEndpointType::UserSetAbstraction:
         case RestEndpointType::CDeposit:
         case RestEndpointType::CWithdraw:
         case RestEndpointType::TokenDelegate:
@@ -603,6 +607,25 @@ namespace hyperliquid
     {
         std::string maxFeeRate;
         std::string builder;
+    };
+
+    enum class AbstractionMode { Disabled, UnifiedAccount, PortfolioMargin };
+
+    inline std::string toString(AbstractionMode mode)
+    {
+        switch (mode)
+        {
+        case AbstractionMode::Disabled: return "disabled";
+        case AbstractionMode::UnifiedAccount: return "unifiedAccount";
+        case AbstractionMode::PortfolioMargin: return "portfolioMargin";
+        default: throw std::invalid_argument("Unknown AbstractionMode");
+        }
+    }
+
+    struct UserSetAbstractionRequest
+    {
+        std::string user;
+        AbstractionMode abstraction;
     };
 
     struct TokenDelegateRequest

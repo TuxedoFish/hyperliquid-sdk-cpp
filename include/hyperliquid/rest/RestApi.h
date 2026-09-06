@@ -121,6 +121,7 @@ public:
     SimpleResponse spotSend(const SpotSendRequest& request);
     SimpleResponse withdraw3(const Withdraw3Request& request);
     SimpleResponse approveBuilderFee(const ApproveBuilderFeeRequest& request);
+    SimpleResponse userSetAbstraction(const UserSetAbstractionRequest& request);
     SimpleResponse cDeposit(uint64_t wei);
     SimpleResponse cWithdraw(uint64_t wei);
     SimpleResponse tokenDelegate(const TokenDelegateRequest& request);
@@ -219,6 +220,7 @@ public:
     void spotSendAsync(const SpotSendRequest& request);
     void withdraw3Async(const Withdraw3Request& request);
     void approveBuilderFeeAsync(const ApproveBuilderFeeRequest& request);
+    void userSetAbstractionAsync(const UserSetAbstractionRequest& request);
     void cDepositAsync(uint64_t wei);
     void cWithdrawAsync(uint64_t wei);
     void tokenDelegateAsync(const TokenDelegateRequest& request);
