@@ -59,6 +59,8 @@ public:
 
     nlohmann::ordered_json spotDeployRegisterHyperliquidity(const SpotDeployRegisterHyperliquidityRequest& request) const;
 
+    nlohmann::ordered_json perpDeployRegisterAsset2(const PerpDeployRegisterAsset2Request& request) const;
+
     nlohmann::ordered_json usdClassTransfer(const UsdClassTransferRequest& request) const;
 
     nlohmann::ordered_json sendAsset(const SendAssetRequest& request) const;

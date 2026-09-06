@@ -139,6 +139,7 @@ public:
     SimpleResponse spotDeployGenesis(const SpotDeployGenesisRequest& request);
     SimpleResponse spotDeployRegisterSpot(const SpotDeployRegisterSpotRequest& request);
     SimpleResponse spotDeployRegisterHyperliquidity(const SpotDeployRegisterHyperliquidityRequest& request);
+    SimpleResponse perpDeployRegisterAsset2(const PerpDeployRegisterAsset2Request& request);
     SimpleResponse usdClassTransfer(const UsdClassTransferRequest& request);
     SimpleResponse sendAsset(const SendAssetRequest& request);
     SimpleResponse usdSend(const UsdSendRequest& request);
@@ -263,6 +264,7 @@ public:
     void spotDeployGenesisAsync(const SpotDeployGenesisRequest& request);
     void spotDeployRegisterSpotAsync(const SpotDeployRegisterSpotRequest& request);
     void spotDeployRegisterHyperliquidityAsync(const SpotDeployRegisterHyperliquidityRequest& request);
+    void perpDeployRegisterAsset2Async(const PerpDeployRegisterAsset2Request& request);
     void usdClassTransferAsync(const UsdClassTransferRequest& request);
     void sendAssetAsync(const SendAssetRequest& request);
     void usdSendAsync(const UsdSendRequest& request);

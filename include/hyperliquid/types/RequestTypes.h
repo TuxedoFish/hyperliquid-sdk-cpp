@@ -225,6 +225,7 @@ namespace hyperliquid
         SpotDeployGenesis,
         SpotDeployRegisterSpot,
         SpotDeployRegisterHyperliquidity,
+        PerpDeployRegisterAsset2,
         UsdClassTransfer,
         SendAsset,
         UsdSend,
@@ -324,6 +325,7 @@ namespace hyperliquid
         case RestEndpointType::SpotDeployGenesis: return "spotDeploy";
         case RestEndpointType::SpotDeployRegisterSpot: return "spotDeploy";
         case RestEndpointType::SpotDeployRegisterHyperliquidity: return "spotDeploy";
+        case RestEndpointType::PerpDeployRegisterAsset2: return "perpDeploy";
         case RestEndpointType::UsdClassTransfer: return "usdClassTransfer";
         case RestEndpointType::SendAsset: return "sendAsset";
         case RestEndpointType::UsdSend: return "usdSend";
@@ -424,6 +426,7 @@ namespace hyperliquid
         case RestEndpointType::SpotDeployGenesis: return true;
         case RestEndpointType::SpotDeployRegisterSpot: return true;
         case RestEndpointType::SpotDeployRegisterHyperliquidity: return true;
+        case RestEndpointType::PerpDeployRegisterAsset2: return true;
         case RestEndpointType::UsdClassTransfer: return true;
         case RestEndpointType::SendAsset: return true;
         case RestEndpointType::UsdSend: return true;
@@ -717,6 +720,49 @@ namespace hyperliquid
         double orderSz;
         int nOrders;
         std::optional<int> nSeededLevels;
+    };
+
+    // perpDeploy shares one wire-level action type "perpDeploy" across 16 sub-actions; only
+    // registerAsset2 (deploying a new HIP-3 perp asset) is modeled here.
+    enum class PerpMarginMode { StrictIsolated, NoCross, Normal };
+
+    inline std::string toString(PerpMarginMode mode)
+    {
+        switch (mode)
+        {
+        case PerpMarginMode::StrictIsolated: return "strictIsolated";
+        case PerpMarginMode::NoCross: return "noCross";
+        case PerpMarginMode::Normal: return "normal";
+        default: throw std::invalid_argument("Unknown PerpMarginMode");
+        }
+    }
+
+    struct PerpDeployAssetRequest
+    {
+        std::string coin;
+        uint32_t szDecimals;
+        double oraclePx;
+        uint32_t marginTableId;
+        PerpMarginMode marginMode;
+    };
+
+    // Present only when registerAsset2 also creates a new dex; null when adding an asset to an
+    // existing dex.
+    struct PerpDeploySchema
+    {
+        std::string fullName;
+        uint64_t collateralToken;
+        // null means the deployer itself is assumed to be the oracle updater.
+        std::optional<std::string> oracleUpdater;
+    };
+
+    struct PerpDeployRegisterAsset2Request
+    {
+        // Native-token wei; nullopt means use the current deploy auction price.
+        std::optional<uint64_t> maxGas;
+        PerpDeployAssetRequest assetRequest;
+        std::string dex;
+        std::optional<PerpDeploySchema> schema;
     };
 
     struct UsdClassTransferRequest
