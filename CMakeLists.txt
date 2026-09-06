@@ -28,8 +28,8 @@ option(HYPERLIQUID_BUILD_FUZZERS "Build libFuzzer harnesses for the REST/websock
 # Applied to hyperliquid-sdk itself (PUBLIC) so the actual parsing code is coverage-instrumented
 # and ASan-checked, not just the thin harness translation units in fuzz/. fuzzer-no-link gives
 # coverage instrumentation without pulling in a libFuzzer main - only the harness executables do that.
-set(HYPERLIQUID_FUZZER_LIB_FLAGS -fsanitize=fuzzer-no-link,address -fno-omit-frame-pointer -g)
-set(HYPERLIQUID_FUZZER_EXE_FLAGS -fsanitize=fuzzer,address -fno-omit-frame-pointer -g)
+set(HYPERLIQUID_FUZZER_LIB_FLAGS -fsanitize=fuzzer-no-link,address,undefined -fno-omit-frame-pointer -g)
+set(HYPERLIQUID_FUZZER_EXE_FLAGS -fsanitize=fuzzer,address,undefined -fno-omit-frame-pointer -g)
 
 include(GNUInstallDirs)
 
@@ -214,7 +214,7 @@ if(HYPERLIQUID_BUILD_FUZZERS)
     endif()
 
     target_compile_options(hyperliquid-sdk PUBLIC ${HYPERLIQUID_FUZZER_LIB_FLAGS})
-    target_link_options(hyperliquid-sdk PUBLIC -fsanitize=address)
+    target_link_options(hyperliquid-sdk PUBLIC -fsanitize=address,undefined)
 
     function(hyperliquid_add_fuzzer NAME)
         add_executable(${NAME} fuzz/${NAME}.cpp)

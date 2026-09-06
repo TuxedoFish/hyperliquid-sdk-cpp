@@ -650,8 +650,10 @@ namespace hyperliquid
                     {
                         auto pairArr = pair.get_array().value();
                         auto iter = pairArr.begin();
+                        if (iter == pairArr.end()) continue;
                         std::string asset = std::string((*iter).get_string().value());
                         ++iter;
+                        if (iter == pairArr.end()) continue;
                         std::string cap = std::string((*iter).get_string().value());
                         dex.assetToStreamingOiCap.emplace_back(asset, cap);
                     }
@@ -661,8 +663,10 @@ namespace hyperliquid
                     {
                         auto pairArr = pair.get_array().value();
                         auto iter = pairArr.begin();
+                        if (iter == pairArr.end()) continue;
                         std::string asset = std::string((*iter).get_string().value());
                         ++iter;
+                        if (iter == pairArr.end()) continue;
                         std::string multiplier = std::string((*iter).get_string().value());
                         dex.assetToFundingMultiplier.emplace_back(asset, multiplier);
                     }
@@ -749,10 +753,12 @@ namespace hyperliquid
                 {
                     auto pair = entry.get_array().value();
                     auto iter = pair.begin();
+                    if (iter == pair.end()) continue;
 
                     PerpDexLimitsCoinCap cap;
                     cap.coin = std::string((*iter).get_string().value());
                     ++iter;
+                    if (iter == pair.end()) continue;
                     cap.oiCap = toDouble((*iter).get_string().value());
                     response.coinToOiCap.push_back(std::move(cap));
                 }
@@ -908,20 +914,28 @@ namespace hyperliquid
                 {
                     auto pair = entry.get_array().value();
                     auto iter = pair.begin();
+                    if (iter == pair.end()) continue;
 
                     PredictedFundingEntry pf;
                     pf.coin = std::string((*iter).get_string().value());
                     ++iter;
+                    if (iter == pair.end()) continue;
 
                     auto venues = (*iter).get_array().value();
                     for (auto venueEntry : venues)
                     {
                         auto venuePair = venueEntry.get_array().value();
                         auto vIter = venuePair.begin();
+                        if (vIter == venuePair.end()) continue;
 
                         PredictedFundingVenue venue;
                         venue.venue = std::string((*vIter).get_string().value());
                         ++vIter;
+                        if (vIter == venuePair.end())
+                        {
+                            pf.venues.push_back(std::move(venue));
+                            continue;
+                        }
 
                         // The exchange returns null here (rather than an object) when it has no
                         // funding data for this coin on this venue - leave fundingRate/
@@ -996,10 +1010,12 @@ namespace hyperliquid
                 {
                     auto pair = entry.get_array().value();
                     auto iter = pair.begin();
+                    if (iter == pair.end()) continue;
 
                     PerpCategoryEntry pc;
                     pc.coin = std::string((*iter).get_string().value());
                     ++iter;
+                    if (iter == pair.end()) continue;
                     pc.category = std::string((*iter).get_string().value());
 
                     response.categories.push_back(std::move(pc));
@@ -1026,10 +1042,12 @@ namespace hyperliquid
                 {
                     auto pair = entry.get_array().value();
                     auto iter = pair.begin();
+                    if (iter == pair.end()) continue;
 
                     PerpConciseAnnotationEntry pc;
                     pc.coin = std::string((*iter).get_string().value());
                     ++iter;
+                    if (iter == pair.end()) continue;
 
                     auto obj = (*iter).get_object().value();
                     pc.category = std::string(obj["category"].get_string().value());
@@ -1088,10 +1106,12 @@ namespace hyperliquid
                         {
                             auto mtPair = mt.get_array().value();
                             auto mtIter = mtPair.begin();
+                            if (mtIter == mtPair.end()) continue;
 
                             MarginTableEntry table;
                             table.id = static_cast<int>((*mtIter).get_int64().value());
                             ++mtIter;
+                            if (mtIter == mtPair.end()) continue;
 
                             auto tableObj = (*mtIter).get_object().value();
                             table.description = std::string(tableObj["description"].get_string().value());
@@ -1472,10 +1492,12 @@ namespace hyperliquid
                 {
                     auto pair = entry.get_array().value();
                     auto iter = pair.begin();
+                    if (iter == pair.end()) continue;
 
                     BorrowLendReserveEntry reserveEntry;
                     reserveEntry.token = static_cast<int>((*iter).get_int64().value());
                     ++iter;
+                    if (iter == pair.end()) continue;
 
                     auto obj = (*iter).get_object().value();
                     reserveEntry.state = parseBorrowLendReserveStateFields(obj);
@@ -1506,10 +1528,12 @@ namespace hyperliquid
                 {
                     auto pair = entry.get_array().value();
                     auto iter = pair.begin();
+                    if (iter == pair.end()) continue;
 
                     BorrowLendUserPosition position{};
                     position.token = static_cast<int>((*iter).get_int64().value());
                     ++iter;
+                    if (iter == pair.end()) continue;
 
                     auto posObj = (*iter).get_object().value();
 
@@ -1676,6 +1700,7 @@ namespace hyperliquid
             {
                 auto arr = doc.get_array().value();
                 auto it = arr.begin();
+                if (it == arr.end()) return response;
 
                 auto metaObj = (*it).get_object().value();
                 auto universe = metaObj["universe"].get_array().value();
@@ -1689,6 +1714,7 @@ namespace hyperliquid
                     response.meta.universe.push_back(std::move(asset));
                 }
                 ++it;
+                if (it == arr.end()) return response;
 
                 auto ctxs = (*it).get_array().value();
                 size_t idx = 0;
@@ -1728,6 +1754,7 @@ namespace hyperliquid
             {
                 auto arr = doc.get_array().value();
                 auto it = arr.begin();
+                if (it == arr.end()) return response;
 
                 auto metaObj = (*it).get_object().value();
 
@@ -1768,6 +1795,7 @@ namespace hyperliquid
                     response.meta.universe.push_back(std::move(pair));
                 }
                 ++it;
+                if (it == arr.end()) return response;
 
                 auto ctxs = (*it).get_array().value();
                 size_t idx = 0;
@@ -2118,8 +2146,10 @@ namespace hyperliquid
             {
                 auto pairArr = entry.get_array().value();
                 auto iter = pairArr.begin();
+                if (iter == pairArr.end()) continue;
                 std::string periodName = std::string((*iter).get_string().value());
                 ++iter;
+                if (iter == pairArr.end()) continue;
                 auto metricsObj = (*iter).get_object().value();
 
                 PortfolioPeriodMetrics metrics;
@@ -2130,8 +2160,10 @@ namespace hyperliquid
                 {
                     auto pointArr = point.get_array().value();
                     auto pointIter = pointArr.begin();
+                    if (pointIter == pointArr.end()) continue;
                     uint64_t time = (*pointIter).get_uint64().value();
                     ++pointIter;
+                    if (pointIter == pointArr.end()) continue;
                     double value = toDouble((*pointIter).get_string().value());
                     metrics.accountValueHistory.emplace_back(time, value);
                 }
@@ -2141,8 +2173,10 @@ namespace hyperliquid
                 {
                     auto pointArr = point.get_array().value();
                     auto pointIter = pointArr.begin();
+                    if (pointIter == pointArr.end()) continue;
                     uint64_t time = (*pointIter).get_uint64().value();
                     ++pointIter;
+                    if (pointIter == pointArr.end()) continue;
                     double value = toDouble((*pointIter).get_string().value());
                     metrics.pnlHistory.emplace_back(time, value);
                 }

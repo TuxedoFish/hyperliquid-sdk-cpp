@@ -50,11 +50,53 @@ jobs:
       - name: Generate REST corpus from examples/json/rest
         run: python3 fuzz/generate_corpus.py
 
+      - name: Restore REST corpus growth
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/.corpus-growth/rest_parser_fuzz
+          key: fuzz-corpus-growth-rest-${{ github.run_id }}
+          restore-keys: |
+            fuzz-corpus-growth-rest-
+
+      - name: Restore websocket corpus growth
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/.corpus-growth/websocket_parser_fuzz
+          key: fuzz-corpus-growth-ws-${{ github.run_id }}
+          restore-keys: |
+            fuzz-corpus-growth-ws-
+
       - name: Fuzz REST response parser
-        run: ./build-fuzz/rest_parser_fuzz -max_total_time=180 fuzz/.generated-corpus/rest_parser_fuzz
+        run: |
+          mkdir -p fuzz/.corpus-growth/rest_parser_fuzz
+          ./build-fuzz/rest_parser_fuzz -max_total_time=180 \
+            fuzz/.corpus-growth/rest_parser_fuzz fuzz/.generated-corpus/rest_parser_fuzz
 
       - name: Fuzz websocket message parser
-        run: ./build-fuzz/websocket_parser_fuzz -max_total_time=180 examples/json/websocket
+        run: |
+          mkdir -p fuzz/.corpus-growth/websocket_parser_fuzz
+          ./build-fuzz/websocket_parser_fuzz -max_total_time=180 \
+            fuzz/.corpus-growth/websocket_parser_fuzz examples/json/websocket
+
+      # The first directory passed to each fuzzer above (fuzz/.corpus-growth/<target>) is where
+      # libFuzzer writes newly-discovered interesting inputs - saving it back here means each
+      # week's run builds on what every previous run found, instead of starting cold from just
+      # the checked-in examples/json seed every time. The checked-in seed corpus itself is never
+      # written to (it's passed as a read-only additional corpus, per libFuzzer's multi-corpus-dir
+      # convention).
+      - name: Save REST corpus growth
+        if: always()
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/.corpus-growth/rest_parser_fuzz
+          key: fuzz-corpus-growth-rest-${{ github.run_id }}
+
+      - name: Save websocket corpus growth
+        if: always()
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/.corpus-growth/websocket_parser_fuzz
+          key: fuzz-corpus-growth-ws-${{ github.run_id }}
 
       - name: Upload crash artifacts
         if: failure()
