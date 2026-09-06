@@ -17,7 +17,8 @@ Worked example: [#36](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/pull/36)
 5. **`include/hyperliquid/rest/RestEndpointListener.h`** - add an `onX` virtual callback (used by the async/listener path).
 6. **`include/hyperliquid/rest/RestApi.h`** + **`src/rest/RestApi.cpp`** - add the public `RestApi::x(...)` method (sync) wiring the builder → send → parser together. Also wire the corresponding `xAsync(...)` method and its `case` in the async dispatch switch.
 7. Add tests in the `tests/rest_<theme>_test.cpp` file matching the endpoint's theme (`rest_market_data_test.cpp`, `rest_meta_test.cpp`, `rest_account_test.cpp`, `rest_delegation_test.cpp`, `rest_borrow_lend_test.cpp`, `rest_outcomes_test.cpp`, `rest_deploy_test.cpp`, `rest_vaults_test.cpp`), or a new `tests/rest_<feature>_test.cpp` if none fit - both a request-builder test and a response-parser test per endpoint. Register the new test file in `CMakeLists.txt` if it's a new file.
-8. Add or extend an example in `examples/` that calls the real endpoint against testnet, and update the README's coverage table.
+8. **`include/hyperliquid/websocket/WebsocketApi.h`** + **`src/websocket/WebsocketApi.cpp`** - add a `WebsocketApi::x(...)` method too. Hyperliquid's websocket `post` mechanism (see `for-developers/api/websocket/post-requests` in the official docs) can carry *any* info request or signed action, not a fixed allowlist, and `WebsocketApi::Impl::signAndSend(RestEndpointType, body, ...)` already implements that wrapper generically - a new method here is just a few lines calling it with your `InfoRequestBuilder`/`ExchangeRequestBuilder` output, mirroring the existing `spotMeta`/`meta`/`outcomeMeta`/`perpDexs` methods. Don't skip this step by default: as of writing, the vast majority of REST endpoints have no websocket equivalent purely because this step used to be missing from this doc, not because it doesn't make sense for them.
+9. Add or extend an example in `examples/` that calls the real endpoint against testnet, and update the README's coverage table.
 
 ### JSON parsing notes (read this before you write a parser)
 
@@ -29,7 +30,7 @@ This codebase uses simdjson's `ondemand` API, which has real pitfalls that have 
 
 ## Adding a new `/exchange` action
 
-Same shape as above, but touching `ExchangeRequestBuilder.h`/`.cpp` instead of `InfoRequestBuilder`, and note whether the action needs `RequestTypes.h`'s `isUserSignedAction()` switch (EIP-712 user-signed actions, like transfers/staking) versus the default L1 action signing path.
+Same shape as above (including the `WebsocketApi` step), but touching `ExchangeRequestBuilder.h`/`.cpp` instead of `InfoRequestBuilder`, and note whether the action needs `RequestTypes.h`'s `isUserSignedAction()` switch (EIP-712 user-signed actions, like transfers/staking) versus the default L1 action signing path.
 
 ## Adding a new websocket subscription channel
 
