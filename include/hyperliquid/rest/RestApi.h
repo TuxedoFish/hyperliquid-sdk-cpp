@@ -63,6 +63,7 @@ public:
                                           const std::string& interval,
                                           uint64_t startTime,
                                           uint64_t endTime);
+    RecentTradesResponse recentTrades(const std::string& coin);
     AllMidsResponse allMids(const std::optional<std::string>& dex = std::nullopt);
     OpenOrdersResponse openOrders(const std::string& user,
                                   const std::optional<std::string>& dex = std::nullopt);
@@ -184,6 +185,7 @@ public:
                              const std::string& interval,
                              uint64_t startTime,
                              uint64_t endTime);
+    void recentTradesAsync(const std::string& coin);
     void allMidsAsync(const std::optional<std::string>& dex = std::nullopt);
     void openOrdersAsync(const std::string& user,
                          const std::optional<std::string>& dex = std::nullopt);

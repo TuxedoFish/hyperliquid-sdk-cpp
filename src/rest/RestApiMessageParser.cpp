@@ -75,6 +75,9 @@ namespace hyperliquid
             case RestEndpointType::CandleSnapshot:
                 listener.onCandleSnapshot(parseCandleSnapshot(message), correlationId);
                 break;
+            case RestEndpointType::RecentTrades:
+                listener.onRecentTrades(parseRecentTrades(message), correlationId);
+                break;
             case RestEndpointType::AllMids:
                 listener.onAllMids(parseAllMids(message), correlationId);
                 break;
@@ -1498,6 +1501,52 @@ namespace hyperliquid
             return response;
         }
 
+        RecentTradesResponse parseRecentTrades(const std::string& message)
+        {
+            RecentTradesResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    RecentTrade trade;
+                    trade.coin = std::string(obj["coin"].get_string().value());
+                    auto sideStr = obj["side"].get_string().value();
+                    trade.side = sideStr.size() > 0 ? sideStr[0] : '?';
+                    trade.px = toDouble(obj["px"].get_string().value());
+                    trade.sz = toDouble(obj["sz"].get_string().value());
+                    trade.time = obj["time"].get_uint64().value();
+                    trade.hash = std::string(obj["hash"].get_string().value());
+                    trade.tid = obj["tid"].get_uint64().value();
+
+                    trade.users = {"", ""};
+                    auto usersArr = obj["users"].get_array().value();
+                    auto iter = usersArr.begin();
+                    if (iter != usersArr.end())
+                    {
+                        trade.users[0] = std::string((*iter).get_string().value());
+                        ++iter;
+                        if (iter != usersArr.end())
+                        {
+                            trade.users[1] = std::string((*iter).get_string().value());
+                        }
+                    }
+
+                    response.trades.push_back(std::move(trade));
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in recentTrades: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
         AllMidsResponse parseAllMids(const std::string& message)
         {
             AllMidsResponse response;
@@ -2913,6 +2962,11 @@ namespace hyperliquid
     CandleSnapshotResponse RestApiMessageParser::parseCandleSnapshot(const std::string& message)
     {
         return impl_->parseCandleSnapshot(message);
+    }
+
+    RecentTradesResponse RestApiMessageParser::parseRecentTrades(const std::string& message)
+    {
+        return impl_->parseRecentTrades(message);
     }
 
     AllMidsResponse RestApiMessageParser::parseAllMids(const std::string& message)

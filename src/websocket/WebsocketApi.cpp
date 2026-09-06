@@ -378,6 +378,12 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::recentTrades(const std::string& coin, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::RecentTrades, InfoRequestBuilder::recentTrades(coin),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::userFunding(const std::string& user, uint64_t startTime,
                                    const std::optional<uint64_t>& endTime, std::optional<uint64_t> correlationId)
     {

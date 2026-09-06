@@ -36,6 +36,13 @@ TEST(InfoRequestBuilderTest, CandleSnapshot)
     EXPECT_EQ(body["req"]["endTime"], 1681223254710ULL);
 }
 
+TEST(InfoRequestBuilderTest, RecentTrades)
+{
+    auto body = InfoRequestBuilder::recentTrades("BTC");
+    EXPECT_EQ(body["type"], "recentTrades");
+    EXPECT_EQ(body["coin"], "BTC");
+}
+
 TEST(InfoRequestBuilderTest, AllMidsNoDex)
 {
     auto body = InfoRequestBuilder::allMids();
@@ -163,6 +170,42 @@ TEST(RestApiMessageParserInfoTest, ParseCandleSnapshot)
     EXPECT_DOUBLE_EQ(c.low, 29250.0);
     EXPECT_DOUBLE_EQ(c.volume, 10.5);
     EXPECT_EQ(c.numTrades, 12);
+}
+
+TEST(RestApiMessageParserInfoTest, ParseRecentTrades)
+{
+    // Real testnet response for recentTrades("BTC").
+    std::string message = R"([
+        {"coin": "BTC", "side": "A", "px": "79863.0", "sz": "0.00019", "time": 1788719485806,
+         "hash": "0xa2d0944b72ac8da9a44a0428aea750010200ac310dafac7b46993f9e31a06794", "tid": 147553488227912,
+         "users": ["0x5972698398d8c5bbe67c0db74906236691020417", "0x7e7b9c243001dbaccecc4884291c6b74da6c920d"]},
+        {"coin": "BTC", "side": "B", "px": "79872.0", "sz": "0.00019", "time": 1788719485806,
+         "hash": "0xeffd1db0591b4b2df1760428aea7500101003595f41e6a0093c5c903181f2518", "tid": 714641933113515,
+         "users": ["0x6a3709c785da057d69f16a4386bbec7beb38c914", "0x5972698398d8c5bbe67c0db74906236691020417"]}
+    ])";
+
+    RestApiMessageParser parser;
+    auto trades = parser.parseRecentTrades(message);
+
+    ASSERT_EQ(trades.trades.size(), 2u);
+
+    const auto& t0 = trades.trades[0];
+    EXPECT_EQ(t0.coin, "BTC");
+    EXPECT_EQ(t0.side, 'A');
+    EXPECT_DOUBLE_EQ(t0.px, 79863.0);
+    EXPECT_DOUBLE_EQ(t0.sz, 0.00019);
+    EXPECT_EQ(t0.time, 1788719485806ULL);
+    EXPECT_EQ(t0.hash, "0xa2d0944b72ac8da9a44a0428aea750010200ac310dafac7b46993f9e31a06794");
+    EXPECT_EQ(t0.tid, 147553488227912u);
+    EXPECT_EQ(t0.users[0], "0x5972698398d8c5bbe67c0db74906236691020417");
+    EXPECT_EQ(t0.users[1], "0x7e7b9c243001dbaccecc4884291c6b74da6c920d");
+
+    const auto& t1 = trades.trades[1];
+    EXPECT_EQ(t1.side, 'B');
+    EXPECT_DOUBLE_EQ(t1.px, 79872.0);
+    EXPECT_EQ(t1.tid, 714641933113515u);
+    EXPECT_EQ(t1.users[0], "0x6a3709c785da057d69f16a4386bbec7beb38c914");
+    EXPECT_EQ(t1.users[1], "0x5972698398d8c5bbe67c0db74906236691020417");
 }
 
 TEST(RestApiMessageParserInfoTest, ParseAllMids)

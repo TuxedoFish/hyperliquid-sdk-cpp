@@ -171,6 +171,14 @@ nlohmann::ordered_json InfoRequestBuilder::candleSnapshot(const std::string& coi
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::recentTrades(const std::string& coin)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::RecentTrades);
+    body["coin"] = coin;
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::allMids(const std::optional<std::string>& dex)
 {
     nlohmann::ordered_json body;

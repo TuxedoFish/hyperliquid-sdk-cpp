@@ -152,6 +152,7 @@ namespace hyperliquid
         AllMids,
         L2Book,
         CandleSnapshot,
+        RecentTrades,
         OpenOrders,
         UserFills,
         UserFillsByTime,
@@ -246,6 +247,7 @@ namespace hyperliquid
         case RestEndpointType::AllMids: return "allMids";
         case RestEndpointType::L2Book: return "l2Book";
         case RestEndpointType::CandleSnapshot: return "candleSnapshot";
+        case RestEndpointType::RecentTrades: return "recentTrades";
         case RestEndpointType::OpenOrders: return "openOrders";
         case RestEndpointType::UserFills: return "userFills";
         case RestEndpointType::UserFillsByTime: return "userFillsByTime";
@@ -339,6 +341,7 @@ namespace hyperliquid
         case RestEndpointType::AllMids: return false;
         case RestEndpointType::L2Book: return false;
         case RestEndpointType::CandleSnapshot: return false;
+        case RestEndpointType::RecentTrades: return false;
         case RestEndpointType::OpenOrders: return false;
         case RestEndpointType::UserFills: return false;
         case RestEndpointType::UserFillsByTime: return false;
