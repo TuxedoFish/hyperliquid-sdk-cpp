@@ -55,10 +55,13 @@ TEST(UserAbstractionModeConversion, RoundTrips)
     EXPECT_THROW(stringToUserAbstractionMode("x"), std::invalid_argument);
 }
 
-// The success fixture is synthetic-but-schema-accurate: a genuine success response requires
-// signing with an approved agent wallet distinct from the account itself (not just running as
-// the account's own key), which is more setup than warranted for this test. The error fixture
-// below is real, captured live.
+// The error fixture below is real, captured live - including with a freshly-generated,
+// properly-approved agent wallet (via approveAgent), ruling out signer identity as the cause.
+// The equivalent userSetAbstraction call succeeds on the same account moments apart, so this is
+// a real exchange-side restriction on this specific action, not an SDK request-shape issue - see
+// examples/rest_agent_set_abstraction.cpp, which reproduces this end-to-end. The success fixture
+// stays synthetic-but-schema-accurate, matching the official TS SDK's documented response shape,
+// since a genuine "ok" wasn't obtainable during testing.
 
 TEST(AgentSetAbstractionResponseParsing, SuccessResponse)
 {
