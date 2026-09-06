@@ -55,8 +55,10 @@ TEST(UserAbstractionModeConversion, RoundTrips)
     EXPECT_THROW(stringToUserAbstractionMode("x"), std::invalid_argument);
 }
 
-// Response fixtures are synthetic-but-schema-accurate (not captured from a live call - see PR
-// description), matching AgentSetAbstractionResponse's generic ok/err shape.
+// The success fixture is synthetic-but-schema-accurate: a genuine success response requires
+// signing with an approved agent wallet distinct from the account itself (not just running as
+// the account's own key), which is more setup than warranted for this test. The error fixture
+// below is real, captured live.
 
 TEST(AgentSetAbstractionResponseParsing, SuccessResponse)
 {
@@ -76,9 +78,12 @@ TEST(AgentSetAbstractionResponseParsing, SuccessResponse)
 
 TEST(AgentSetAbstractionResponseParsing, ErrorResponse)
 {
+    // Real testnet response: signed with the account's own key rather than a distinct approved
+    // agent wallet - rejected regardless of target mode (both UnifiedAccount and Disabled were
+    // tried live and got this same error).
     static const std::string kErr = R"({
         "status": "err",
-        "response": "Invalid abstraction transition."
+        "response": "Abstraction transition not allowed"
     })";
 
     RestApiMessageParser parser;
@@ -86,5 +91,5 @@ TEST(AgentSetAbstractionResponseParsing, ErrorResponse)
 
     EXPECT_EQ(resp.status, "err");
     ASSERT_TRUE(resp.error.has_value());
-    EXPECT_EQ(*resp.error, "Invalid abstraction transition.");
+    EXPECT_EQ(*resp.error, "Abstraction transition not allowed");
 }
