@@ -11,10 +11,63 @@
 class PostResponseLogger : public hyperliquid::WebsocketApiListener
 {
 public:
+    // Typed callbacks - demonstrate the new mechanism with real parsed fields instead of raw JSON.
+    void onL2BookPostResponse(const hyperliquid::L2BookResponse& resp,
+                              std::optional<uint64_t> correlationId) override
+    {
+        spdlog::info("[l2Book] correlationId={} coin={} bids={} asks={}",
+                     correlationId.value_or(0), resp.coin, resp.bids.size(), resp.asks.size());
+    }
+
+    void onCandleSnapshotPostResponse(const hyperliquid::CandleSnapshotResponse& resp,
+                                      std::optional<uint64_t> correlationId) override
+    {
+        spdlog::info("[candleSnapshot] correlationId={} candles={}",
+                     correlationId.value_or(0), resp.candles.size());
+    }
+
+    void onAllMidsPostResponse(const hyperliquid::AllMidsResponse& resp,
+                               std::optional<uint64_t> correlationId) override
+    {
+        spdlog::info("[allMids] correlationId={} mids={}", correlationId.value_or(0), resp.mids.size());
+    }
+
+    void onOpenOrdersPostResponse(const hyperliquid::OpenOrdersResponse& resp,
+                                  std::optional<uint64_t> correlationId) override
+    {
+        spdlog::info("[openOrders] correlationId={} orders={}", correlationId.value_or(0), resp.orders.size());
+    }
+
+    void onOrderStatusPostResponse(const hyperliquid::OrderStatusResponse& resp,
+                                   std::optional<uint64_t> correlationId) override
+    {
+        spdlog::info("[orderStatus] correlationId={} status={}", correlationId.value_or(0), resp.status);
+    }
+
+    void onUserFillsPostResponse(const hyperliquid::UserFillsResponse& resp,
+                                 std::optional<uint64_t> correlationId) override
+    {
+        spdlog::info("[userFills] correlationId={} fills={}", correlationId.value_or(0), resp.fills.size());
+    }
+
+    void onUserFillsByTimePostResponse(const hyperliquid::UserFillsResponse& resp,
+                                       std::optional<uint64_t> correlationId) override
+    {
+        spdlog::info("[userFillsByTime] correlationId={} fills={}", correlationId.value_or(0), resp.fills.size());
+    }
+
+    void onClearinghouseStatePostResponse(const hyperliquid::ClearinghouseState& resp,
+                                          std::optional<uint64_t> correlationId) override
+    {
+        spdlog::info("[clearinghouseState] correlationId={} accountValue={}",
+                     correlationId.value_or(0), resp.marginSummary.accountValue);
+    }
+
+    // Generic fallback - still fires for every post response, typed or not.
     void onPostResponse(const std::string& rawJson, hyperliquid::RestEndpointType type,
                         std::optional<uint64_t> correlationId) override
     {
-        spdlog::info("[post response] type={} correlationId={} payload={}",
+        spdlog::debug("[post response] type={} correlationId={} payload={}",
                      hyperliquid::toString(type), correlationId.value_or(0), rawJson);
     }
 
