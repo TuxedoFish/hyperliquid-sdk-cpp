@@ -32,6 +32,15 @@ This codebase uses simdjson's `ondemand` API, which has real pitfalls that have 
 
 Same shape as above (including the `WebsocketApi` step), but touching `ExchangeRequestBuilder.h`/`.cpp` instead of `InfoRequestBuilder`, and note whether the action needs `RequestTypes.h`'s `isUserSignedAction()` switch (EIP-712 user-signed actions, like transfers/staking) versus the default L1 action signing path.
 
+### The `vaultAddress` rule
+
+Only give a new action a `vaultAddress` parameter if Hyperliquid's real `/exchange` API genuinely supports one for that action type - check the [exchange endpoint docs](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint) and/or the official `@nktkas/hyperliquid` TS SDK's request schema for the action as a second source; don't assume it based on what a similar-looking action in this codebase already does. As a rule of thumb, order/cancel/modify/leverage/margin/TWAP-style actions that trade *for* an account support it; EIP-712 user-signed actions (`isUserSignedAction`) and actions whose own request fields already name a specific target (`vaultTransfer`, `hip3LiquidatorTransfer`) do not.
+
+When an action does support it:
+- Expose it as a trailing `const std::optional<std::string>& vaultAddress = std::nullopt` parameter - the last parameter on `RestApi`, and the parameter right after `correlationId` on `WebsocketApi` - never as a field embedded in the action's request struct.
+- When omitted, it should fall back to `ApiConfig::vaultAddress` (see `Signing::prepareBodyForType`) - both transports share that function, so this happens automatically as long as you route through it and don't special-case the type.
+- Keep `RestApi` and `WebsocketApi` consistent with each other for the same action: if one exposes `vaultAddress`, the other must too, with the same type/position/default.
+
 ## Adding a new websocket subscription channel
 
 Worked example: [#39](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/pull/39) added 9 channels including `fastAssetCtxs`.

@@ -187,7 +187,16 @@ nlohmann::ordered_json Signing::prepareBodyForType(
     if (isUserSignedAction(type))
         return prepareUserSignedActionBody(config, type, body.at("action"));
 
-    auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
+    // vaultTransfer/hip3LiquidatorTransfer never take a per-call vaultAddress (their target
+    // vault/dex is already a field of the action itself - see RestApi.h/WebsocketApi.h), so unlike
+    // every other L1 action here, they must not silently pick up ApiConfig::vaultAddress either;
+    // doing so would attach an unrelated "on behalf of vault X" wrapper field to an action that's
+    // explicitly about a different vault Y.
+    bool allowConfigVaultFallback = type != RestEndpointType::VaultTransfer &&
+                                     type != RestEndpointType::Hip3LiquidatorTransfer;
+    auto effectiveVault = vaultAddress ? vaultAddress
+                         : allowConfigVaultFallback ? config.vaultAddress
+                         : std::nullopt;
     return prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
 }
 
