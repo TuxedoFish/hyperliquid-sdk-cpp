@@ -199,6 +199,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     hyperliquid_add_test(transfers_test)
     hyperliquid_add_test(misc_info_test)
     hyperliquid_add_test(user_dex_abstraction_test)
+    hyperliquid_add_test(websocket_api_exchange_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)
