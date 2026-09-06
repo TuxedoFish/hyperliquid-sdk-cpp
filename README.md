@@ -2,6 +2,10 @@
 
 [![CI](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/actions/workflows/ci.yml/badge.svg)](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/TuxedoFish/hyperliquid-sdk-cpp/branch/main/graph/badge.svg)](https://codecov.io/gh/TuxedoFish/hyperliquid-sdk-cpp)
+[![License](https://img.shields.io/github/license/TuxedoFish/hyperliquid-sdk-cpp)](LICENSE)
+![C++](https://img.shields.io/badge/C%2B%2B-23-blue)
+[![GitHub Stars](https://img.shields.io/github/stars/TuxedoFish/hyperliquid-sdk-cpp)](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/stargazers)
+[![Open Issues](https://img.shields.io/github/issues/TuxedoFish/hyperliquid-sdk-cpp)](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/issues)
 
 A C++23 SDK for the [Hyperliquid](https://hyperliquid.xyz) perpetuals and spot exchange API — REST (`/info`, `/exchange`) and WebSocket, with typed request/response models.
 
