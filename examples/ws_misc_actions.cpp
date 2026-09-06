@@ -10,10 +10,21 @@
 class PostResponseLogger : public hyperliquid::WebsocketApiListener
 {
 public:
+    // Typed callback - every exchange action shares this one, since they all share SimpleResponse.
+    void onExchangeActionPostResponse(hyperliquid::RestEndpointType type,
+                                      const hyperliquid::SimpleResponse& resp,
+                                      std::optional<uint64_t> correlationId) override
+    {
+        spdlog::info("[exchange action] type={} correlationId={} status={} responseType={} error={}",
+                     hyperliquid::toString(type), correlationId.value_or(0), resp.status, resp.type,
+                     resp.error.value_or(""));
+    }
+
+    // Generic fallback - still fires for every post response, typed or not.
     void onPostResponse(const std::string& rawJson, hyperliquid::RestEndpointType type,
                         std::optional<uint64_t> correlationId) override
     {
-        spdlog::info("[post response] type={} correlationId={} payload={}",
+        spdlog::debug("[post response] type={} correlationId={} payload={}",
                      hyperliquid::toString(type), correlationId.value_or(0), rawJson);
     }
 
