@@ -1581,8 +1581,6 @@ namespace hyperliquid
         std::optional<double> endGas;
     };
 
-    // --- Spot deploy (spot dex abstraction) ---
-
     struct SpotPairDeployAuctionStatusResponse
     {
         uint64_t startTimeSeconds = 0;

@@ -16,7 +16,7 @@ Worked example: [#36](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/pull/36)
 4. **`include/hyperliquid/rest/RestApiMessageParser.h`** + **`src/rest/RestApiMessageParser.cpp`** - add a `parseX` method that turns the raw JSON response into your response struct.
 5. **`include/hyperliquid/rest/RestEndpointListener.h`** - add an `onX` virtual callback (used by the async/listener path).
 6. **`include/hyperliquid/rest/RestApi.h`** + **`src/rest/RestApi.cpp`** - add the public `RestApi::x(...)` method (sync) wiring the builder → send → parser together. Also wire the corresponding `xAsync(...)` method and its `case` in the async dispatch switch.
-7. Add tests in `tests/rest_info_test.cpp` (or a new `tests/rest_<feature>_test.cpp` if the endpoint set is large enough to warrant its own file, as `rest_vaults_test.cpp` did) - both a request-builder test and a response-parser test per endpoint. Register the new test file in `CMakeLists.txt` if it's a new file.
+7. Add tests in the `tests/rest_<theme>_test.cpp` file matching the endpoint's theme (`rest_market_data_test.cpp`, `rest_meta_test.cpp`, `rest_account_test.cpp`, `rest_delegation_test.cpp`, `rest_borrow_lend_test.cpp`, `rest_outcomes_test.cpp`, `rest_deploy_test.cpp`, `rest_vaults_test.cpp`), or a new `tests/rest_<feature>_test.cpp` if none fit - both a request-builder test and a response-parser test per endpoint. Register the new test file in `CMakeLists.txt` if it's a new file.
 8. Add or extend an example in `examples/` that calls the real endpoint against testnet, and update the README's coverage table.
 
 ### JSON parsing notes (read this before you write a parser)
