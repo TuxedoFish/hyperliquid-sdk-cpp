@@ -201,6 +201,8 @@ TEST(BorrowLendBuilder, BorrowSetsOperation)
 
 TEST(BorrowLendResponseParsing, SuccessResponse)
 {
+    // Real testnet response: confirmed live via a supply-then-withdraw pair of $1 USDC (token 0),
+    // both of which returned this exact shape (see examples/rest_borrow_lend_action.cpp).
     static const std::string kOk = R"({
         "status": "ok",
         "response": {

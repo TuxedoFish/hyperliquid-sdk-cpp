@@ -27,8 +27,15 @@ int main()
     if (supplyResp.error)
         spdlog::info("  Error: {}", *supplyResp.error);
 
-    // TODO: coordinator will add live testnet evidence here (supply then withdraw a small
-    // reversible amount)
+    hyperliquid::BorrowLendRequest withdrawReq;
+    withdrawReq.operation = hyperliquid::BorrowLendOperation::Withdraw;
+    withdrawReq.token = 0;
+    withdrawReq.amount = 1.0;
+
+    auto withdrawResp = api.borrowLend(withdrawReq);
+    spdlog::info("borrowLend(withdraw): status={} type={}", withdrawResp.status, withdrawResp.type);
+    if (withdrawResp.error)
+        spdlog::info("  Error: {}", *withdrawResp.error);
 
     return 0;
 }
