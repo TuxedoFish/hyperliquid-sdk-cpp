@@ -37,6 +37,8 @@ public:
     virtual void onMetaAndAssetCtxs(const MetaAndAssetCtxsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onSpotMetaAndAssetCtxs(const SpotMetaAndAssetCtxsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onSpotClearinghouseState(const SpotClearinghouseStateResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onSpotDeployState(const SpotDeployStateResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onSpotPairDeployAuctionStatus(const SpotPairDeployAuctionStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onFrontendOpenOrders(const FrontendOpenOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onHistoricalOrders(const HistoricalOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onUserTwapSliceFills(const UserTwapSliceFillsResponse&, std::optional<uint64_t> = std::nullopt) {}

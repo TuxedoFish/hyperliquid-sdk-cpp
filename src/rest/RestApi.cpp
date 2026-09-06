@@ -333,6 +333,19 @@ SpotClearinghouseStateResponse RestApi::spotClearinghouseState(const std::string
                                InfoRequestBuilder::spotClearinghouseState(user, dex)));
 }
 
+SpotDeployStateResponse RestApi::spotDeployState(const std::string& user)
+{
+    return RestApiMessageParser().parseSpotDeployState(
+        impl_->signAndSendSync(RestEndpointType::SpotDeployState, InfoRequestBuilder::spotDeployState(user)));
+}
+
+SpotPairDeployAuctionStatusResponse RestApi::spotPairDeployAuctionStatus()
+{
+    return RestApiMessageParser().parseSpotPairDeployAuctionStatus(
+        impl_->signAndSendSync(RestEndpointType::SpotPairDeployAuctionStatus,
+                               InfoRequestBuilder::spotPairDeployAuctionStatus()));
+}
+
 FrontendOpenOrdersResponse RestApi::frontendOpenOrders(const std::string& user, const std::optional<std::string>& dex)
 {
     return RestApiMessageParser().parseFrontendOpenOrders(
@@ -809,6 +822,16 @@ void RestApi::spotMetaAndAssetCtxsAsync()
 void RestApi::spotClearinghouseStateAsync(const std::string& user, const std::optional<std::string>& dex)
 {
     impl_->signAndSend(RestEndpointType::SpotClearinghouseState, InfoRequestBuilder::spotClearinghouseState(user, dex));
+}
+
+void RestApi::spotDeployStateAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::SpotDeployState, InfoRequestBuilder::spotDeployState(user));
+}
+
+void RestApi::spotPairDeployAuctionStatusAsync()
+{
+    impl_->signAndSend(RestEndpointType::SpotPairDeployAuctionStatus, InfoRequestBuilder::spotPairDeployAuctionStatus());
 }
 
 void RestApi::frontendOpenOrdersAsync(const std::string& user, const std::optional<std::string>& dex)

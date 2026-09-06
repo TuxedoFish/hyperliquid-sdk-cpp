@@ -48,6 +48,8 @@ namespace hyperliquid
         MetaAndAssetCtxsResponse parseMetaAndAssetCtxs(const std::string& message);
         SpotMetaAndAssetCtxsResponse parseSpotMetaAndAssetCtxs(const std::string& message);
         SpotClearinghouseStateResponse parseSpotClearinghouseState(const std::string& message);
+        SpotDeployStateResponse parseSpotDeployState(const std::string& message);
+        SpotPairDeployAuctionStatusResponse parseSpotPairDeployAuctionStatus(const std::string& message);
         FrontendOpenOrdersResponse parseFrontendOpenOrders(const std::string& message);
         HistoricalOrdersResponse parseHistoricalOrders(const std::string& message);
         UserTwapSliceFillsResponse parseUserTwapSliceFills(const std::string& message);

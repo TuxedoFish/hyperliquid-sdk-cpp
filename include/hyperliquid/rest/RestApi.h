@@ -73,6 +73,8 @@ public:
     SpotMetaAndAssetCtxsResponse spotMetaAndAssetCtxs();
     SpotClearinghouseStateResponse spotClearinghouseState(const std::string& user,
                                                           const std::optional<std::string>& dex = std::nullopt);
+    SpotDeployStateResponse spotDeployState(const std::string& user);
+    SpotPairDeployAuctionStatusResponse spotPairDeployAuctionStatus();
     FrontendOpenOrdersResponse frontendOpenOrders(const std::string& user,
                                                   const std::optional<std::string>& dex = std::nullopt);
     HistoricalOrdersResponse historicalOrders(const std::string& user);
@@ -181,6 +183,8 @@ public:
     void spotMetaAndAssetCtxsAsync();
     void spotClearinghouseStateAsync(const std::string& user,
                                      const std::optional<std::string>& dex = std::nullopt);
+    void spotDeployStateAsync(const std::string& user);
+    void spotPairDeployAuctionStatusAsync();
     void frontendOpenOrdersAsync(const std::string& user,
                                  const std::optional<std::string>& dex = std::nullopt);
     void historicalOrdersAsync(const std::string& user);
