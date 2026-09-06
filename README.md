@@ -146,10 +146,10 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Perpetuals | `fundingHistory` | ⬜ | |
 | Perpetuals | `predictedFundings` | ✅ | `RestApi::predictedFundings` |
 | Perpetuals | `perpsAtOpenInterestCap` | ✅ | `RestApi::perpsAtOpenInterestCap` |
-| Perpetuals | `perpDeployAuctionStatus` | ⬜ | |
+| Perpetuals | `perpDeployAuctionStatus` | ✅ | `RestApi::perpDeployAuctionStatus` |
 | Perpetuals | `activeAssetData` | ⬜ | |
-| Perpetuals | `perpDexLimits` | ⬜ | |
-| Perpetuals | `perpDexStatus` | ⬜ | |
+| Perpetuals | `perpDexLimits` | ✅ | `RestApi::perpDexLimits` |
+| Perpetuals | `perpDexStatus` | ✅ | `RestApi::perpDexStatus` |
 | Perpetuals | `allPerpMetas` | ✅ | `RestApi::allPerpMetas` |
 | Perpetuals | `perpAnnotation` | ✅ | `RestApi::perpAnnotation` |
 | Perpetuals | `perpCategories` | ✅ | `RestApi::perpCategories` |
@@ -164,7 +164,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `settledOutcome` | ✅ | `RestApi::settledOutcome` |
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 
-42 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
+45 of 55 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 

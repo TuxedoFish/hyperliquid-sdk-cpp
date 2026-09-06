@@ -16,6 +16,9 @@ public:
     virtual void onOutcomeMeta(const OutcomeMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onSettledOutcome(const SettledOutcomeResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpDexs(const PerpDexsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPerpDexLimits(const PerpDexLimitsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPerpDexStatus(const PerpDexStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPerpDeployAuctionStatus(const PerpDeployAuctionStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpsAtOpenInterestCap(const PerpsAtOpenInterestCapResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPredictedFundings(const PredictedFundingsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpAnnotation(const PerpAnnotationResponse&, std::optional<uint64_t> = std::nullopt) {}

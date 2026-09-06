@@ -177,6 +177,9 @@ namespace hyperliquid
         PerpCategories,
         PerpConciseAnnotations,
         AllPerpMetas,
+        PerpDexLimits,
+        PerpDexStatus,
+        PerpDeployAuctionStatus,
         // Info endpoints (Outcomes)
         OutcomeMeta,
         SettledOutcome,
@@ -261,6 +264,9 @@ namespace hyperliquid
         case RestEndpointType::PerpCategories: return "perpCategories";
         case RestEndpointType::PerpConciseAnnotations: return "perpConciseAnnotations";
         case RestEndpointType::AllPerpMetas: return "allPerpMetas";
+        case RestEndpointType::PerpDexLimits: return "perpDexLimits";
+        case RestEndpointType::PerpDexStatus: return "perpDexStatus";
+        case RestEndpointType::PerpDeployAuctionStatus: return "perpDeployAuctionStatus";
 
         case RestEndpointType::OutcomeMeta: return "outcomeMeta";
         case RestEndpointType::SettledOutcome: return "settledOutcome";
@@ -344,6 +350,9 @@ namespace hyperliquid
         case RestEndpointType::PerpCategories: return false;
         case RestEndpointType::PerpConciseAnnotations: return false;
         case RestEndpointType::AllPerpMetas: return false;
+        case RestEndpointType::PerpDexLimits: return false;
+        case RestEndpointType::PerpDexStatus: return false;
+        case RestEndpointType::PerpDeployAuctionStatus: return false;
 
         case RestEndpointType::OutcomeMeta: return false;
         case RestEndpointType::SettledOutcome: return false;
