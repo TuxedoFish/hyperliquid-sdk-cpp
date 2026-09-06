@@ -214,6 +214,7 @@ namespace hyperliquid
         TwapOrder,
         TwapCancel,
         VaultTransfer,
+        Hip3LiquidatorTransfer,
         UsdClassTransfer,
         SendAsset,
         UsdSend,
@@ -302,6 +303,7 @@ namespace hyperliquid
         case RestEndpointType::TwapOrder: return "twapOrder";
         case RestEndpointType::TwapCancel: return "twapCancel";
         case RestEndpointType::VaultTransfer: return "vaultTransfer";
+        case RestEndpointType::Hip3LiquidatorTransfer: return "hip3LiquidatorTransfer";
         case RestEndpointType::UsdClassTransfer: return "usdClassTransfer";
         case RestEndpointType::SendAsset: return "sendAsset";
         case RestEndpointType::UsdSend: return "usdSend";
@@ -391,6 +393,7 @@ namespace hyperliquid
         case RestEndpointType::TwapOrder: return true;
         case RestEndpointType::TwapCancel: return true;
         case RestEndpointType::VaultTransfer: return true;
+        case RestEndpointType::Hip3LiquidatorTransfer: return true;
         case RestEndpointType::UsdClassTransfer: return true;
         case RestEndpointType::SendAsset: return true;
         case RestEndpointType::UsdSend: return true;
@@ -604,6 +607,16 @@ namespace hyperliquid
         std::string vaultAddress;
         bool isDeposit;
         double usd;
+    };
+
+    // On withdrawal (isDeposit=false), only the principal amount previously deposited is
+    // withdrawable - not any pnl accrued by the liquidator address.
+    struct Hip3LiquidatorTransferRequest
+    {
+        std::string dex;
+        // Quote-token 1e-6 units; must be a multiple of 1000 quote tokens (i.e. 1_000_000_000).
+        uint64_t ntl;
+        bool isDeposit;
     };
 
     struct UsdClassTransferRequest

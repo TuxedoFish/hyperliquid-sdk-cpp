@@ -385,6 +385,19 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "hip3LiquidatorTransfer";
+        action["dex"] = request.dex;
+        action["ntl"] = request.ntl;
+        action["isDeposit"] = request.isDeposit;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     nlohmann::ordered_json ExchangeRequestBuilder::usdClassTransfer(const UsdClassTransferRequest& request) const
     {
         nlohmann::ordered_json action;
