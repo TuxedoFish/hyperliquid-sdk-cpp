@@ -203,6 +203,8 @@ namespace hyperliquid
         BorrowLendUserState,
         BorrowLendReserveState,
         AllBorrowLendReserveStates,
+        UserDexAbstractionState,
+        UserAbstraction,
 
         // Exchange endpoints (signed, L1 action)
         PlaceOrder,
@@ -304,6 +306,8 @@ namespace hyperliquid
         case RestEndpointType::BorrowLendUserState: return "borrowLendUserState";
         case RestEndpointType::BorrowLendReserveState: return "borrowLendReserveState";
         case RestEndpointType::AllBorrowLendReserveStates: return "allBorrowLendReserveStates";
+        case RestEndpointType::UserDexAbstractionState: return "userDexAbstraction";
+        case RestEndpointType::UserAbstraction: return "userAbstraction";
 
         case RestEndpointType::PlaceOrder: return "order";
         case RestEndpointType::CancelOrder: return "cancel";
@@ -405,6 +409,8 @@ namespace hyperliquid
         case RestEndpointType::BorrowLendUserState: return false;
         case RestEndpointType::BorrowLendReserveState: return false;
         case RestEndpointType::AllBorrowLendReserveStates: return false;
+        case RestEndpointType::UserDexAbstractionState: return false;
+        case RestEndpointType::UserAbstraction: return false;
 
         case RestEndpointType::PlaceOrder: return true;
         case RestEndpointType::CancelOrder: return true;

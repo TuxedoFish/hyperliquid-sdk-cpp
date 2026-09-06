@@ -204,6 +204,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     hyperliquid_add_test(user_dex_abstraction_test)
     hyperliquid_add_test(websocket_api_exchange_test)
     hyperliquid_add_test(websocket_api_dispatch_test)
+    hyperliquid_add_test(rest_abstraction_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)
