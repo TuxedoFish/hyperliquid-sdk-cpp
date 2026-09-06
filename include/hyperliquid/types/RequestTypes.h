@@ -609,6 +609,8 @@ namespace hyperliquid
         double usd;
     };
 
+    // On withdrawal (isDeposit=false), only the principal amount previously deposited is
+    // withdrawable - not any pnl accrued by the liquidator address.
     struct Hip3LiquidatorTransferRequest
     {
         std::string dex;

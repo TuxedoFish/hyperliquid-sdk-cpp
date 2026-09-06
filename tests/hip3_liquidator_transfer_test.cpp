@@ -49,8 +49,9 @@ TEST(Hip3LiquidatorTransferBuilder, WithdrawalSetsIsDepositFalse)
 
 TEST(Hip3LiquidatorTransferResponseParsing, SuccessResponse)
 {
-    // Synthetic - shape verified against the official TS SDK, not a live-testnet capture, since
-    // this action can't be safely exercised without a real liquidatable position.
+    // Synthetic - shape verified against the official TS SDK. Depositing against this wallet on
+    // testnet reliably hits ErrorResponse's real rejection below instead (see
+    // examples/rest_hip3_liquidator_transfer.cpp), so the success shape isn't live-captured.
     static const std::string kOk = R"({
         "status": "ok",
         "response": {
@@ -67,8 +68,8 @@ TEST(Hip3LiquidatorTransferResponseParsing, SuccessResponse)
 
 TEST(Hip3LiquidatorTransferResponseParsing, ErrorResponse)
 {
-    // Synthetic - shape verified against the official TS SDK, not a live-testnet capture, since
-    // this action can't be safely exercised without a real liquidatable position.
+    // Real testnet response: depositing 1000 quote tokens against the "test" HIP-3 dex from a
+    // wallet with insufficient perp balance (see examples/rest_hip3_liquidator_transfer.cpp).
     static const std::string kErr = R"({
         "status": "err",
         "response": "Insufficient funds available to deposit."
