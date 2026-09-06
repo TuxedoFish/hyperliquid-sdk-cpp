@@ -563,8 +563,9 @@ TEST(SimpleResponseParsing, VaultTransferSuccess)
     EXPECT_FALSE(resp.error.has_value());
 }
 
-// Synthetic - modeled on the {status:"ok", response:{type:"default"}} shape documented for
-// UserSetAbstractionResponse in the nktkas/hyperliquid TS SDK; no live response was captured.
+// Real testnet response: a signed userSetAbstraction(Disabled) request against an account
+// with no open positions/orders - matches the shape documented for UserSetAbstractionResponse
+// in the nktkas/hyperliquid TS SDK exactly.
 TEST(SimpleResponseParsing, UserSetAbstractionSuccess)
 {
     static const std::string kOk = R"({"status":"ok","response":{"type":"default"}})";
