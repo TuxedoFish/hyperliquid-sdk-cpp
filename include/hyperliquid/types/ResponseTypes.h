@@ -1580,4 +1580,55 @@ namespace hyperliquid
         std::optional<double> currentGas;
         std::optional<double> endGas;
     };
+
+    // --- Spot deploy (spot dex abstraction) ---
+
+    struct SpotPairDeployAuctionStatusResponse
+    {
+        uint64_t startTimeSeconds = 0;
+        uint64_t durationSeconds = 0;
+        double startGas = 0.0;
+        std::optional<double> currentGas;
+        std::optional<double> endGas;
+    };
+
+    struct SpotDeployStateTokenSpec
+    {
+        std::string name;
+        int szDecimals = 0;
+        int weiDecimals = 0;
+    };
+
+    struct SpotDeployStateGenesisBalance
+    {
+        std::string address;
+        double balance = 0.0;
+    };
+
+    struct SpotDeployStateExistingTokenBalance
+    {
+        int token = 0;
+        double balance = 0.0;
+    };
+
+    struct SpotDeployStateEntry
+    {
+        int token = 0;
+        SpotDeployStateTokenSpec spec;
+        std::optional<std::string> fullName;
+        double deployerTradingFeeShare = 0.0;
+        std::vector<int> spots;
+        std::optional<double> maxSupply;
+        double hyperliquidityGenesisBalance = 0.0;
+        double totalGenesisBalanceWei = 0.0;
+        std::vector<SpotDeployStateGenesisBalance> userGenesisBalances;
+        std::vector<SpotDeployStateExistingTokenBalance> existingTokenGenesisBalances;
+        std::vector<std::string> blacklistUsers;
+    };
+
+    struct SpotDeployStateResponse
+    {
+        std::vector<SpotDeployStateEntry> states;
+        SpotPairDeployAuctionStatusResponse gasAuction;
+    };
 }

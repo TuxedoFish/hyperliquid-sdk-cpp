@@ -96,6 +96,12 @@ namespace hyperliquid
             case RestEndpointType::SpotClearinghouseState:
                 listener.onSpotClearinghouseState(parseSpotClearinghouseState(message), correlationId);
                 break;
+            case RestEndpointType::SpotDeployState:
+                listener.onSpotDeployState(parseSpotDeployState(message), correlationId);
+                break;
+            case RestEndpointType::SpotPairDeployAuctionStatus:
+                listener.onSpotPairDeployAuctionStatus(parseSpotPairDeployAuctionStatus(message), correlationId);
+                break;
             case RestEndpointType::FrontendOpenOrders:
                 listener.onFrontendOpenOrders(parseFrontendOpenOrders(message), correlationId);
                 break;
@@ -1692,6 +1698,129 @@ namespace hyperliquid
             return response;
         }
 
+        SpotPairDeployAuctionStatusResponse parseSpotPairDeployAuctionStatusObj(simdjson::ondemand::object& obj)
+        {
+            SpotPairDeployAuctionStatusResponse response;
+            response.startTimeSeconds = obj["startTimeSeconds"].get_uint64().value();
+            response.durationSeconds = obj["durationSeconds"].get_uint64().value();
+            response.startGas = parseNumberField(obj, "startGas");
+
+            simdjson::ondemand::value currentGasVal;
+            if (obj["currentGas"].get(currentGasVal) == simdjson::SUCCESS && !currentGasVal.is_null())
+                response.currentGas = toDouble(currentGasVal.get_string().value());
+
+            simdjson::ondemand::value endGasVal;
+            if (obj["endGas"].get(endGasVal) == simdjson::SUCCESS && !endGasVal.is_null())
+                response.endGas = toDouble(endGasVal.get_string().value());
+
+            return response;
+        }
+
+        SpotPairDeployAuctionStatusResponse parseSpotPairDeployAuctionStatus(const std::string& message)
+        {
+            SpotPairDeployAuctionStatusResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+                response = parseSpotPairDeployAuctionStatusObj(obj);
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in spotPairDeployAuctionStatus: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        SpotDeployStateResponse parseSpotDeployState(const std::string& message)
+        {
+            SpotDeployStateResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto obj = doc.get_object().value();
+
+                auto states = obj["states"].get_array().value();
+                for (auto entry : states)
+                {
+                    auto stateObj = entry.get_object().value();
+                    SpotDeployStateEntry state;
+                    state.token = static_cast<int>(stateObj["token"].get_int64().value());
+
+                    auto specObj = stateObj["spec"].get_object().value();
+                    state.spec.name = std::string(specObj["name"].get_string().value());
+                    state.spec.szDecimals = static_cast<int>(specObj["szDecimals"].get_int64().value());
+                    state.spec.weiDecimals = static_cast<int>(specObj["weiDecimals"].get_int64().value());
+
+                    simdjson::ondemand::value fullNameVal;
+                    if (stateObj["fullName"].get(fullNameVal) == simdjson::SUCCESS && !fullNameVal.is_null())
+                        state.fullName = std::string(fullNameVal.get_string().value());
+
+                    state.deployerTradingFeeShare = parseNumberField(stateObj, "deployerTradingFeeShare");
+
+                    auto spots = stateObj["spots"].get_array().value();
+                    for (auto s : spots)
+                        state.spots.push_back(static_cast<int>(s.get_int64().value()));
+
+                    simdjson::ondemand::value maxSupplyVal;
+                    if (stateObj["maxSupply"].get(maxSupplyVal) == simdjson::SUCCESS && !maxSupplyVal.is_null())
+                        state.maxSupply = toDouble(maxSupplyVal.get_string().value());
+
+                    state.hyperliquidityGenesisBalance = parseNumberField(stateObj, "hyperliquidityGenesisBalance");
+                    state.totalGenesisBalanceWei = parseNumberField(stateObj, "totalGenesisBalanceWei");
+
+                    auto userGenesisBalances = stateObj["userGenesisBalances"].get_array().value();
+                    for (auto balanceEntry : userGenesisBalances)
+                    {
+                        auto pair = balanceEntry.get_array().value();
+                        auto iter = pair.begin();
+
+                        SpotDeployStateGenesisBalance balance;
+                        balance.address = std::string((*iter).get_string().value());
+                        ++iter;
+                        balance.balance = toDouble((*iter).get_string().value());
+                        state.userGenesisBalances.push_back(std::move(balance));
+                    }
+
+                    auto existingTokenGenesisBalances = stateObj["existingTokenGenesisBalances"].get_array().value();
+                    for (auto balanceEntry : existingTokenGenesisBalances)
+                    {
+                        auto pair = balanceEntry.get_array().value();
+                        auto iter = pair.begin();
+
+                        SpotDeployStateExistingTokenBalance balance;
+                        balance.token = static_cast<int>((*iter).get_int64().value());
+                        ++iter;
+                        balance.balance = toDouble((*iter).get_string().value());
+                        state.existingTokenGenesisBalances.push_back(std::move(balance));
+                    }
+
+                    simdjson::ondemand::array blacklistUsers;
+                    if (!stateObj["blacklistUsers"].get_array().get(blacklistUsers))
+                    {
+                        for (auto u : blacklistUsers)
+                            state.blacklistUsers.emplace_back(u.get_string().value());
+                    }
+
+                    response.states.push_back(std::move(state));
+                }
+
+                auto gasAuctionObj = obj["gasAuction"].get_object().value();
+                response.gasAuction = parseSpotPairDeployAuctionStatusObj(gasAuctionObj);
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in spotDeployState: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
         MetaAndAssetCtxsResponse parseMetaAndAssetCtxs(const std::string& message)
         {
             MetaAndAssetCtxsResponse response;
@@ -2665,6 +2794,16 @@ namespace hyperliquid
     SpotClearinghouseStateResponse RestApiMessageParser::parseSpotClearinghouseState(const std::string& message)
     {
         return impl_->parseSpotClearinghouseState(message);
+    }
+
+    SpotDeployStateResponse RestApiMessageParser::parseSpotDeployState(const std::string& message)
+    {
+        return impl_->parseSpotDeployState(message);
+    }
+
+    SpotPairDeployAuctionStatusResponse RestApiMessageParser::parseSpotPairDeployAuctionStatus(const std::string& message)
+    {
+        return impl_->parseSpotPairDeployAuctionStatus(message);
     }
 
     FrontendOpenOrdersResponse RestApiMessageParser::parseFrontendOpenOrders(const std::string& message)

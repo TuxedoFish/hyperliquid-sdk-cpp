@@ -241,6 +241,21 @@ nlohmann::ordered_json InfoRequestBuilder::spotClearinghouseState(const std::str
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::spotDeployState(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::SpotDeployState);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::spotPairDeployAuctionStatus()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::SpotPairDeployAuctionStatus);
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::frontendOpenOrders(const std::string& user,
                                                               const std::optional<std::string>& dex)
 {

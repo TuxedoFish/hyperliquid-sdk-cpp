@@ -53,6 +53,8 @@ public:
     static nlohmann::ordered_json spotMetaAndAssetCtxs();
     static nlohmann::ordered_json spotClearinghouseState(const std::string& user,
                                                          const std::optional<std::string>& dex = std::nullopt);
+    static nlohmann::ordered_json spotDeployState(const std::string& user);
+    static nlohmann::ordered_json spotPairDeployAuctionStatus();
     static nlohmann::ordered_json frontendOpenOrders(const std::string& user,
                                                      const std::optional<std::string>& dex = std::nullopt);
     static nlohmann::ordered_json historicalOrders(const std::string& user);

@@ -179,15 +179,15 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `spotMeta` | ✅ | `RestApi::spotMeta` |
 | Spot / Outcomes | `spotMetaAndAssetCtxs` | ✅ | `RestApi::spotMetaAndAssetCtxs` |
 | Spot / Outcomes | `spotClearinghouseState` | ✅ | `RestApi::spotClearinghouseState` |
-| Spot / Outcomes | `spotDeployState` | ⬜ | |
-| Spot / Outcomes | `spotPairDeployAuctionStatus` | ⬜ | |
+| Spot / Outcomes | `spotDeployState` | ✅ | `RestApi::spotDeployState` |
+| Spot / Outcomes | `spotPairDeployAuctionStatus` | ✅ | `RestApi::spotPairDeployAuctionStatus` |
 | Spot / Outcomes | `tokenDetails` | ⬜ | |
 | Spot / Outcomes | `outcomeMeta` | ✅ | `RestApi::outcomeMeta` |
 | Spot / Outcomes | `settledOutcome` | ✅ | `RestApi::settledOutcome` |
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 | Spot / Outcomes | `outcomeTemplates` | ⬜ | |
 
-45 of 78 documented info endpoints implemented. Three (`spotDeployState`, `spotPairDeployAuctionStatus`, `tokenDetails`) have a `RestEndpointType` enum value reserved but no request builder or method yet.
+47 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 
