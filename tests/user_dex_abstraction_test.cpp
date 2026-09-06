@@ -127,12 +127,14 @@ TEST(PrepareUserSignedActionBody, UserDexAbstractionMissingWalletReturnsEmptyBod
     EXPECT_TRUE(body.empty());
 }
 
-// Synthetic response fixtures matching the TS SDK's UserDexAbstractionResponse shape
-// (status:"ok"/response.type:"default" on success, status:"err"/string response on error) - the
-// same shape already exercised generically by SimpleResponseParsing.VaultTransferSuccess.
+// Response fixtures matching the TS SDK's UserDexAbstractionResponse shape (status:"ok"/
+// response.type:"default" on success, status:"err"/string response on error) - the same shape
+// already exercised generically by SimpleResponseParsing.VaultTransferSuccess.
 
 TEST(UserDexAbstractionResponseParsing, SuccessResponse)
 {
+    // Real testnet response for enabled=false against an account already out of the legacy
+    // dex-abstraction-enabled state.
     static const std::string kOk = R"({"status":"ok","response":{"type":"default"}})";
     RestApiMessageParser parser;
     auto resp = parser.parseSimpleResponse(kOk);
@@ -142,11 +144,15 @@ TEST(UserDexAbstractionResponseParsing, SuccessResponse)
 
 TEST(UserDexAbstractionResponseParsing, ErrorResponse)
 {
-    static const std::string kErr =
-        R"({"status":"err","response":"Sub-account 0xcb3f0bd249a89e45e86a44bcfc7113e4ffe84cd1 is not registered to caller"})";
+    // Real testnet response for enabled=true, captured on the same account moments after the
+    // SuccessResponse fixture above - same "Abstraction transition not allowed" rejection
+    // observed on the agentSetAbstraction investigation, suggesting the account's current
+    // abstraction mode (already UnifiedAccount, from the userSetAbstraction work) blocks
+    // re-enabling this deprecated boolean toggle.
+    static const std::string kErr = R"({"status":"err","response":"Abstraction transition not allowed"})";
     RestApiMessageParser parser;
     auto resp = parser.parseSimpleResponse(kErr);
     EXPECT_EQ(resp.status, "err");
     ASSERT_TRUE(resp.error.has_value());
-    EXPECT_EQ(*resp.error, "Sub-account 0xcb3f0bd249a89e45e86a44bcfc7113e4ffe84cd1 is not registered to caller");
+    EXPECT_EQ(*resp.error, "Abstraction transition not allowed");
 }
