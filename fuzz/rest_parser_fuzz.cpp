@@ -21,10 +21,13 @@
 // libFuzzer's crash detection stays focused on real robustness bugs: crashes,
 // ASan/UBSan violations, and hangs.
 //
-// fuzz/corpus/rest_parser_fuzz/ seeds this harness with real captured response
-// payloads pulled from tests/*.cpp, each prefixed with the selector byte for
-// the parser it was captured against (index into kParsers[] below) - that
-// prefix is what makes a corpus file valid input here, not just the JSON body.
+// This harness is seeded with real captured response payloads. The plain,
+// valid JSON lives in examples/json/rest/<parserName>/*.json (reusable for
+// anything else - docs, mocking, OpenAPI examples); run
+// fuzz/generate_corpus.py to turn that into an actual corpus directory for
+// this binary, which prepends each file's selector byte (its index into
+// kParsers[] below) - that prefix is what makes a corpus file valid input
+// here, not just the JSON body.
 
 namespace
 {

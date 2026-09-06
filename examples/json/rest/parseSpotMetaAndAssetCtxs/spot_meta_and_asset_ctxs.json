@@ -1,0 +1,7 @@
+[
+        {
+            "tokens": [{"name": "USDC", "szDecimals": 8, "weiDecimals": 8, "index": 0, "tokenId": "0x1"}],
+            "universe": [{"name": "PURR/USDC", "tokens": [1, 0], "index": 0, "isCanonical": true}]
+        },
+        [{"dayNtlVlm": "500.0", "prevDayPx": "0.5", "markPx": "0.51", "circulatingSupply": "1000000.0"}]
+    ]

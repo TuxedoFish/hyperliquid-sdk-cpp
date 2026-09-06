@@ -1,0 +1,1 @@
+{"spec":{"outcome":10100,"name":"Recurring Named Outcome","description":"index:2","sideSpecs":[{"name":"Yes"},{"name":"No"}],"quoteToken":"USDC"},"settleFraction":"0.0","details":"price:2144.1","question":{"question":{"settled":796},"name":"Recurring","description":"class:priceBucket|underlying:ETH|expiry:20260521-0845|priceThresholds:2105,2190.9|period:15m"}}

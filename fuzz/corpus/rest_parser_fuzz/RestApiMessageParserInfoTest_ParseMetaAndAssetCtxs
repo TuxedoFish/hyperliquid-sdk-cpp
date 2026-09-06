@@ -1,5 +1,0 @@
-[
-        {"universe": [{"name": "BTC", "szDecimals": 5, "maxLeverage": 50}]},
-        [{"dayNtlVlm": "1000.5", "prevDayPx": "60000.0", "markPx": "61000.0",
-          "midPx": "61000.5", "funding": "0.0001", "openInterest": "500.0", "oraclePx": "61000.2"}]
-    ]

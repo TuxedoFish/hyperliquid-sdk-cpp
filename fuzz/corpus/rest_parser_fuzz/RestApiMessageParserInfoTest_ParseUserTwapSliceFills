@@ -1,8 +1,0 @@
-[{
-        "fill": {
-            "coin": "ETH", "px": "1670.1", "sz": "0.5", "side": "B", "time": 1000,
-            "startPosition": "0.0", "dir": "Open Long", "closedPnl": "0.0", "hash": "0xabc",
-            "oid": 1, "crossed": true, "fee": "0.1", "tid": 1, "feeToken": "USDC"
-        },
-        "twapId": 42
-    }]

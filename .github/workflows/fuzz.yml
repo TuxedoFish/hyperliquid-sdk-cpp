@@ -47,11 +47,14 @@ jobs:
       - name: Build fuzz targets
         run: cmake --build build-fuzz -j"$(nproc)"
 
+      - name: Generate REST corpus from examples/json/rest
+        run: python3 fuzz/generate_corpus.py
+
       - name: Fuzz REST response parser
-        run: ./build-fuzz/rest_parser_fuzz -max_total_time=180 fuzz/corpus/rest_parser_fuzz
+        run: ./build-fuzz/rest_parser_fuzz -max_total_time=180 fuzz/.generated-corpus/rest_parser_fuzz
 
       - name: Fuzz websocket message parser
-        run: ./build-fuzz/websocket_parser_fuzz -max_total_time=180 fuzz/corpus/websocket_parser_fuzz
+        run: ./build-fuzz/websocket_parser_fuzz -max_total_time=180 examples/json/websocket
 
       - name: Upload crash artifacts
         if: failure()

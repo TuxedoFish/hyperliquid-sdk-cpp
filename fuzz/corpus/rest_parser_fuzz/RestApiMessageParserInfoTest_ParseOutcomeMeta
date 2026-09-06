@@ -1,4 +1,0 @@
-{"outcomes": [
-        {"outcome": 10217, "name": "Fallback", "description": "", "sideSpecs": [{"name": "Yes"}, {"name": "No"}], "quoteToken": "USDC"},
-        {"outcome": 17495, "name": "Recurring", "description": "class:priceBinary|underlying:BTC|expiry:20260907-0300|targetPrice:80115|period:1d", "sideSpecs": [{"name": "Yes"}, {"name": "No"}], "quoteToken": "USDC"}
-    ]}

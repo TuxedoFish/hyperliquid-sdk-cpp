@@ -1,0 +1,13 @@
+[{
+        "name": "sub1",
+        "subAccountUser": "0xsub1",
+        "master": "0xmaster",
+        "clearinghouseState": {
+            "assetPositions": [], "marginSummary": {"accountValue": "0.0", "totalMarginUsed": "0.0",
+            "totalNtlPos": "0.0", "totalRawUsd": "0.0"},
+            "crossMarginSummary": {"accountValue": "0.0", "totalMarginUsed": "0.0",
+            "totalNtlPos": "0.0", "totalRawUsd": "0.0"},
+            "crossMaintenanceMarginUsed": "0.0", "time": 1000, "withdrawable": "0.0"
+        },
+        "spotState": {"balances": []}
+    }]

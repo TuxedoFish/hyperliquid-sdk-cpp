@@ -72,3 +72,6 @@ Testing/
 
 # example config with secrets
 test.json
+
+# generated fuzz corpus (derived from examples/json/rest via fuzz/generate_corpus.py)
+fuzz/.generated-corpus/

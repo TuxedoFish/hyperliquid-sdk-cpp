@@ -1,7 +1,0 @@
-.{
-        "status":"ok",
-        "response":{
-            "type":"twapCancel",
-            "data":{"status":"success"}
-        }
-    }

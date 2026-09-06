@@ -1,17 +1,0 @@
-{
-        "dailyUserVlm": [{"date": "2026-09-04", "userCross": "73.82", "userAdd": "0.0", "exchange": "4574204.83"}],
-        "feeSchedule": {
-            "cross": "0.00045", "add": "0.00015", "spotCross": "0.0007", "spotAdd": "0.0004",
-            "tiers": {
-                "vip": [{"ntlCutoff": "5000000.0", "cross": "0.0004", "add": "0.00012", "spotCross": "0.0006", "spotAdd": "0.0003"}],
-                "mm": [{"makerFractionCutoff": "0.005", "add": "-0.00001"}]
-            },
-            "referralDiscount": "0.04",
-            "stakingDiscountTiers": [{"bpsOfMaxSupply": "0.0", "discount": "0.0"}]
-        },
-        "userCrossRate": "0.00045", "userAddRate": "0.00015",
-        "userSpotCrossRate": "0.0007", "userSpotAddRate": "0.0004",
-        "activeReferralDiscount": "0.0", "feeTrialEscrow": "0.0",
-        "nextTrialAvailableTimestamp": null, "stakingLink": null,
-        "activeStakingDiscount": {"bpsOfMaxSupply": "0.0", "discount": "0.0"}
-    }

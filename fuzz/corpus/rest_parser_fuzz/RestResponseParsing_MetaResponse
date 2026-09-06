@@ -1,6 +1,0 @@
-{
-        "universe": [
-            {"name": "BTC", "szDecimals": 5, "maxLeverage": 50},
-            {"name": "ETH", "szDecimals": 4, "maxLeverage": 50}
-        ]
-    }

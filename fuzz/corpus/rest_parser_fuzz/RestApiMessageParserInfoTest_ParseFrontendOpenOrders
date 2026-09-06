@@ -1,5 +1,0 @@
-[{
-        "coin": "ETH", "side": "B", "limitPx": "1670.1", "sz": "0.5", "oid": 123, "timestamp": 1000,
-        "origSz": "0.5", "isPositionTpsl": false, "isTrigger": false, "triggerPx": "0.0",
-        "triggerCondition": "N/A", "reduceOnly": false, "orderType": "Limit", "tif": "Gtc"
-    }]
