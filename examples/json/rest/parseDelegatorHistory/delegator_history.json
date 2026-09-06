@@ -1,0 +1,17 @@
+[
+        {
+            "time": 1690000000000,
+            "hash": "0xhash1",
+            "delta": {"delegate": {"validator": "0xvalidator1", "amount": "10.0", "isUndelegate": false}}
+        },
+        {
+            "time": 1690000001000,
+            "hash": "0xhash2",
+            "delta": {"cDeposit": {"amount": "5.0"}}
+        },
+        {
+            "time": 1690000002000,
+            "hash": "0xhash3",
+            "delta": {"withdrawal": {"amount": "3.0", "phase": "initiated"}}
+        }
+    ]

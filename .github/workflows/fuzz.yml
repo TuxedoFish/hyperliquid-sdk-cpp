@@ -1,0 +1,110 @@
+name: Fuzz
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  fuzz:
+    name: Fuzz REST/websocket message parsers (clang, libFuzzer+ASan)
+    runs-on: ubuntu-latest
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-bincache
+      CC: clang
+      CXX: clang++
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Create vcpkg binary cache directory
+        run: mkdir -p "${{ env.VCPKG_DEFAULT_BINARY_CACHE }}"
+
+      - name: Cache vcpkg binary cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: vcpkg-bincache-fuzz-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-bincache-fuzz-${{ runner.os }}-
+
+      - name: Clone and bootstrap vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "${VCPKG_ROOT}"
+          "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
+
+      - name: Configure (fuzzers on)
+        run: |
+          cmake -S . -B build-fuzz \
+            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+            -DHYPERLIQUID_BUILD_FUZZERS=ON \
+            -DHYPERLIQUID_BUILD_TESTS=OFF \
+            -DHYPERLIQUID_BUILD_EXAMPLES=OFF
+
+      - name: Build fuzz targets
+        run: cmake --build build-fuzz -j"$(nproc)"
+
+      - name: Generate REST corpus from examples/json/rest
+        run: python3 fuzz/generate_corpus.py
+
+      - name: Restore REST corpus growth
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/.corpus-growth/rest_parser_fuzz
+          key: fuzz-corpus-growth-rest-${{ github.run_id }}
+          restore-keys: |
+            fuzz-corpus-growth-rest-
+
+      - name: Restore websocket corpus growth
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/.corpus-growth/websocket_parser_fuzz
+          key: fuzz-corpus-growth-ws-${{ github.run_id }}
+          restore-keys: |
+            fuzz-corpus-growth-ws-
+
+      - name: Fuzz REST response parser
+        run: |
+          mkdir -p fuzz/.corpus-growth/rest_parser_fuzz
+          ./build-fuzz/rest_parser_fuzz -max_total_time=180 \
+            fuzz/.corpus-growth/rest_parser_fuzz fuzz/.generated-corpus/rest_parser_fuzz
+
+      - name: Fuzz websocket message parser
+        run: |
+          mkdir -p fuzz/.corpus-growth/websocket_parser_fuzz
+          ./build-fuzz/websocket_parser_fuzz -max_total_time=180 \
+            fuzz/.corpus-growth/websocket_parser_fuzz examples/json/websocket
+
+      # The first directory passed to each fuzzer above (fuzz/.corpus-growth/<target>) is where
+      # libFuzzer writes newly-discovered interesting inputs - saving it back here means each
+      # week's run builds on what every previous run found, instead of starting cold from just
+      # the checked-in examples/json seed every time. The checked-in seed corpus itself is never
+      # written to (it's passed as a read-only additional corpus, per libFuzzer's multi-corpus-dir
+      # convention).
+      - name: Save REST corpus growth
+        if: always()
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/.corpus-growth/rest_parser_fuzz
+          key: fuzz-corpus-growth-rest-${{ github.run_id }}
+
+      - name: Save websocket corpus growth
+        if: always()
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/.corpus-growth/websocket_parser_fuzz
+          key: fuzz-corpus-growth-ws-${{ github.run_id }}
+
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-crashes
+          path: |
+            crash-*
+            leak-*
+            timeout-*
+          if-no-files-found: ignore

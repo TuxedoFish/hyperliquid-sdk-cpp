@@ -1,0 +1,5 @@
+[
+        {"coin": "ETH", "px": "1800.0", "sz": "0.1", "side": "B", "time": 1724361546645,
+         "startPosition": "0.0", "dir": "Open Long", "closedPnl": "0.0", "hash": "0xabc",
+         "oid": 55, "crossed": false, "fee": "0.01", "tid": 999, "feeToken": "USDC"}
+    ]

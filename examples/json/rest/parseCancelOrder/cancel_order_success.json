@@ -1,0 +1,9 @@
+{
+        "status": "ok",
+        "response": {
+            "type": "cancel",
+            "data": {
+                "statuses": ["success"]
+            }
+        }
+    }

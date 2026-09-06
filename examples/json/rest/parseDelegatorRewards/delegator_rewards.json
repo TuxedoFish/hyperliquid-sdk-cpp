@@ -1,0 +1,4 @@
+[
+        {"time": 1690000000000, "source": "delegation", "totalAmount": "1.23"},
+        {"time": 1690000001000, "source": "commission", "totalAmount": "0.45"}
+    ]

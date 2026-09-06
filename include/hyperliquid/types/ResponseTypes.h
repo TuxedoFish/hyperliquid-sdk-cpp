@@ -762,7 +762,7 @@ namespace hyperliquid
         int weiDecimals;
         int index;
         std::string tokenId;
-        bool isCanonical;
+        bool isCanonical = false;
         std::optional<EvmContract> evmContract;
         std::optional<std::string> fullName;
     };
