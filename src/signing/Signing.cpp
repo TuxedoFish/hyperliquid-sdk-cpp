@@ -168,6 +168,29 @@ nlohmann::ordered_json Signing::prepareApproveAgentBody(
     return body;
 }
 
+nlohmann::ordered_json Signing::prepareBodyForType(
+    const ApiConfig& config,
+    RestEndpointType type,
+    nlohmann::ordered_json body,
+    const std::optional<std::string>& vaultAddress,
+    const std::optional<uint64_t>& expiresAfter)
+{
+    if (type == RestEndpointType::ApproveAgent)
+    {
+        std::string agentAddress = body["action"].at("agentAddress").get<std::string>();
+        std::optional<std::string> agentName;
+        if (body["action"].contains("agentName"))
+            agentName = body["action"].at("agentName").get<std::string>();
+        return prepareApproveAgentBody(config, agentAddress, agentName);
+    }
+
+    if (isUserSignedAction(type))
+        return prepareUserSignedActionBody(config, type, body.at("action"));
+
+    auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
+    return prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
+}
+
 nlohmann::ordered_json Signing::prepareUserSignedActionBody(
     const ApiConfig& config,
     RestEndpointType type,

@@ -62,6 +62,13 @@ public:
         const ApiConfig& config,
         RestEndpointType type,
         nlohmann::ordered_json action);
+
+    static nlohmann::ordered_json prepareBodyForType(
+        const ApiConfig& config,
+        RestEndpointType type,
+        nlohmann::ordered_json body,
+        const std::optional<std::string>& vaultAddress = std::nullopt,
+        const std::optional<uint64_t>& expiresAfter = std::nullopt);
 };
 
 }

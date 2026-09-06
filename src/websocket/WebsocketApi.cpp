@@ -109,8 +109,10 @@ namespace hyperliquid
                          const std::optional<uint64_t>& expiresAfter = std::nullopt,
                          std::optional<uint64_t> correlationId = std::nullopt)
         {
-            auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
-            auto payload = Signing::prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
+            // See Signing::prepareBodyForType: approveAgent and the other EIP-712 user-signed
+            // actions need distinct signing paths, not the generic Signing::prepareBody used for
+            // plain L1 actions - shared with RestApi so both transports dispatch identically.
+            auto payload = Signing::prepareBodyForType(config, type, std::move(body), vaultAddress, expiresAfter);
             auto payloadType = isAuthenticated(type) ? "action" : "info";
             int postRequestId = postRequestCounter.fetch_add(1);
             postRequestInfo[postRequestId] = {type, correlationId};
@@ -242,6 +244,301 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::settledOutcome(int outcome, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SettledOutcome, InfoRequestBuilder::settledOutcome(outcome),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::perpsAtOpenInterestCap(const std::optional<std::string>& dex,
+                                              std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::PerpsAtOpenInterestCap,
+                                  InfoRequestBuilder::perpsAtOpenInterestCap(dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::predictedFundings(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::PredictedFundings, InfoRequestBuilder::predictedFundings(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::perpAnnotation(const std::string& coin, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::PerpAnnotation, InfoRequestBuilder::perpAnnotation(coin),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::perpCategories(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::PerpCategories, InfoRequestBuilder::perpCategories(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::perpConciseAnnotations(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::PerpConciseAnnotations,
+                                  InfoRequestBuilder::perpConciseAnnotations(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::allPerpMetas(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::AllPerpMetas, InfoRequestBuilder::allPerpMetas(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::perpDexLimits(const std::string& dex, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::PerpDexLimits, InfoRequestBuilder::perpDexLimits(dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::perpDexStatus(const std::string& dex, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::PerpDexStatus, InfoRequestBuilder::perpDexStatus(dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::perpDeployAuctionStatus(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::PerpDeployAuctionStatus,
+                                  InfoRequestBuilder::perpDeployAuctionStatus(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::l2Book(const std::string& coin,
+                              const std::optional<int>& nSigFigs,
+                              const std::optional<int>& mantissa,
+                              std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::L2Book, InfoRequestBuilder::l2Book(coin, nSigFigs, mantissa),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::candleSnapshot(const std::string& coin,
+                                      const std::string& interval,
+                                      uint64_t startTime,
+                                      uint64_t endTime,
+                                      std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::CandleSnapshot,
+                                  InfoRequestBuilder::candleSnapshot(coin, interval, startTime, endTime),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::allMids(const std::optional<std::string>& dex, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::AllMids, InfoRequestBuilder::allMids(dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::openOrders(const std::string& user, const std::optional<std::string>& dex,
+                                  std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::OpenOrders, InfoRequestBuilder::openOrders(user, dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::orderStatus(const std::string& user, const OrderId& oid,
+                                   std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::OrderStatus, InfoRequestBuilder::orderStatus(user, oid),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userFills(const std::string& user,
+                                 const std::optional<bool>& aggregateByTime,
+                                 const std::optional<std::string>& dex,
+                                 std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserFills,
+                                  InfoRequestBuilder::userFills(user, aggregateByTime, dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userFillsByTime(const std::string& user,
+                                       uint64_t startTime,
+                                       const std::optional<uint64_t>& endTime,
+                                       const std::optional<bool>& aggregateByTime,
+                                       const std::optional<std::string>& dex,
+                                       std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserFillsByTime,
+                                  InfoRequestBuilder::userFillsByTime(user, startTime, endTime, aggregateByTime, dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::clearinghouseState(const std::string& user, const std::optional<std::string>& dex,
+                                          std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::ClearinghouseState,
+                                  InfoRequestBuilder::clearinghouseState(user, dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userRateLimit(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserRateLimit, InfoRequestBuilder::userRateLimit(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::metaAndAssetCtxs(const std::optional<std::string>& dex, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::MetaAndAssetCtxs, InfoRequestBuilder::metaAndAssetCtxs(dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::spotMetaAndAssetCtxs(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotMetaAndAssetCtxs, InfoRequestBuilder::spotMetaAndAssetCtxs(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::spotClearinghouseState(const std::string& user, const std::optional<std::string>& dex,
+                                              std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotClearinghouseState,
+                                  InfoRequestBuilder::spotClearinghouseState(user, dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::spotDeployState(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotDeployState, InfoRequestBuilder::spotDeployState(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::spotPairDeployAuctionStatus(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotPairDeployAuctionStatus,
+                                  InfoRequestBuilder::spotPairDeployAuctionStatus(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::frontendOpenOrders(const std::string& user, const std::optional<std::string>& dex,
+                                          std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::FrontendOpenOrders,
+                                  InfoRequestBuilder::frontendOpenOrders(user, dex),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::historicalOrders(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::HistoricalOrders, InfoRequestBuilder::historicalOrders(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userTwapSliceFills(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserTwapSliceFills,
+                                  InfoRequestBuilder::userTwapSliceFills(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::subAccounts(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SubAccounts, InfoRequestBuilder::subAccounts(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userFees(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserFees, InfoRequestBuilder::userFees(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::maxBuilderFee(const std::string& user, const std::string& builder,
+                                     std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::MaxBuilderFee, InfoRequestBuilder::maxBuilderFee(user, builder),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::approvedBuilders(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::ApprovedBuilders, InfoRequestBuilder::approvedBuilders(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::delegations(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::Delegations, InfoRequestBuilder::delegations(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::delegatorSummary(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::DelegatorSummary, InfoRequestBuilder::delegatorSummary(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::delegatorHistory(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::DelegatorHistory, InfoRequestBuilder::delegatorHistory(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::delegatorRewards(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::DelegatorRewards, InfoRequestBuilder::delegatorRewards(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::vaultDetails(const std::string& vaultAddress, const std::optional<std::string>& user,
+                                    std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::VaultDetails, InfoRequestBuilder::vaultDetails(vaultAddress, user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userVaultEquities(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserVaultEquities, InfoRequestBuilder::userVaultEquities(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::portfolio(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::Portfolio, InfoRequestBuilder::portfolio(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::referral(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::Referral, InfoRequestBuilder::referral(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userRole(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserRole, InfoRequestBuilder::userRole(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::borrowLendUserState(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::BorrowLendUserState,
+                                  InfoRequestBuilder::borrowLendUserState(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::borrowLendReserveState(int token, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::BorrowLendReserveState,
+                                  InfoRequestBuilder::borrowLendReserveState(token),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::allBorrowLendReserveStates(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::AllBorrowLendReserveStates,
+                                  InfoRequestBuilder::allBorrowLendReserveStates(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::placeOrder(const std::vector<OrderRequest>& orders,
                                   Grouping grouping,
                                   const std::optional<Builder>& builder,
@@ -295,6 +592,212 @@ namespace hyperliquid
     {
         return impl_->signAndSend(RestEndpointType::BatchModifyOrder,
                                   impl_->exchangeRequestBuilder.batchModifyOrder(modifies),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::updateLeverage(const UpdateLeverageRequest& request,
+                                      std::optional<uint64_t> correlationId,
+                                      const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::UpdateLeverage,
+                                  impl_->exchangeRequestBuilder.updateLeverage(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::updateIsolatedMargin(const UpdateIsolatedMarginRequest& request,
+                                            std::optional<uint64_t> correlationId,
+                                            const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::UpdateIsolatedMargin,
+                                  impl_->exchangeRequestBuilder.updateIsolatedMargin(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::approveAgent(const ApproveAgentRequest& request,
+                                    std::optional<uint64_t> correlationId,
+                                    const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::ApproveAgent,
+                                  impl_->exchangeRequestBuilder.approveAgent(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::agentSetAbstraction(UserAbstractionMode abstraction,
+                                           std::optional<uint64_t> correlationId,
+                                           const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::AgentSetAbstraction,
+                                  impl_->exchangeRequestBuilder.agentSetAbstraction(abstraction),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::twapOrder(const TwapOrderRequest& request,
+                                 std::optional<uint64_t> correlationId,
+                                 const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::TwapOrder,
+                                  impl_->exchangeRequestBuilder.twapOrder(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::twapCancel(const TwapCancelRequest& request,
+                                  std::optional<uint64_t> correlationId,
+                                  const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::TwapCancel,
+                                  impl_->exchangeRequestBuilder.twapCancel(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::vaultTransfer(const VaultTransferRequest& request,
+                                     std::optional<uint64_t> correlationId,
+                                     const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::VaultTransfer,
+                                  impl_->exchangeRequestBuilder.vaultTransfer(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request,
+                                              std::optional<uint64_t> correlationId,
+                                              const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::Hip3LiquidatorTransfer,
+                                  impl_->exchangeRequestBuilder.hip3LiquidatorTransfer(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::usdClassTransfer(const UsdClassTransferRequest& request,
+                                        std::optional<uint64_t> correlationId,
+                                        const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::UsdClassTransfer,
+                                  impl_->exchangeRequestBuilder.usdClassTransfer(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::sendAsset(const SendAssetRequest& request,
+                                 std::optional<uint64_t> correlationId,
+                                 const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::SendAsset,
+                                  impl_->exchangeRequestBuilder.sendAsset(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::usdSend(const UsdSendRequest& request,
+                               std::optional<uint64_t> correlationId,
+                               const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::UsdSend,
+                                  impl_->exchangeRequestBuilder.usdSend(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::spotSend(const SpotSendRequest& request,
+                                std::optional<uint64_t> correlationId,
+                                const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotSend,
+                                  impl_->exchangeRequestBuilder.spotSend(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::withdraw3(const Withdraw3Request& request,
+                                 std::optional<uint64_t> correlationId,
+                                 const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::Withdraw3,
+                                  impl_->exchangeRequestBuilder.withdraw3(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::approveBuilderFee(const ApproveBuilderFeeRequest& request,
+                                         std::optional<uint64_t> correlationId,
+                                         const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::ApproveBuilderFee,
+                                  impl_->exchangeRequestBuilder.approveBuilderFee(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userSetAbstraction(const UserSetAbstractionRequest& request,
+                                          std::optional<uint64_t> correlationId,
+                                          const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::UserSetAbstraction,
+                                  impl_->exchangeRequestBuilder.userSetAbstraction(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::cDeposit(uint64_t wei,
+                                std::optional<uint64_t> correlationId,
+                                const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::CDeposit,
+                                  impl_->exchangeRequestBuilder.cDeposit(wei),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::cWithdraw(uint64_t wei,
+                                 std::optional<uint64_t> correlationId,
+                                 const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::CWithdraw,
+                                  impl_->exchangeRequestBuilder.cWithdraw(wei),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::tokenDelegate(const TokenDelegateRequest& request,
+                                     std::optional<uint64_t> correlationId,
+                                     const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::TokenDelegate,
+                                  impl_->exchangeRequestBuilder.tokenDelegate(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::sendToEvmWithData(const SendToEvmWithDataRequest& request,
+                                         std::optional<uint64_t> correlationId,
+                                         const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::SendToEvmWithData,
+                                  impl_->exchangeRequestBuilder.sendToEvmWithData(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userDexAbstraction(const UserDexAbstractionRequest& request,
+                                          std::optional<uint64_t> correlationId,
+                                          const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::UserDexAbstraction,
+                                  impl_->exchangeRequestBuilder.userDexAbstraction(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::agentSendAsset(const AgentSendAssetRequest& request,
+                                      std::optional<uint64_t> correlationId,
+                                      const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::AgentSendAsset,
+                                  impl_->exchangeRequestBuilder.agentSendAsset(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::reserveRequestWeight(const ReserveRequestWeightRequest& request,
+                                            std::optional<uint64_t> correlationId,
+                                            const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::ReserveRequestWeight,
+                                  impl_->exchangeRequestBuilder.reserveRequestWeight(request),
+                                  vaultAddress, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::noop(std::optional<uint64_t> correlationId,
+                            const std::optional<std::string>& vaultAddress)
+    {
+        return impl_->signAndSend(RestEndpointType::Noop,
+                                  impl_->exchangeRequestBuilder.noop(),
                                   vaultAddress, std::nullopt, correlationId);
     }
 }
