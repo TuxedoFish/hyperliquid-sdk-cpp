@@ -1,0 +1,7 @@
+[
+    {
+        "delta": {"type": "vaultDeposit", "vault": "0xvault1", "usdc": "42.0"},
+        "hash": "0xvault1hash",
+        "time": 1681222254770
+    }
+]

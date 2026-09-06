@@ -60,6 +60,15 @@ namespace hyperliquid
             case RestEndpointType::PerpDeployAuctionStatus:
                 listener.onPerpDeployAuctionStatus(parsePerpDeployAuctionStatus(message), correlationId);
                 break;
+            case RestEndpointType::UserFunding:
+                listener.onUserFunding(parseUserFunding(message), correlationId);
+                break;
+            case RestEndpointType::UserNonFundingLedgerUpdates:
+                listener.onUserNonFundingLedgerUpdates(parseUserNonFundingLedgerUpdates(message), correlationId);
+                break;
+            case RestEndpointType::FundingHistory:
+                listener.onFundingHistory(parseFundingHistory(message), correlationId);
+                break;
             case RestEndpointType::L2Book:
                 listener.onL2Book(parseL2Book(message), correlationId);
                 break;
@@ -1183,6 +1192,149 @@ namespace hyperliquid
             }
 
             return response;
+        }
+
+        FundingHistoryResponse parseFundingHistory(const std::string& message)
+        {
+            FundingHistoryResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    FundingHistoryEntry historyEntry{};
+                    historyEntry.coin = std::string(obj["coin"].get_string().value());
+                    historyEntry.fundingRate = parseNumberField(obj, "fundingRate");
+                    historyEntry.premium = parseNumberField(obj, "premium");
+                    historyEntry.time = obj["time"].get_uint64().value();
+                    response.history.push_back(std::move(historyEntry));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in fundingHistory: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        LedgerUpdateDelta parseLedgerUpdateDelta(simdjson::ondemand::object& deltaObj)
+        {
+            LedgerUpdateDelta delta;
+            delta.type = stringToLedgerUpdateDeltaType(deltaObj["type"].get_string().value());
+
+            switch (delta.type)
+            {
+            case LedgerUpdateDeltaType::Funding:
+            {
+                delta.coin = std::string(deltaObj["coin"].get_string().value());
+                delta.fundingRate = parseNumberField(deltaObj, "fundingRate");
+                delta.szi = parseNumberField(deltaObj, "szi");
+                delta.usdc = parseNumberField(deltaObj, "usdc");
+
+                simdjson::ondemand::value nSamplesVal;
+                if (deltaObj["nSamples"].get(nSamplesVal) == simdjson::SUCCESS && !nSamplesVal.is_null())
+                {
+                    std::string_view sv;
+                    if (!nSamplesVal.get_string().get(sv)) delta.nSamples = toDouble(sv);
+                    else delta.nSamples = nSamplesVal.get_double().value();
+                }
+                break;
+            }
+            case LedgerUpdateDeltaType::Deposit:
+                delta.usdc = parseNumberField(deltaObj, "usdc");
+                break;
+            case LedgerUpdateDeltaType::Withdraw:
+                delta.usdc = parseNumberField(deltaObj, "usdc");
+                delta.fee = parseNumberField(deltaObj, "fee");
+                {
+                    uint64_t nonce;
+                    if (deltaObj["nonce"].get(nonce) == simdjson::SUCCESS) delta.nonce = nonce;
+                }
+                break;
+            case LedgerUpdateDeltaType::AccountClassTransfer:
+                delta.usdc = parseNumberField(deltaObj, "usdc");
+                {
+                    bool toPerp;
+                    if (deltaObj["toPerp"].get(toPerp) == simdjson::SUCCESS) delta.toPerp = toPerp;
+                }
+                break;
+            case LedgerUpdateDeltaType::InternalTransfer:
+                delta.usdc = parseNumberField(deltaObj, "usdc");
+                delta.user = std::string(deltaObj["user"].get_string().value());
+                delta.destination = std::string(deltaObj["destination"].get_string().value());
+                delta.fee = parseNumberField(deltaObj, "fee");
+                break;
+            case LedgerUpdateDeltaType::SubAccountTransfer:
+                delta.usdc = parseNumberField(deltaObj, "usdc");
+                delta.user = std::string(deltaObj["user"].get_string().value());
+                delta.destination = std::string(deltaObj["destination"].get_string().value());
+                break;
+            case LedgerUpdateDeltaType::SpotTransfer:
+                delta.token = std::string(deltaObj["token"].get_string().value());
+                delta.amount = parseNumberField(deltaObj, "amount");
+                delta.usdcValue = parseNumberField(deltaObj, "usdcValue");
+                delta.user = std::string(deltaObj["user"].get_string().value());
+                delta.destination = std::string(deltaObj["destination"].get_string().value());
+                delta.fee = parseNumberField(deltaObj, "fee");
+                delta.nativeTokenFee = parseNumberField(deltaObj, "nativeTokenFee");
+                break;
+            case LedgerUpdateDeltaType::Unknown:
+            default:
+                break;
+            }
+
+            if (delta.type == LedgerUpdateDeltaType::Unknown)
+            {
+                auto rawStr = simdjson::to_json_string(deltaObj);
+                if (!rawStr.error()) delta.rawJson = std::string(rawStr.value());
+            }
+
+            return delta;
+        }
+
+        UserFundingLedgerUpdateResponse parseUserFundingLedgerUpdateResponse(const std::string& message, std::string_view endpointName)
+        {
+            UserFundingLedgerUpdateResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    LedgerUpdateEntry updateEntry{};
+                    updateEntry.time = obj["time"].get_uint64().value();
+                    updateEntry.hash = std::string(obj["hash"].get_string().value());
+
+                    auto deltaObj = obj["delta"].get_object().value();
+                    updateEntry.delta = parseLedgerUpdateDelta(deltaObj);
+
+                    response.updates.push_back(std::move(updateEntry));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in {}: {}\n  raw: {}", endpointName, err.what(), message);
+            }
+
+            return response;
+        }
+
+        UserFundingLedgerUpdateResponse parseUserFunding(const std::string& message)
+        {
+            return parseUserFundingLedgerUpdateResponse(message, "userFunding");
+        }
+
+        UserFundingLedgerUpdateResponse parseUserNonFundingLedgerUpdates(const std::string& message)
+        {
+            return parseUserFundingLedgerUpdateResponse(message, "userNonFundingLedgerUpdates");
         }
 
         static double toDouble(std::string_view sv)
@@ -2736,6 +2888,21 @@ namespace hyperliquid
     PerpDeployAuctionStatusResponse RestApiMessageParser::parsePerpDeployAuctionStatus(const std::string& message)
     {
         return impl_->parsePerpDeployAuctionStatus(message);
+    }
+
+    UserFundingLedgerUpdateResponse RestApiMessageParser::parseUserFunding(const std::string& message)
+    {
+        return impl_->parseUserFunding(message);
+    }
+
+    UserFundingLedgerUpdateResponse RestApiMessageParser::parseUserNonFundingLedgerUpdates(const std::string& message)
+    {
+        return impl_->parseUserNonFundingLedgerUpdates(message);
+    }
+
+    FundingHistoryResponse RestApiMessageParser::parseFundingHistory(const std::string& message)
+    {
+        return impl_->parseFundingHistory(message);
     }
 
     L2BookResponse RestApiMessageParser::parseL2Book(const std::string& message)

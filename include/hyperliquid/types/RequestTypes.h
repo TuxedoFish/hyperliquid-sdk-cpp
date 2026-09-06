@@ -180,6 +180,9 @@ namespace hyperliquid
         PerpDexLimits,
         PerpDexStatus,
         PerpDeployAuctionStatus,
+        UserFunding,
+        UserNonFundingLedgerUpdates,
+        FundingHistory,
         // Info endpoints (Outcomes)
         OutcomeMeta,
         SettledOutcome,
@@ -271,6 +274,9 @@ namespace hyperliquid
         case RestEndpointType::PerpDexLimits: return "perpDexLimits";
         case RestEndpointType::PerpDexStatus: return "perpDexStatus";
         case RestEndpointType::PerpDeployAuctionStatus: return "perpDeployAuctionStatus";
+        case RestEndpointType::UserFunding: return "userFunding";
+        case RestEndpointType::UserNonFundingLedgerUpdates: return "userNonFundingLedgerUpdates";
+        case RestEndpointType::FundingHistory: return "fundingHistory";
 
         case RestEndpointType::OutcomeMeta: return "outcomeMeta";
         case RestEndpointType::SettledOutcome: return "settledOutcome";
@@ -361,6 +367,9 @@ namespace hyperliquid
         case RestEndpointType::PerpDexLimits: return false;
         case RestEndpointType::PerpDexStatus: return false;
         case RestEndpointType::PerpDeployAuctionStatus: return false;
+        case RestEndpointType::UserFunding: return false;
+        case RestEndpointType::UserNonFundingLedgerUpdates: return false;
+        case RestEndpointType::FundingHistory: return false;
 
         case RestEndpointType::OutcomeMeta: return false;
         case RestEndpointType::SettledOutcome: return false;

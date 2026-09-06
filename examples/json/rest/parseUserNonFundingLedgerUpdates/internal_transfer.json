@@ -1,0 +1,7 @@
+[
+    {
+        "delta": {"type": "internalTransfer", "usdc": "10.0", "user": "0xsender", "destination": "0xreceiver", "fee": "0.1"},
+        "hash": "0xinternal1",
+        "time": 1681222254740
+    }
+]

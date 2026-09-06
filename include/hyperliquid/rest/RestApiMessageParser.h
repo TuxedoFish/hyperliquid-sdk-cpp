@@ -36,6 +36,9 @@ namespace hyperliquid
         PerpDexLimitsResponse parsePerpDexLimits(const std::string& message);
         PerpDexStatusResponse parsePerpDexStatus(const std::string& message);
         PerpDeployAuctionStatusResponse parsePerpDeployAuctionStatus(const std::string& message);
+        UserFundingLedgerUpdateResponse parseUserFunding(const std::string& message);
+        UserFundingLedgerUpdateResponse parseUserNonFundingLedgerUpdates(const std::string& message);
+        FundingHistoryResponse parseFundingHistory(const std::string& message);
         L2BookResponse parseL2Book(const std::string& message);
         CandleSnapshotResponse parseCandleSnapshot(const std::string& message);
         AllMidsResponse parseAllMids(const std::string& message);

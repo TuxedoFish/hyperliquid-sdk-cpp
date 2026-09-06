@@ -232,6 +232,31 @@ PerpDeployAuctionStatusResponse RestApi::perpDeployAuctionStatus()
         impl_->signAndSendSync(RestEndpointType::PerpDeployAuctionStatus, InfoRequestBuilder::perpDeployAuctionStatus()));
 }
 
+UserFundingLedgerUpdateResponse RestApi::userFunding(const std::string& user,
+                                                      uint64_t startTime,
+                                                      const std::optional<uint64_t>& endTime)
+{
+    return RestApiMessageParser().parseUserFunding(
+        impl_->signAndSendSync(RestEndpointType::UserFunding, InfoRequestBuilder::userFunding(user, startTime, endTime)));
+}
+
+UserFundingLedgerUpdateResponse RestApi::userNonFundingLedgerUpdates(const std::string& user,
+                                                                      uint64_t startTime,
+                                                                      const std::optional<uint64_t>& endTime)
+{
+    return RestApiMessageParser().parseUserNonFundingLedgerUpdates(
+        impl_->signAndSendSync(RestEndpointType::UserNonFundingLedgerUpdates,
+                               InfoRequestBuilder::userNonFundingLedgerUpdates(user, startTime, endTime)));
+}
+
+FundingHistoryResponse RestApi::fundingHistory(const std::string& coin,
+                                               uint64_t startTime,
+                                               const std::optional<uint64_t>& endTime)
+{
+    return RestApiMessageParser().parseFundingHistory(
+        impl_->signAndSendSync(RestEndpointType::FundingHistory, InfoRequestBuilder::fundingHistory(coin, startTime, endTime)));
+}
+
 L2BookResponse RestApi::l2Book(const std::string& coin,
                                const std::optional<int>& nSigFigs,
                                const std::optional<int>& mantissa)
@@ -751,6 +776,28 @@ void RestApi::perpDexStatusAsync(const std::string& dex)
 void RestApi::perpDeployAuctionStatusAsync()
 {
     impl_->signAndSend(RestEndpointType::PerpDeployAuctionStatus, InfoRequestBuilder::perpDeployAuctionStatus());
+}
+
+void RestApi::userFundingAsync(const std::string& user,
+                               uint64_t startTime,
+                               const std::optional<uint64_t>& endTime)
+{
+    impl_->signAndSend(RestEndpointType::UserFunding, InfoRequestBuilder::userFunding(user, startTime, endTime));
+}
+
+void RestApi::userNonFundingLedgerUpdatesAsync(const std::string& user,
+                                               uint64_t startTime,
+                                               const std::optional<uint64_t>& endTime)
+{
+    impl_->signAndSend(RestEndpointType::UserNonFundingLedgerUpdates,
+                       InfoRequestBuilder::userNonFundingLedgerUpdates(user, startTime, endTime));
+}
+
+void RestApi::fundingHistoryAsync(const std::string& coin,
+                                  uint64_t startTime,
+                                  const std::optional<uint64_t>& endTime)
+{
+    impl_->signAndSend(RestEndpointType::FundingHistory, InfoRequestBuilder::fundingHistory(coin, startTime, endTime));
 }
 
 void RestApi::l2BookAsync(const std::string& coin,

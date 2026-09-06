@@ -163,9 +163,9 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Perpetuals | `meta` | ✅ | `RestApi::meta` |
 | Perpetuals | `metaAndAssetCtxs` | ✅ | `RestApi::metaAndAssetCtxs` |
 | Perpetuals | `clearinghouseState` | ✅ | `RestApi::clearinghouseState` |
-| Perpetuals | `userFunding` | ⬜ | |
-| Perpetuals | `userNonFundingLedgerUpdates` | ⬜ | |
-| Perpetuals | `fundingHistory` | ⬜ | |
+| Perpetuals | `userFunding` | ✅ | `RestApi::userFunding` |
+| Perpetuals | `userNonFundingLedgerUpdates` | ✅ | `RestApi::userNonFundingLedgerUpdates` |
+| Perpetuals | `fundingHistory` | ✅ | `RestApi::fundingHistory` |
 | Perpetuals | `predictedFundings` | ✅ | `RestApi::predictedFundings` |
 | Perpetuals | `perpsAtOpenInterestCap` | ✅ | `RestApi::perpsAtOpenInterestCap` |
 | Perpetuals | `perpDeployAuctionStatus` | ✅ | `RestApi::perpDeployAuctionStatus` |
@@ -191,7 +191,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 | Spot / Outcomes | `outcomeTemplates` | ⬜ | |
 
-47 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
+50 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 

@@ -1,0 +1,16 @@
+[
+    {
+        "delta": {
+            "type": "spotTransfer",
+            "token": "PURR",
+            "amount": "12.5",
+            "usdcValue": "3.75",
+            "user": "0xsender",
+            "destination": "0xreceiver",
+            "fee": "0.01",
+            "nativeTokenFee": "0.0"
+        },
+        "hash": "0xspot1",
+        "time": 1681222254760
+    }
+]

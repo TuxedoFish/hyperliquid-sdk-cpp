@@ -95,6 +95,9 @@ namespace
         invoke<&RestApiMessageParser::parseDelegatorRewards>,
         invoke<&RestApiMessageParser::parseSpotDeployState>,
         invoke<&RestApiMessageParser::parseSpotPairDeployAuctionStatus>,
+        invoke<&RestApiMessageParser::parseUserFunding>,
+        invoke<&RestApiMessageParser::parseUserNonFundingLedgerUpdates>,
+        invoke<&RestApiMessageParser::parseFundingHistory>,
     };
 
     constexpr size_t kParserCount = sizeof(kParsers) / sizeof(kParsers[0]);

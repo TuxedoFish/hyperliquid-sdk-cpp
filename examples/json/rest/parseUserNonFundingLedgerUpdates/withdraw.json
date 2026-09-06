@@ -1,0 +1,7 @@
+[
+    {
+        "delta": {"type": "withdraw", "usdc": "-50.0", "nonce": 12345, "fee": "1.0"},
+        "hash": "0xwithdraw1",
+        "time": 1681222254720
+    }
+]
