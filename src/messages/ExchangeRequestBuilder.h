@@ -55,6 +55,8 @@ public:
 
     nlohmann::ordered_json approveBuilderFee(const ApproveBuilderFeeRequest& request) const;
 
+    nlohmann::ordered_json userSetAbstraction(const UserSetAbstractionRequest& request) const;
+
     nlohmann::ordered_json cDeposit(uint64_t wei) const;
 
     nlohmann::ordered_json cWithdraw(uint64_t wei) const;

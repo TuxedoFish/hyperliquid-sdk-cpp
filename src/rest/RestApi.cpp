@@ -60,7 +60,7 @@ struct RestApi::Impl {
     }
 
     // approveAgent and the other EIP-712 user-signed actions (usdClassTransfer/sendAsset/usdSend/
-    // spotSend/withdraw3/approveBuilderFee/cDeposit/cWithdraw/tokenDelegate; see
+    // spotSend/withdraw3/approveBuilderFee/userSetAbstraction/cDeposit/cWithdraw/tokenDelegate; see
     // isUserSignedAction) are routed to Signing::prepareApproveAgentBody /
     // Signing::prepareUserSignedActionBody instead of the generic vaultAddress/expiresAfter path
     // used by the other (L1) exchange endpoints.
@@ -576,6 +576,13 @@ SimpleResponse RestApi::approveBuilderFee(const ApproveBuilderFeeRequest& reques
                                    impl_->exchangeRequestBuilder.approveBuilderFee(request)));
 }
 
+SimpleResponse RestApi::userSetAbstraction(const UserSetAbstractionRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::UserSetAbstraction,
+                                   impl_->exchangeRequestBuilder.userSetAbstraction(request)));
+}
+
 SimpleResponse RestApi::cDeposit(uint64_t wei)
 {
     return RestApiMessageParser().parseSimpleResponse(
@@ -998,6 +1005,12 @@ void RestApi::approveBuilderFeeAsync(const ApproveBuilderFeeRequest& request)
 {
     impl_->signAndSend(RestEndpointType::ApproveBuilderFee,
                        impl_->exchangeRequestBuilder.approveBuilderFee(request));
+}
+
+void RestApi::userSetAbstractionAsync(const UserSetAbstractionRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::UserSetAbstraction,
+                       impl_->exchangeRequestBuilder.userSetAbstraction(request));
 }
 
 void RestApi::cDepositAsync(uint64_t wei)

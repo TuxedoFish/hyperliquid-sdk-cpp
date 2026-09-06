@@ -471,6 +471,85 @@ TEST(PrepareUserSignedActionBody, ApproveBuilderFeeRoundTrip)
     EXPECT_EQ(body["signature"]["v"], expectedSig.v);
 }
 
+// --- userSetAbstraction (user-signed): request-builder and prepareUserSignedActionBody
+// shape verified against the confirmed schema/EIP-712 types in the nktkas/hyperliquid TS SDK
+// (src/api/exchange/_methods/userSetAbstraction.ts) - a synthetic payload, since no real
+// signature vector for this action was published there. ---
+
+static const std::string kUserSetAbstractionUser = "0x3b4d2cc2e144a0044002506c8b44508e9ace82e9";
+
+TEST(UserSetAbstractionBuilder, BodyShapeDisabled)
+{
+    ExchangeRequestBuilder builder;
+
+    UserSetAbstractionRequest req;
+    req.user = kUserSetAbstractionUser;
+    req.abstraction = AbstractionMode::Disabled;
+
+    auto action = builder.userSetAbstraction(req)["action"];
+    EXPECT_EQ(action["type"], "userSetAbstraction");
+    EXPECT_EQ(action["user"], kUserSetAbstractionUser);
+    EXPECT_EQ(action["abstraction"], "disabled");
+}
+
+TEST(UserSetAbstractionBuilder, BodyShapeUnifiedAccount)
+{
+    ExchangeRequestBuilder builder;
+
+    UserSetAbstractionRequest req;
+    req.user = kUserSetAbstractionUser;
+    req.abstraction = AbstractionMode::UnifiedAccount;
+
+    auto action = builder.userSetAbstraction(req)["action"];
+    EXPECT_EQ(action["abstraction"], "unifiedAccount");
+}
+
+TEST(UserSetAbstractionBuilder, BodyShapePortfolioMargin)
+{
+    ExchangeRequestBuilder builder;
+
+    UserSetAbstractionRequest req;
+    req.user = kUserSetAbstractionUser;
+    req.abstraction = AbstractionMode::PortfolioMargin;
+
+    auto action = builder.userSetAbstraction(req)["action"];
+    EXPECT_EQ(action["abstraction"], "portfolioMargin");
+}
+
+TEST(PrepareUserSignedActionBody, UserSetAbstractionRoundTrip)
+{
+    ExchangeRequestBuilder builder;
+    UserSetAbstractionRequest req;
+    req.user = kUserSetAbstractionUser;
+    req.abstraction = AbstractionMode::UnifiedAccount;
+
+    auto action = builder.userSetAbstraction(req)["action"];
+    auto wallet = dummyWallet();
+    auto config = testnetConfig(wallet);
+
+    auto body = Signing::prepareUserSignedActionBody(config, RestEndpointType::UserSetAbstraction, action);
+    const auto& signedAction = body["action"];
+    ASSERT_TRUE(signedAction.contains("nonce"));
+    EXPECT_EQ(signedAction["user"], kUserSetAbstractionUser);
+    EXPECT_EQ(signedAction["abstraction"], "unifiedAccount");
+    EXPECT_EQ(signedAction["hyperliquidChain"], "Testnet");
+    EXPECT_EQ(signedAction["signatureChainId"], "0x66eee");
+
+    auto expectedSig = Signing::signUserSignedAction(
+        wallet, signedAction,
+        {
+            {"hyperliquidChain", "string"},
+            {"user", "address"},
+            {"abstraction", "string"},
+            {"nonce", "uint64"},
+        },
+        "HyperliquidTransaction:UserSetAbstraction");
+
+    EXPECT_EQ(body["signature"]["r"], expectedSig.r);
+    EXPECT_EQ(body["signature"]["s"], expectedSig.s);
+    EXPECT_EQ(body["signature"]["v"], expectedSig.v);
+}
+
 // --- Generic ack / TWAP response parsing ---
 
 #include "hyperliquid/rest/RestApiMessageParser.h"
@@ -482,6 +561,46 @@ TEST(SimpleResponseParsing, VaultTransferSuccess)
     auto resp = parser.parseSimpleResponse(kOk);
     EXPECT_EQ(resp.status, "ok");
     EXPECT_FALSE(resp.error.has_value());
+}
+
+// Real testnet response: a signed userSetAbstraction(Disabled) request against an account
+// with no open positions/orders - matches the shape documented for UserSetAbstractionResponse
+// in the nktkas/hyperliquid TS SDK exactly.
+TEST(SimpleResponseParsing, UserSetAbstractionSuccess)
+{
+    static const std::string kOk = R"({"status":"ok","response":{"type":"default"}})";
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kOk);
+    EXPECT_EQ(resp.status, "ok");
+    EXPECT_FALSE(resp.error.has_value());
+}
+
+// Synthetic - modeled on the portfolio-margin-eligibility rejection asserted in that SDK's
+// tests/api/exchange/userSetAbstraction.test.ts ("Portfolio margin requires account value of
+// $10000 or total volume of $5000000.").
+TEST(SimpleResponseParsing, UserSetAbstractionPortfolioMarginRejected)
+{
+    static const std::string kErr =
+        R"({"status":"err","response":"Portfolio margin requires account value of $10000 or total volume of $5000000."})";
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kErr);
+    EXPECT_EQ(resp.status, "err");
+    ASSERT_TRUE(resp.error.has_value());
+    EXPECT_EQ(*resp.error, "Portfolio margin requires account value of $10000 or total volume of $5000000.");
+}
+
+// Real testnet response: a signed userSetAbstraction(Disabled) request against an account
+// already in UnifiedAccount mode with open positions - confirms the request/signing/response
+// round-trip end-to-end.
+TEST(SimpleResponseParsing, UserSetAbstractionDisableRejectedWithOpenPositions)
+{
+    static const std::string kErr =
+        R"({"status":"err","response":"Cannot disable unified account with open positions, open orders, or active TWAP orders"})";
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kErr);
+    EXPECT_EQ(resp.status, "err");
+    ASSERT_TRUE(resp.error.has_value());
+    EXPECT_EQ(*resp.error, "Cannot disable unified account with open positions, open orders, or active TWAP orders");
 }
 
 TEST(TwapOrderResponseParsing, RunningResponse)
