@@ -45,10 +45,14 @@ int main()
     hyperliquid::RestApi agentApi(agentConfig);
 
     // Confirmed live: this consistently rejects with "Abstraction transition not allowed" even
-    // with a freshly-approved agent (ruled out by comparison against the equivalent
-    // userSetAbstraction call, which succeeds on the same account moments apart) - a real
-    // exchange-side restriction on this specific action, not an SDK issue. The request itself
-    // matches the official TS SDK's documented shape exactly.
+    // with a freshly-approved agent, and even after the account was already put into
+    // UnifiedAccount mode via a successful userSetAbstraction call moments earlier - ruling out
+    // signer approval and starting-state as the cause. The official TS SDK's own test suite only
+    // exercises "u" here (its coverage check explicitly marks "i"/"p" as permanently
+    // unsupported), so this is the one value expected to work at all - the remaining unknown is
+    // some additional eligibility requirement on the agent-signed path specifically, since the
+    // equivalent principal-signed userSetAbstraction("u") succeeds on this same zero-value
+    // account. The request itself matches the official SDK's documented shape exactly.
     auto resp = agentApi.agentSetAbstraction(hyperliquid::UserAbstractionMode::UnifiedAccount);
     spdlog::info("agentSetAbstraction: status={} type={}", resp.status, resp.type);
     if (resp.error)
