@@ -275,6 +275,12 @@ CandleSnapshotResponse RestApi::candleSnapshot(const std::string& coin,
                                InfoRequestBuilder::candleSnapshot(coin, interval, startTime, endTime)));
 }
 
+RecentTradesResponse RestApi::recentTrades(const std::string& coin)
+{
+    return RestApiMessageParser().parseRecentTrades(
+        impl_->signAndSendSync(RestEndpointType::RecentTrades, InfoRequestBuilder::recentTrades(coin)));
+}
+
 AllMidsResponse RestApi::allMids(const std::optional<std::string>& dex)
 {
     return RestApiMessageParser().parseAllMids(
@@ -814,6 +820,11 @@ void RestApi::candleSnapshotAsync(const std::string& coin,
 {
     impl_->signAndSend(RestEndpointType::CandleSnapshot,
                        InfoRequestBuilder::candleSnapshot(coin, interval, startTime, endTime));
+}
+
+void RestApi::recentTradesAsync(const std::string& coin)
+{
+    impl_->signAndSend(RestEndpointType::RecentTrades, InfoRequestBuilder::recentTrades(coin));
 }
 
 void RestApi::allMidsAsync(const std::optional<std::string>& dex)

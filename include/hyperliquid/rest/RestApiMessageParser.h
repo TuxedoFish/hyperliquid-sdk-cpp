@@ -41,6 +41,7 @@ namespace hyperliquid
         FundingHistoryResponse parseFundingHistory(const std::string& message);
         L2BookResponse parseL2Book(const std::string& message);
         CandleSnapshotResponse parseCandleSnapshot(const std::string& message);
+        RecentTradesResponse parseRecentTrades(const std::string& message);
         AllMidsResponse parseAllMids(const std::string& message);
         OpenOrdersResponse parseOpenOrders(const std::string& message);
         OrderStatusResponse parseOrderStatus(const std::string& message);

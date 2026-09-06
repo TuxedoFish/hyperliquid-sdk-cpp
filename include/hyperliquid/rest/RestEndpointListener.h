@@ -30,6 +30,7 @@ public:
     virtual void onAllPerpMetas(const AllPerpMetasResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onL2Book(const L2BookResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onCandleSnapshot(const CandleSnapshotResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onRecentTrades(const RecentTradesResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onAllMids(const AllMidsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onOpenOrders(const OpenOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onOrderStatus(const OrderStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
