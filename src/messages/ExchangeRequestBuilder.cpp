@@ -301,6 +301,17 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::agentSetAbstraction(UserAbstractionMode abstraction) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "agentSetAbstraction";
+        action["abstraction"] = toString(abstraction);
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     nlohmann::ordered_json ExchangeRequestBuilder::twapOrder(const TwapOrderRequest& request) const
     {
         nlohmann::ordered_json twap;

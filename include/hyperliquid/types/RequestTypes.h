@@ -210,6 +210,7 @@ namespace hyperliquid
         UpdateLeverage,
         UpdateIsolatedMargin,
         ApproveAgent,
+        AgentSetAbstraction,
         TwapOrder,
         TwapCancel,
         VaultTransfer,
@@ -296,6 +297,7 @@ namespace hyperliquid
         case RestEndpointType::UpdateLeverage: return "updateLeverage";
         case RestEndpointType::UpdateIsolatedMargin: return "updateIsolatedMargin";
         case RestEndpointType::ApproveAgent: return "approveAgent";
+        case RestEndpointType::AgentSetAbstraction: return "agentSetAbstraction";
         case RestEndpointType::TwapOrder: return "twapOrder";
         case RestEndpointType::TwapCancel: return "twapCancel";
         case RestEndpointType::VaultTransfer: return "vaultTransfer";
@@ -383,6 +385,7 @@ namespace hyperliquid
         case RestEndpointType::UpdateLeverage: return true;
         case RestEndpointType::UpdateIsolatedMargin: return true;
         case RestEndpointType::ApproveAgent: return true;
+        case RestEndpointType::AgentSetAbstraction: return true;
         case RestEndpointType::TwapOrder: return true;
         case RestEndpointType::TwapCancel: return true;
         case RestEndpointType::VaultTransfer: return true;
@@ -551,6 +554,27 @@ namespace hyperliquid
         std::string agentAddress;
         std::optional<std::string> agentName;
     };
+
+    enum class UserAbstractionMode { Disabled, UnifiedAccount, PortfolioMargin };
+
+    inline std::string toString(UserAbstractionMode mode)
+    {
+        switch (mode)
+        {
+        case UserAbstractionMode::Disabled: return "i";
+        case UserAbstractionMode::UnifiedAccount: return "u";
+        case UserAbstractionMode::PortfolioMargin: return "p";
+        default: throw std::invalid_argument("Unknown UserAbstractionMode");
+        }
+    }
+
+    inline UserAbstractionMode stringToUserAbstractionMode(const std::string& mode)
+    {
+        if (mode == "i") return UserAbstractionMode::Disabled;
+        if (mode == "u") return UserAbstractionMode::UnifiedAccount;
+        if (mode == "p") return UserAbstractionMode::PortfolioMargin;
+        throw std::invalid_argument("Unknown UserAbstractionMode: " + mode);
+    }
 
     struct TwapOrderRequest
     {

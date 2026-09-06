@@ -509,6 +509,15 @@ SimpleResponse RestApi::approveAgent(const ApproveAgentRequest& request)
                                    impl_->exchangeRequestBuilder.approveAgent(request)));
 }
 
+SimpleResponse RestApi::agentSetAbstraction(UserAbstractionMode abstraction,
+                               const std::optional<std::string>& vaultAddress)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::AgentSetAbstraction,
+                                   impl_->exchangeRequestBuilder.agentSetAbstraction(abstraction),
+                                   vaultAddress));
+}
+
 TwapOrderResponse RestApi::twapOrder(const TwapOrderRequest& request,
                                const std::optional<std::string>& vaultAddress)
 {
@@ -947,6 +956,14 @@ void RestApi::approveAgentAsync(const ApproveAgentRequest& request)
 {
     impl_->signAndSend(RestEndpointType::ApproveAgent,
                        impl_->exchangeRequestBuilder.approveAgent(request));
+}
+
+void RestApi::agentSetAbstractionAsync(UserAbstractionMode abstraction,
+                                        const std::optional<std::string>& vaultAddress)
+{
+    impl_->signAndSend(RestEndpointType::AgentSetAbstraction,
+                       impl_->exchangeRequestBuilder.agentSetAbstraction(abstraction),
+                       vaultAddress);
 }
 
 void RestApi::twapOrderAsync(const TwapOrderRequest& request,

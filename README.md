@@ -179,6 +179,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `updateLeverage` | ✅ | `RestApi::updateLeverage` |
 | `updateIsolatedMargin` | ✅ | `RestApi::updateIsolatedMargin` |
 | `approveAgent` | ✅ | `RestApi::approveAgent` |
+| `agentSetAbstraction` | ✅ | `RestApi::agentSetAbstraction` |
 | `approveBuilderFee` | ✅ | `RestApi::approveBuilderFee` |
 | `userSetAbstraction` | ✅ | `RestApi::userSetAbstraction` |
 | `sendAsset` | ✅ | `RestApi::sendAsset` |
