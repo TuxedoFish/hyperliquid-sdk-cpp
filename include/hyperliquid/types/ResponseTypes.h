@@ -1312,6 +1312,41 @@ namespace hyperliquid
         std::optional<std::string> subAccountMaster;
     };
 
+    // Bare top-level JSON boolean, or null if the user has never touched dex abstraction.
+    struct UserDexAbstractionResponse
+    {
+        std::optional<bool> enabled;
+    };
+
+    enum class UserAbstractionState { UnifiedAccount, PortfolioMargin, Disabled, Default, Unknown };
+
+    inline UserAbstractionState stringToUserAbstractionState(std::string_view s)
+    {
+        if (s == "unifiedAccount") return UserAbstractionState::UnifiedAccount;
+        if (s == "portfolioMargin") return UserAbstractionState::PortfolioMargin;
+        if (s == "disabled") return UserAbstractionState::Disabled;
+        if (s == "default") return UserAbstractionState::Default;
+        return UserAbstractionState::Unknown;
+    }
+
+    inline std::string toString(UserAbstractionState state)
+    {
+        switch (state)
+        {
+        case UserAbstractionState::UnifiedAccount: return "unifiedAccount";
+        case UserAbstractionState::PortfolioMargin: return "portfolioMargin";
+        case UserAbstractionState::Disabled: return "disabled";
+        case UserAbstractionState::Default: return "default";
+        default: return "unknown";
+        }
+    }
+
+    // Bare top-level JSON string: one of "unifiedAccount"/"portfolioMargin"/"disabled"/"default".
+    struct UserAbstractionResponse
+    {
+        UserAbstractionState state;
+    };
+
     // --- Rest endpoint types (authenticated) ---
 
     struct OrderStatusResting

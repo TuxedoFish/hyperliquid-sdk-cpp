@@ -441,6 +441,19 @@ AllBorrowLendReserveStatesResponse RestApi::allBorrowLendReserveStates()
                                InfoRequestBuilder::allBorrowLendReserveStates()));
 }
 
+UserDexAbstractionResponse RestApi::userDexAbstractionState(const std::string& user)
+{
+    return RestApiMessageParser().parseUserDexAbstractionState(
+        impl_->signAndSendSync(RestEndpointType::UserDexAbstractionState,
+                               InfoRequestBuilder::userDexAbstractionState(user)));
+}
+
+UserAbstractionResponse RestApi::userAbstraction(const std::string& user)
+{
+    return RestApiMessageParser().parseUserAbstraction(
+        impl_->signAndSendSync(RestEndpointType::UserAbstraction, InfoRequestBuilder::userAbstraction(user)));
+}
+
 PlaceOrderResponse RestApi::placeOrder(const std::vector<OrderRequest>& orders,
                                 Grouping grouping,
                                 const std::optional<Builder>& builder,
@@ -921,6 +934,16 @@ void RestApi::borrowLendReserveStateAsync(int token)
 void RestApi::allBorrowLendReserveStatesAsync()
 {
     impl_->signAndSend(RestEndpointType::AllBorrowLendReserveStates, InfoRequestBuilder::allBorrowLendReserveStates());
+}
+
+void RestApi::userDexAbstractionStateAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::UserDexAbstractionState, InfoRequestBuilder::userDexAbstractionState(user));
+}
+
+void RestApi::userAbstractionAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::UserAbstraction, InfoRequestBuilder::userAbstraction(user));
 }
 
 void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,

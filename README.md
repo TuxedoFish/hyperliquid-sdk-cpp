@@ -135,8 +135,8 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | General | `delegatorSummary` | ✅ | `RestApi::delegatorSummary` |
 | General | `delegatorHistory` | ✅ | `RestApi::delegatorHistory` |
 | General | `delegatorRewards` | ✅ | `RestApi::delegatorRewards` |
-| General | `userDexAbstraction` | ⬜ | |
-| General | `userAbstraction` | ⬜ | |
+| General | `userDexAbstraction` | ✅ | `RestApi::userDexAbstractionState` |
+| General | `userAbstraction` | ✅ | `RestApi::userAbstraction` |
 | General | `borrowLendUserState` | ✅ | `RestApi::borrowLendUserState` |
 | General | `borrowLendReserveState` | ✅ | `RestApi::borrowLendReserveState` |
 | General | `allBorrowLendReserveStates` | ✅ | `RestApi::allBorrowLendReserveStates` |
@@ -191,7 +191,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 | Spot / Outcomes | `outcomeTemplates` | ⬜ | |
 
-47 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
+49 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 
