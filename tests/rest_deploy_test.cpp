@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "messages/ExchangeRequestBuilder.h"
 #include "messages/InfoRequestBuilder.h"
 #include "hyperliquid/rest/RestApiMessageParser.h"
 
@@ -228,4 +229,172 @@ TEST(RestApiMessageParserInfoTest, ParseSpotDeployStateWithNullFullNameAndMaxSup
     EXPECT_FALSE(response.states[1].fullName.has_value());
     EXPECT_FALSE(response.states[1].maxSupply.has_value());
     EXPECT_TRUE(response.states[1].spots.empty());
+}
+
+// spotDeploy is a large multi-variant action (10 sub-actions sharing `type: "spotDeploy"`); only
+// the 5 variants making up the "create and launch a new spot token" flow are implemented here -
+// see issue #91. All 5 share `type: "spotDeploy"` with exactly one nested key present as the
+// discriminator, rather than a separate `type`/enum field. Field shapes confirmed against the
+// official TS SDK (@nktkas/hyperliquid, src/api/exchange/_methods/spotDeploy.ts), not a live
+// capture - a full live "happy path" deployment creates permanent testnet state and was out of
+// scope for this pass.
+
+TEST(SpotDeployBuilderTest, RegisterToken2)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployRegisterToken2Request request;
+    request.spec.name = "TEST5";
+    request.spec.szDecimals = 1;
+    request.spec.weiDecimals = 7;
+    request.maxGas = 5000;
+    request.fullName = "Test Token Five";
+
+    auto body = builder.spotDeployRegisterToken2(request);
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "spotDeploy");
+    ASSERT_TRUE(action.contains("registerToken2"));
+    const auto& registerToken2 = action["registerToken2"];
+    EXPECT_EQ(registerToken2["spec"]["name"], "TEST5");
+    EXPECT_EQ(registerToken2["spec"]["szDecimals"].get<int>(), 1);
+    EXPECT_EQ(registerToken2["spec"]["weiDecimals"].get<int>(), 7);
+    EXPECT_EQ(registerToken2["maxGas"].get<uint64_t>(), 5000ULL);
+    EXPECT_EQ(registerToken2["fullName"], "Test Token Five");
+}
+
+TEST(SpotDeployBuilderTest, RegisterToken2OmitsFullNameWhenAbsent)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployRegisterToken2Request request;
+    request.spec.name = "TEST5";
+    request.spec.szDecimals = 1;
+    request.spec.weiDecimals = 7;
+    request.maxGas = 5000;
+
+    auto body = builder.spotDeployRegisterToken2(request);
+    EXPECT_FALSE(body["action"]["registerToken2"].contains("fullName"));
+}
+
+TEST(SpotDeployBuilderTest, UserGenesis)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployUserGenesisRequest request;
+    request.token = 40;
+    request.userAndWei = {{"0x051dbfc562d44e4a01ebb986da35a47ab4f346db", 100.5}};
+    request.existingTokenAndWei = {{1, 50.25}};
+    request.blacklistUsers = std::vector<std::pair<std::string, bool>>{
+        {"0xf43d54c219b52269831784969b9e7c54f0d448c8", true}};
+
+    auto body = builder.spotDeployUserGenesis(request);
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "spotDeploy");
+    const auto& userGenesis = action["userGenesis"];
+    EXPECT_EQ(userGenesis["token"].get<int>(), 40);
+    ASSERT_EQ(userGenesis["userAndWei"].size(), 1u);
+    EXPECT_EQ(userGenesis["userAndWei"][0][0], "0x051dbfc562d44e4a01ebb986da35a47ab4f346db");
+    EXPECT_EQ(userGenesis["userAndWei"][0][1], "100.5");
+    ASSERT_EQ(userGenesis["existingTokenAndWei"].size(), 1u);
+    EXPECT_EQ(userGenesis["existingTokenAndWei"][0][0].get<int>(), 1);
+    EXPECT_EQ(userGenesis["existingTokenAndWei"][0][1], "50.25");
+    ASSERT_EQ(userGenesis["blacklistUsers"].size(), 1u);
+    EXPECT_EQ(userGenesis["blacklistUsers"][0][0], "0xf43d54c219b52269831784969b9e7c54f0d448c8");
+    EXPECT_EQ(userGenesis["blacklistUsers"][0][1].get<bool>(), true);
+}
+
+TEST(SpotDeployBuilderTest, UserGenesisOmitsBlacklistUsersWhenAbsent)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployUserGenesisRequest request;
+    request.token = 40;
+    request.userAndWei = {};
+    request.existingTokenAndWei = {};
+
+    auto body = builder.spotDeployUserGenesis(request);
+    EXPECT_FALSE(body["action"]["userGenesis"].contains("blacklistUsers"));
+}
+
+TEST(SpotDeployBuilderTest, Genesis)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployGenesisRequest request;
+    request.token = 40;
+    request.maxSupply = 10000.0012234;
+    request.noHyperliquidity = true;
+
+    auto body = builder.spotDeployGenesis(request);
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "spotDeploy");
+    const auto& genesis = action["genesis"];
+    EXPECT_EQ(genesis["token"].get<int>(), 40);
+    EXPECT_EQ(genesis["maxSupply"], "10000.0012234");
+    EXPECT_EQ(genesis["noHyperliquidity"].get<bool>(), true);
+}
+
+TEST(SpotDeployBuilderTest, GenesisOmitsNoHyperliquidityWhenAbsent)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployGenesisRequest request;
+    request.token = 40;
+    request.maxSupply = 10000.0;
+
+    auto body = builder.spotDeployGenesis(request);
+    EXPECT_FALSE(body["action"]["genesis"].contains("noHyperliquidity"));
+}
+
+TEST(SpotDeployBuilderTest, RegisterSpot)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployRegisterSpotRequest request;
+    request.baseToken = 40;
+    request.quoteToken = 0;
+
+    auto body = builder.spotDeployRegisterSpot(request);
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "spotDeploy");
+    const auto& tokens = action["registerSpot"]["tokens"];
+    ASSERT_EQ(tokens.size(), 2u);
+    EXPECT_EQ(tokens[0].get<int>(), 40);
+    EXPECT_EQ(tokens[1].get<int>(), 0);
+}
+
+TEST(SpotDeployBuilderTest, RegisterHyperliquidity)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployRegisterHyperliquidityRequest request;
+    request.spot = 934;
+    request.startPx = 1.5;
+    request.orderSz = 100.0;
+    request.nOrders = 10;
+    request.nSeededLevels = 5;
+
+    auto body = builder.spotDeployRegisterHyperliquidity(request);
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "spotDeploy");
+    const auto& registerHyperliquidity = action["registerHyperliquidity"];
+    EXPECT_EQ(registerHyperliquidity["spot"].get<int>(), 934);
+    EXPECT_EQ(registerHyperliquidity["startPx"], "1.5");
+    EXPECT_EQ(registerHyperliquidity["orderSz"], "100");
+    EXPECT_EQ(registerHyperliquidity["nOrders"].get<int>(), 10);
+    EXPECT_EQ(registerHyperliquidity["nSeededLevels"].get<int>(), 5);
+}
+
+TEST(SpotDeployBuilderTest, RegisterHyperliquidityOmitsNSeededLevelsWhenAbsent)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployRegisterHyperliquidityRequest request;
+    request.spot = 934;
+    request.startPx = 1.5;
+    request.orderSz = 100.0;
+    request.nOrders = 10;
+
+    auto body = builder.spotDeployRegisterHyperliquidity(request);
+    EXPECT_FALSE(body["action"]["registerHyperliquidity"].contains("nSeededLevels"));
 }

@@ -398,6 +398,129 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::spotDeployRegisterToken2(
+        const SpotDeployRegisterToken2Request& request) const
+    {
+        nlohmann::ordered_json spec;
+        spec["name"] = request.spec.name;
+        spec["szDecimals"] = request.spec.szDecimals;
+        spec["weiDecimals"] = request.spec.weiDecimals;
+
+        nlohmann::ordered_json registerToken2;
+        registerToken2["spec"] = spec;
+        registerToken2["maxGas"] = request.maxGas;
+        if (request.fullName) registerToken2["fullName"] = *request.fullName;
+
+        nlohmann::ordered_json action;
+        action["type"] = "spotDeploy";
+        action["registerToken2"] = registerToken2;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::spotDeployUserGenesis(
+        const SpotDeployUserGenesisRequest& request) const
+    {
+        nlohmann::ordered_json userAndWei = nlohmann::ordered_json::array();
+        for (const auto& [address, wei] : request.userAndWei)
+        {
+            nlohmann::ordered_json entry = nlohmann::ordered_json::array();
+            entry.push_back(address);
+            entry.push_back(floatToWire(wei));
+            userAndWei.push_back(entry);
+        }
+
+        nlohmann::ordered_json existingTokenAndWei = nlohmann::ordered_json::array();
+        for (const auto& [token, wei] : request.existingTokenAndWei)
+        {
+            nlohmann::ordered_json entry = nlohmann::ordered_json::array();
+            entry.push_back(token);
+            entry.push_back(floatToWire(wei));
+            existingTokenAndWei.push_back(entry);
+        }
+
+        nlohmann::ordered_json userGenesis;
+        userGenesis["token"] = request.token;
+        userGenesis["userAndWei"] = userAndWei;
+        userGenesis["existingTokenAndWei"] = existingTokenAndWei;
+        if (request.blacklistUsers)
+        {
+            nlohmann::ordered_json blacklistUsers = nlohmann::ordered_json::array();
+            for (const auto& [address, blocked] : *request.blacklistUsers)
+            {
+                nlohmann::ordered_json entry = nlohmann::ordered_json::array();
+                entry.push_back(address);
+                entry.push_back(blocked);
+                blacklistUsers.push_back(entry);
+            }
+            userGenesis["blacklistUsers"] = blacklistUsers;
+        }
+
+        nlohmann::ordered_json action;
+        action["type"] = "spotDeploy";
+        action["userGenesis"] = userGenesis;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::spotDeployGenesis(const SpotDeployGenesisRequest& request) const
+    {
+        nlohmann::ordered_json genesis;
+        genesis["token"] = request.token;
+        genesis["maxSupply"] = floatToWire(request.maxSupply);
+        if (request.noHyperliquidity && *request.noHyperliquidity) genesis["noHyperliquidity"] = true;
+
+        nlohmann::ordered_json action;
+        action["type"] = "spotDeploy";
+        action["genesis"] = genesis;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::spotDeployRegisterSpot(
+        const SpotDeployRegisterSpotRequest& request) const
+    {
+        nlohmann::ordered_json tokens = nlohmann::ordered_json::array();
+        tokens.push_back(request.baseToken);
+        tokens.push_back(request.quoteToken);
+
+        nlohmann::ordered_json registerSpot;
+        registerSpot["tokens"] = tokens;
+
+        nlohmann::ordered_json action;
+        action["type"] = "spotDeploy";
+        action["registerSpot"] = registerSpot;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::spotDeployRegisterHyperliquidity(
+        const SpotDeployRegisterHyperliquidityRequest& request) const
+    {
+        nlohmann::ordered_json registerHyperliquidity;
+        registerHyperliquidity["spot"] = request.spot;
+        registerHyperliquidity["startPx"] = floatToWire(request.startPx);
+        registerHyperliquidity["orderSz"] = floatToWire(request.orderSz);
+        registerHyperliquidity["nOrders"] = request.nOrders;
+        if (request.nSeededLevels) registerHyperliquidity["nSeededLevels"] = *request.nSeededLevels;
+
+        nlohmann::ordered_json action;
+        action["type"] = "spotDeploy";
+        action["registerHyperliquidity"] = registerHyperliquidity;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     nlohmann::ordered_json ExchangeRequestBuilder::usdClassTransfer(const UsdClassTransferRequest& request) const
     {
         nlohmann::ordered_json action;
