@@ -65,6 +65,7 @@ set(SDK_SOURCES
 
         src/websocket/WebsocketRunner.cpp
         src/websocket/WebsocketApi.cpp
+        src/websocket/PostResponseDispatch.cpp
         src/websocket/WebsocketMessageParser.cpp
         src/websocket/WebsocketParsingUtils.cpp
 
@@ -201,6 +202,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     hyperliquid_add_test(misc_info_test)
     hyperliquid_add_test(user_dex_abstraction_test)
     hyperliquid_add_test(websocket_api_exchange_test)
+    hyperliquid_add_test(websocket_api_dispatch_test)
 endif()
 
 if(HYPERLIQUID_BUILD_EXAMPLES)

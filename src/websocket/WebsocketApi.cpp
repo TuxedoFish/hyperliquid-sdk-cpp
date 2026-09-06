@@ -3,6 +3,7 @@
 #include <simdjson.h>
 
 #include "hyperliquid/websocket/WebsocketApiListener.h"
+#include "PostResponseDispatch.h"
 #include "WebsocketRunner.h"
 #include <nlohmann/json.hpp>
 #include <thread>
@@ -15,11 +16,7 @@
 
 namespace hyperliquid
 {
-    struct PostRequestInfo
-    {
-        RestEndpointType type;
-        std::optional<uint64_t> correlationId;
-    };
+    using internal::PostRequestInfo;
 
     struct WebsocketApi::Impl : internal::WSListener
     {
@@ -67,22 +64,7 @@ namespace hyperliquid
 
                 if (channel == "post")
                 {
-                    auto data = doc["data"].get_object().value();
-                    uint64_t id = data["id"].get_uint64().value();
-                    auto payload = simdjson::to_json_string(data["response"]["payload"]);
-                    auto it = postRequestInfo.find(id);
-                    if (it != postRequestInfo.end())
-                    {
-                        auto info = it->second;
-                        postRequestInfo.erase(it);
-                        std::string payloadStr(payload.value());
-                        listener.onPostResponse(payloadStr, info.type, info.correlationId);
-                    }
-                    else
-                    {
-                        getLogger()->error("post response with unknown id: {}", id);
-                        listener.onMessage(message);
-                    }
+                    internal::handlePostChannelMessage(message, postRequestInfo, listener);
                     return;
                 }
             }
