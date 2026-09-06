@@ -154,7 +154,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | General | `validatorL1Votes` | ⬜ | |
 | General | `validatorSummaries` | ⬜ | |
 | General | `vaultSummaries` | ⬜ | |
-| General | `webData2` | ⬜ | |
+| General | `webData2` (deprecated, use `webData3`) | ⬜ | |
 | Perpetuals | `perpDexs` | ✅ | `RestApi::perpDexs` |
 | Perpetuals | `meta` | ✅ | `RestApi::meta` |
 | Perpetuals | `metaAndAssetCtxs` | ✅ | `RestApi::metaAndAssetCtxs` |
@@ -221,9 +221,9 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `twapCancel` | ✅ | `RestApi::twapCancel` |
 | `reserveRequestWeight` | ✅ | `RestApi::reserveRequestWeight` |
 | `noop` | ✅ | `RestApi::noop` |
-| `userDexAbstraction` (deprecated) | ⬜ | |
+| `userDexAbstraction` (deprecated, use `userSetAbstraction`) | ⬜ | |
 | `activateOutcomeDeployer` | ⬜ | |
-| `agentEnableDexAbstraction` | ⬜ | |
+| `agentEnableDexAbstraction` (deprecated, use `agentSetAbstraction`) | ⬜ | |
 | `authorizeAqav2Role` | ⬜ | |
 | `borrowLend` | ⬜ | |
 | `claimRewards` | ⬜ | |
