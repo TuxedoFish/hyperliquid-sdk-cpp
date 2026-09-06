@@ -1768,6 +1768,7 @@ namespace hyperliquid
                     token.weiDecimals = static_cast<int>(obj["weiDecimals"].get_int64().value());
                     token.index = static_cast<int>(obj["index"].get_int64().value());
                     token.tokenId = std::string(obj["tokenId"].get_string().value());
+                    token.isCanonical = obj["isCanonical"].get_bool().value();
                     simdjson::ondemand::value evmContract;
                     if (obj["evmContract"].get(evmContract) == simdjson::SUCCESS && !evmContract.is_null())
                     {

@@ -504,7 +504,7 @@ TEST(RestApiMessageParserInfoTest, ParseSpotMetaAndAssetCtxs)
 {
     std::string message = R"([
         {
-            "tokens": [{"name": "USDC", "szDecimals": 8, "weiDecimals": 8, "index": 0, "tokenId": "0x1"}],
+            "tokens": [{"name": "USDC", "szDecimals": 8, "weiDecimals": 8, "index": 0, "tokenId": "0x1", "isCanonical": true}],
             "universe": [{"name": "PURR/USDC", "tokens": [1, 0], "index": 0, "isCanonical": true}]
         },
         [{"dayNtlVlm": "500.0", "prevDayPx": "0.5", "markPx": "0.51", "circulatingSupply": "1000000.0"}]
@@ -515,6 +515,7 @@ TEST(RestApiMessageParserInfoTest, ParseSpotMetaAndAssetCtxs)
 
     ASSERT_EQ(response.meta.tokens.size(), 1u);
     EXPECT_EQ(response.meta.tokens[0].name, "USDC");
+    EXPECT_TRUE(response.meta.tokens[0].isCanonical);
     ASSERT_EQ(response.meta.universe.size(), 1u);
     EXPECT_EQ(response.meta.universe[0].name, "PURR/USDC");
     EXPECT_TRUE(response.meta.universe[0].isCanonical);
