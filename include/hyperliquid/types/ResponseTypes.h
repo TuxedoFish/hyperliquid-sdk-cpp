@@ -811,6 +811,93 @@ namespace hyperliquid
         std::vector<PredictedFundingEntry> fundings;
     };
 
+    struct FundingHistoryEntry
+    {
+        std::string coin;
+        double fundingRate;
+        double premium;
+        uint64_t time;
+    };
+
+    struct FundingHistoryResponse
+    {
+        std::vector<FundingHistoryEntry> history;
+    };
+
+    enum class LedgerUpdateDeltaType
+    {
+        Funding,
+        Deposit,
+        Withdraw,
+        AccountClassTransfer,
+        InternalTransfer,
+        SubAccountTransfer,
+        SpotTransfer,
+        Unknown
+    };
+
+    inline LedgerUpdateDeltaType stringToLedgerUpdateDeltaType(std::string_view s)
+    {
+        if (s == "funding") return LedgerUpdateDeltaType::Funding;
+        if (s == "deposit") return LedgerUpdateDeltaType::Deposit;
+        if (s == "withdraw") return LedgerUpdateDeltaType::Withdraw;
+        if (s == "accountClassTransfer") return LedgerUpdateDeltaType::AccountClassTransfer;
+        if (s == "internalTransfer") return LedgerUpdateDeltaType::InternalTransfer;
+        if (s == "subAccountTransfer") return LedgerUpdateDeltaType::SubAccountTransfer;
+        if (s == "spotTransfer") return LedgerUpdateDeltaType::SpotTransfer;
+        return LedgerUpdateDeltaType::Unknown;
+    }
+
+    inline std::string toString(LedgerUpdateDeltaType type)
+    {
+        switch (type)
+        {
+        case LedgerUpdateDeltaType::Funding: return "funding";
+        case LedgerUpdateDeltaType::Deposit: return "deposit";
+        case LedgerUpdateDeltaType::Withdraw: return "withdraw";
+        case LedgerUpdateDeltaType::AccountClassTransfer: return "accountClassTransfer";
+        case LedgerUpdateDeltaType::InternalTransfer: return "internalTransfer";
+        case LedgerUpdateDeltaType::SubAccountTransfer: return "subAccountTransfer";
+        case LedgerUpdateDeltaType::SpotTransfer: return "spotTransfer";
+        default: return "unknown";
+        }
+    }
+
+    struct LedgerUpdateDelta
+    {
+        LedgerUpdateDeltaType type = LedgerUpdateDeltaType::Unknown;
+
+        std::optional<std::string> coin;
+        std::optional<double> fundingRate;
+        std::optional<double> szi;
+        std::optional<double> nSamples;
+
+        std::optional<double> usdc;
+        std::optional<double> fee;
+        std::optional<uint64_t> nonce;
+        std::optional<bool> toPerp;
+        std::optional<std::string> user;
+        std::optional<std::string> destination;
+        std::optional<std::string> token;
+        std::optional<double> amount;
+        std::optional<double> usdcValue;
+        std::optional<double> nativeTokenFee;
+
+        std::optional<std::string> rawJson;
+    };
+
+    struct LedgerUpdateEntry
+    {
+        uint64_t time;
+        std::string hash;
+        LedgerUpdateDelta delta;
+    };
+
+    struct UserFundingLedgerUpdateResponse
+    {
+        std::vector<LedgerUpdateEntry> updates;
+    };
+
     // "category" is dex-defined and open-ended (builder-deployed dexs can invent new
     // categories), so it is kept as a string rather than a fixed enum.
     struct PerpAnnotationResponse

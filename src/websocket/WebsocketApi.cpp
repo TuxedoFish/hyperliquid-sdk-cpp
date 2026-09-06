@@ -378,6 +378,31 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::userFunding(const std::string& user, uint64_t startTime,
+                                   const std::optional<uint64_t>& endTime, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserFunding,
+                                  InfoRequestBuilder::userFunding(user, startTime, endTime),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userNonFundingLedgerUpdates(const std::string& user, uint64_t startTime,
+                                                    const std::optional<uint64_t>& endTime,
+                                                    std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserNonFundingLedgerUpdates,
+                                  InfoRequestBuilder::userNonFundingLedgerUpdates(user, startTime, endTime),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::fundingHistory(const std::string& coin, uint64_t startTime,
+                                      const std::optional<uint64_t>& endTime, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::FundingHistory,
+                                  InfoRequestBuilder::fundingHistory(coin, startTime, endTime),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::userRateLimit(const std::string& user, std::optional<uint64_t> correlationId)
     {
         return impl_->signAndSend(RestEndpointType::UserRateLimit, InfoRequestBuilder::userRateLimit(user),

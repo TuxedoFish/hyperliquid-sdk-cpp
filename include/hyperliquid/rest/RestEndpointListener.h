@@ -19,6 +19,9 @@ public:
     virtual void onPerpDexLimits(const PerpDexLimitsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpDexStatus(const PerpDexStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpDeployAuctionStatus(const PerpDeployAuctionStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onUserFunding(const UserFundingLedgerUpdateResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onUserNonFundingLedgerUpdates(const UserFundingLedgerUpdateResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onFundingHistory(const FundingHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpsAtOpenInterestCap(const PerpsAtOpenInterestCapResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPredictedFundings(const PredictedFundingsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPerpAnnotation(const PerpAnnotationResponse&, std::optional<uint64_t> = std::nullopt) {}

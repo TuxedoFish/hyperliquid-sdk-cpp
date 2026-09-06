@@ -47,6 +47,15 @@ public:
     PerpDexLimitsResponse perpDexLimits(const std::string& dex);
     PerpDexStatusResponse perpDexStatus(const std::string& dex);
     PerpDeployAuctionStatusResponse perpDeployAuctionStatus();
+    UserFundingLedgerUpdateResponse userFunding(const std::string& user,
+                                                uint64_t startTime,
+                                                const std::optional<uint64_t>& endTime = std::nullopt);
+    UserFundingLedgerUpdateResponse userNonFundingLedgerUpdates(const std::string& user,
+                                                                uint64_t startTime,
+                                                                const std::optional<uint64_t>& endTime = std::nullopt);
+    FundingHistoryResponse fundingHistory(const std::string& coin,
+                                          uint64_t startTime,
+                                          const std::optional<uint64_t>& endTime = std::nullopt);
     L2BookResponse l2Book(const std::string& coin,
                           const std::optional<int>& nSigFigs = std::nullopt,
                           const std::optional<int>& mantissa = std::nullopt);
@@ -159,6 +168,15 @@ public:
     void perpDexLimitsAsync(const std::string& dex);
     void perpDexStatusAsync(const std::string& dex);
     void perpDeployAuctionStatusAsync();
+    void userFundingAsync(const std::string& user,
+                          uint64_t startTime,
+                          const std::optional<uint64_t>& endTime = std::nullopt);
+    void userNonFundingLedgerUpdatesAsync(const std::string& user,
+                                          uint64_t startTime,
+                                          const std::optional<uint64_t>& endTime = std::nullopt);
+    void fundingHistoryAsync(const std::string& coin,
+                             uint64_t startTime,
+                             const std::optional<uint64_t>& endTime = std::nullopt);
     void l2BookAsync(const std::string& coin,
                      const std::optional<int>& nSigFigs = std::nullopt,
                      const std::optional<int>& mantissa = std::nullopt);

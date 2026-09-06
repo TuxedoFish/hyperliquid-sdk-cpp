@@ -1,0 +1,7 @@
+[
+    {
+        "delta": {"coin": "ETH", "fundingRate": "0.0000417", "szi": "49.1477", "type": "funding", "usdc": "-3.625312", "nSamples": null},
+        "hash": "0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8",
+        "time": 1681222254710
+    }
+]

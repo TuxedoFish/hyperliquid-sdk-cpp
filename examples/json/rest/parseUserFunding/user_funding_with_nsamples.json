@@ -1,0 +1,7 @@
+[
+    {
+        "delta": {"coin": "BTC", "fundingRate": "0.0001", "szi": "1.5", "type": "funding", "usdc": "0.5", "nSamples": 3},
+        "hash": "0xhash1",
+        "time": 1681222254711
+    }
+]

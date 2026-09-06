@@ -106,6 +106,42 @@ nlohmann::ordered_json InfoRequestBuilder::perpDeployAuctionStatus()
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::userFunding(const std::string& user,
+                                                       uint64_t startTime,
+                                                       const std::optional<uint64_t>& endTime)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserFunding);
+    body["user"] = user;
+    body["startTime"] = startTime;
+    if (endTime) body["endTime"] = *endTime;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::userNonFundingLedgerUpdates(const std::string& user,
+                                                                       uint64_t startTime,
+                                                                       const std::optional<uint64_t>& endTime)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserNonFundingLedgerUpdates);
+    body["user"] = user;
+    body["startTime"] = startTime;
+    if (endTime) body["endTime"] = *endTime;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::fundingHistory(const std::string& coin,
+                                                          uint64_t startTime,
+                                                          const std::optional<uint64_t>& endTime)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::FundingHistory);
+    body["coin"] = coin;
+    body["startTime"] = startTime;
+    if (endTime) body["endTime"] = *endTime;
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::l2Book(const std::string& coin,
                                                   const std::optional<int>& nSigFigs,
                                                   const std::optional<int>& mantissa)
