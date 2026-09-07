@@ -2,6 +2,8 @@
 
 Thanks for looking at this project. Most open issues are scoped around adding a single missing API surface (an `/info` endpoint, an `/exchange` action, or a websocket channel) and follow a repeatable pattern - this doc walks through it.
 
+Please note we have a [Code of Conduct](CODE_OF_CONDUCT.md) - by participating in this project you agree to abide by its terms. For security vulnerabilities, see [SECURITY.md](SECURITY.md) instead of opening a public issue.
+
 ## Build first
 
 Follow the [Build section of the README](README.md#build). Confirm `cmake --build build -j$(nproc)` and `ctest --test-dir build` both pass on a clean checkout before making any changes, so you know a later failure is something you introduced.
