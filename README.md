@@ -13,7 +13,7 @@ This SDK signs and submits real transactions on mainnet. Test against `Environme
 
 ## Build
 
-Requires CMake 3.16+, a C++23 compiler, and [vcpkg](https://github.com/microsoft/vcpkg) for dependencies (OpenSSL, Boost.Asio/Beast, simdjson, nlohmann-json, spdlog, zlib, GTest). `secp256k1` is fetched and built automatically via `FetchContent`.
+Requires CMake 3.16+, a C++23 compiler, and [vcpkg](https://github.com/microsoft/vcpkg) for dependencies (OpenSSL, Boost.Asio/Beast, simdjson, nlohmann-json, spdlog, zlib, secp256k1, GTest).
 
 ```bash
 git clone https://github.com/TuxedoFish/hyperliquid-sdk-cpp.git

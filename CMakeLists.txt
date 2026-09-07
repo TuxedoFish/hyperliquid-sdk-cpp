@@ -39,20 +39,7 @@ find_package(simdjson CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
-
-include(FetchContent)
-FetchContent_Declare(
-    secp256k1
-    GIT_REPOSITORY https://github.com/bitcoin-core/secp256k1.git
-    GIT_TAG        v0.7.1
-)
-set(SECP256K1_ENABLE_MODULE_RECOVERY ON CACHE BOOL "" FORCE)
-set(SECP256K1_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(SECP256K1_BUILD_EXHAUSTIVE_TESTS OFF CACHE BOOL "" FORCE)
-set(SECP256K1_BUILD_BENCHMARK OFF CACHE BOOL "" FORCE)
-set(SECP256K1_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SECP256K1_BUILD_CTIME_TESTS OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(secp256k1)
+find_package(libsecp256k1 CONFIG REQUIRED)
 
 set(SDK_SOURCES
         src/rest/RestApiMessageParser.cpp
@@ -97,7 +84,7 @@ target_link_libraries(hyperliquid-sdk
         spdlog::spdlog
         ZLIB::ZLIB
         PRIVATE
-        $<BUILD_INTERFACE:secp256k1_objs>
+        libsecp256k1::secp256k1
 )
 
 if(NOT MSVC)
