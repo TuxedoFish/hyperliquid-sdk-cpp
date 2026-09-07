@@ -23,9 +23,6 @@ namespace hyperliquid
         WebsocketMessageParser& operator=(const WebsocketMessageParser&) = delete;
 
         void crack(std::string_view message, WebsocketMessageHandler& listener);
-        // Currently a no-op - crack() carries no state between calls, so there is nothing to
-        // reset. Kept as a reserved hook for a future stateful parsing path.
-        void reset();
 
     private:
         struct Impl;
