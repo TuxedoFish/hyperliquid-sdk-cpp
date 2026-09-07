@@ -523,7 +523,7 @@ TEST(PerpDeployRegisterAsset2ResponseParsing, ErrorResponse)
 {
     static const std::string kErr = R"({
         "status": "err",
-        "response": "Only the dex deployer can register new assets."
+        "response": "Invalid perp deployer or sub-deployer"
     })";
 
     RestApiMessageParser parser;

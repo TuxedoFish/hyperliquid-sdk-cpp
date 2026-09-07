@@ -742,6 +742,9 @@ namespace hyperliquid
         std::string coin;
         uint32_t szDecimals;
         double oraclePx;
+        // Must reference a real, existing margin table - an arbitrary id makes the whole
+        // request fail server-side JSON deserialization with an opaque error, not a normal
+        // business-logic rejection.
         uint32_t marginTableId;
         PerpMarginMode marginMode;
     };

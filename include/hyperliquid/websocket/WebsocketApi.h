@@ -215,6 +215,8 @@ namespace hyperliquid
                                     std::optional<uint64_t> correlationId = std::nullopt);
         void spotDeployRegisterHyperliquidity(const SpotDeployRegisterHyperliquidityRequest& request,
                                               std::optional<uint64_t> correlationId = std::nullopt);
+        void perpDeployRegisterAsset2(const PerpDeployRegisterAsset2Request& request,
+                                      std::optional<uint64_t> correlationId = std::nullopt);
 
         void sendToEvmWithData(const SendToEvmWithDataRequest& request,
                                std::optional<uint64_t> correlationId = std::nullopt);
