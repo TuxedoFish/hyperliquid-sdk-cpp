@@ -187,7 +187,11 @@ nlohmann::ordered_json Signing::prepareBodyForType(
     if (isUserSignedAction(type))
         return prepareUserSignedActionBody(config, type, body.at("action"));
 
-    auto effectiveVault = vaultAddress ? vaultAddress : config.vaultAddress;
+    bool allowConfigVaultFallback = type != RestEndpointType::VaultTransfer &&
+                                     type != RestEndpointType::Hip3LiquidatorTransfer;
+    auto effectiveVault = vaultAddress ? vaultAddress
+                         : allowConfigVaultFallback ? config.vaultAddress
+                         : std::nullopt;
     return prepareBody(config, type, std::move(body), effectiveVault, expiresAfter);
 }
 
