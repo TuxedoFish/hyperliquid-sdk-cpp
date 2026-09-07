@@ -161,6 +161,12 @@ namespace hyperliquid::internal
             case RestEndpointType::SpotPairDeployAuctionStatus:
                 listener.onPostResponse(parser.parseSpotPairDeployAuctionStatus(dataJson), correlationId);
                 break;
+            case RestEndpointType::UserDexAbstractionState:
+                listener.onPostResponse(parser.parseUserDexAbstractionState(dataJson), correlationId);
+                break;
+            case RestEndpointType::UserAbstraction:
+                listener.onPostResponse(parser.parseUserAbstraction(dataJson), correlationId);
+                break;
             case RestEndpointType::Delegations:
                 listener.onPostResponse(parser.parseDelegations(dataJson), correlationId);
                 break;

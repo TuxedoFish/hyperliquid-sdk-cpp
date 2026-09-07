@@ -62,6 +62,8 @@ public:
     virtual void onPostResponse(const AllBorrowLendReserveStatesResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const SpotDeployStateResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const SpotPairDeployAuctionStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const UserDexAbstractionResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const UserAbstractionResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const DelegationsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const DelegatorSummaryResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const DelegatorHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}

@@ -4,18 +4,9 @@
 #include <hyperliquid/config/Config.h>
 #include <spdlog/spdlog.h>
 
-// Demonstrates the two read-only /info account/dex abstraction queries added for issue #48:
-//
-//   - userDexAbstraction (info): "is dex abstraction toggled on for this user" - a bare
-//     true/false/null response. Not to be confused with the *exchange* action of the same wire
-//     name (RestApi::userDexAbstraction(const UserDexAbstractionRequest&)), which flips the
-//     toggle rather than reading it - the info-side method here is named
-//     userDexAbstractionState() to avoid the collision.
-//   - userAbstraction (info): the account's current abstraction mode - a bare string, one of
-//     "unifiedAccount"/"portfolioMargin"/"disabled"/"default".
-//
-// Both are unauthenticated reads - no signing/wallet needed, only a user address to query.
-
+// userDexAbstractionState() is named to avoid colliding with the *exchange* action
+// RestApi::userDexAbstraction(const UserDexAbstractionRequest&), which shares the same wire
+// name but flips the toggle rather than reading it. Both queries here are unauthenticated.
 int main()
 {
     // Only the account address is used below - the private key is never read or logged.
