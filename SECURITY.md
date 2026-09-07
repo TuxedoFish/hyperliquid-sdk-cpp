@@ -8,13 +8,13 @@ Vulnerabilities in the Hyperliquid exchange or protocol itself (as opposed to th
 
 ## Supported Versions
 
-This project has not yet made a tagged release. Until the first release is tagged, only the latest commit on `main` is supported; please make sure you can reproduce an issue against current `main` before reporting.
+This project is pre-1.0, so only the most recent tagged release and the latest commit on `main` are supported. Please make sure you can reproduce an issue against one of those before reporting.
 
-Once versioned releases begin, this table will be updated to reflect which versions receive security fixes:
-
-| Version | Supported          |
-| ------- | ------------------ |
-| main    | :white_check_mark: |
+| Version       | Supported          |
+| ------------- | ------------------ |
+| main          | :white_check_mark: |
+| latest tag    | :white_check_mark: |
+| older tags    | :x:                |
 
 ## Reporting a Vulnerability
 
