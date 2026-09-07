@@ -36,7 +36,7 @@ struct RestApi::Impl {
     std::string host;
     std::string port;
     RestApiListener& listener;
-    const ApiConfig& config;
+    ApiConfig config;
     ExchangeRequestBuilder exchangeRequestBuilder;
 
     Impl(const ApiConfig& config, RestApiListener& listener)

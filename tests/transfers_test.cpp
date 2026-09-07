@@ -248,7 +248,7 @@ TEST(PrepareUserSignedActionBody, UsdSendProducesFullySignedBody)
     EXPECT_EQ(body["signature"]["v"], expectedSig.v);
 }
 
-TEST(PrepareUserSignedActionBody, MissingWalletReturnsEmptyBody)
+TEST(PrepareUserSignedActionBody, MissingWalletThrows)
 {
     ApiConfig config;
     config.env = Environment::Testnet;
@@ -260,8 +260,8 @@ TEST(PrepareUserSignedActionBody, MissingWalletReturnsEmptyBody)
     req.amount = 1;
     auto action = builder.usdSend(req)["action"];
 
-    auto body = Signing::prepareUserSignedActionBody(config, RestEndpointType::UsdSend, action);
-    EXPECT_TRUE(body.empty());
+    EXPECT_THROW(Signing::prepareUserSignedActionBody(config, RestEndpointType::UsdSend, action),
+                 std::invalid_argument);
 }
 
 // --- spotSend (user-signed) ---

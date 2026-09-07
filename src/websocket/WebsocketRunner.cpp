@@ -232,7 +232,7 @@ void WebsocketRunner::scheduleReconnect() {
     if (reconnectTimer_) reconnectTimer_->cancel();
 
     reconnectAttempts_++;
-    int delaySecs = std::min(1 << reconnectAttempts_, MAX_BACKOFF_SECS);
+    int delaySecs = std::min(1 << std::min(reconnectAttempts_, 16), MAX_BACKOFF_SECS);
     getLogger()->info("Reconnecting in {}s (attempt {})", delaySecs, reconnectAttempts_);
 
     reconnectTimer_ = std::make_unique<net::steady_timer>(ioc_, std::chrono::seconds(delaySecs));

@@ -195,6 +195,7 @@ namespace hyperliquid::internal
 
     void handlePostChannelMessage(const std::string& rawMessage,
                                   std::unordered_map<uint64_t, PostRequestInfo>& postRequestInfo,
+                                  std::mutex& postRequestInfoMutex,
                                   WebsocketApiListener& listener)
     {
         simdjson::ondemand::parser parser;
@@ -205,23 +206,30 @@ namespace hyperliquid::internal
         uint64_t id = data["id"].get_uint64().value();
         auto payload = simdjson::to_json_string(data["response"]["payload"]);
 
-        auto it = postRequestInfo.find(id);
-        if (it == postRequestInfo.end())
+        std::optional<PostRequestInfo> info;
+        {
+            std::lock_guard<std::mutex> lock(postRequestInfoMutex);
+            auto it = postRequestInfo.find(id);
+            if (it != postRequestInfo.end())
+            {
+                info = it->second;
+                postRequestInfo.erase(it);
+            }
+        }
+
+        if (!info)
         {
             getLogger()->error("post response with unknown id: {}", id);
             listener.onMessage(rawMessage);
             return;
         }
 
-        auto info = it->second;
-        postRequestInfo.erase(it);
-
         std::string payloadStr(payload.value());
-        listener.onPostResponse(payloadStr, info.type, info.correlationId);
+        listener.onPostResponse(payloadStr, info->type, info->correlationId);
 
-        if (isAuthenticated(info.type))
-            dispatchExchangeActionPostResponse(info.type, payloadStr, info.correlationId, listener);
+        if (isAuthenticated(info->type))
+            dispatchExchangeActionPostResponse(info->type, payloadStr, info->correlationId, listener);
         else
-            dispatchInfoPostResponse(info.type, payloadStr, info.correlationId, listener);
+            dispatchInfoPostResponse(info->type, payloadStr, info->correlationId, listener);
     }
 }

@@ -5,6 +5,7 @@
 #include "hyperliquid/websocket/WebsocketApiListener.h"
 #include "PostResponseDispatch.h"
 #include "WebsocketRunner.h"
+#include <mutex>
 #include <nlohmann/json.hpp>
 #include <thread>
 
@@ -20,23 +21,24 @@ namespace hyperliquid
 
     struct WebsocketApi::Impl : internal::WSListener
     {
+        ApiConfig config;
         internal::WebsocketRunner ws;
         WebsocketApiListener& listener;
-        bool stopping = false;
+        std::atomic<bool> stopping{false};
         std::thread thread;
         ExchangeRequestBuilder exchangeRequestBuilder;
-        const ApiConfig& config;
         std::atomic<int> postRequestCounter;
         std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+        std::mutex postRequestInfoMutex;
         simdjson::ondemand::parser sjParser;
         simdjson::padded_string sjPadded;
 
-        Impl(ApiConfig& config, WebsocketApiListener& listener)
-            : ws(config, *this), listener(listener), config(config), postRequestCounter(0)
+        Impl(const ApiConfig& config, WebsocketApiListener& listener)
+            : config(config), ws(this->config, *this), listener(listener), postRequestCounter(0)
         {
-            config.skipBuildingSymbolMap = true;
-            RestApi restApi(config);
-            exchangeRequestBuilder.initializeMapping(config, &restApi);
+            this->config.skipBuildingSymbolMap = true;
+            RestApi restApi(this->config);
+            exchangeRequestBuilder.initializeMapping(this->config, &restApi);
         }
 
         ~Impl()
@@ -64,7 +66,7 @@ namespace hyperliquid
 
                 if (channel == "post")
                 {
-                    internal::handlePostChannelMessage(message, postRequestInfo, listener);
+                    internal::handlePostChannelMessage(message, postRequestInfo, postRequestInfoMutex, listener);
                     return;
                 }
             }
@@ -97,7 +99,10 @@ namespace hyperliquid
             auto payload = Signing::prepareBodyForType(config, type, std::move(body), vaultAddress, expiresAfter);
             auto payloadType = isAuthenticated(type) ? "action" : "info";
             int postRequestId = postRequestCounter.fetch_add(1);
-            postRequestInfo[postRequestId] = {type, correlationId};
+            {
+                std::lock_guard<std::mutex> lock(postRequestInfoMutex);
+                postRequestInfo[postRequestId] = {type, correlationId};
+            }
             nlohmann::ordered_json wrapped = {
                 {"method", "post"},
                 {"id", postRequestId},
@@ -110,7 +115,7 @@ namespace hyperliquid
         }
     };
 
-    WebsocketApi::WebsocketApi(ApiConfig& config, WebsocketApiListener& listener) : impl_(
+    WebsocketApi::WebsocketApi(const ApiConfig& config, WebsocketApiListener& listener) : impl_(
         std::make_unique<Impl>(config, listener))
     {
     }

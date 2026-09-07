@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -21,6 +22,7 @@ namespace hyperliquid
 
         void handlePostChannelMessage(const std::string& rawMessage,
                                       std::unordered_map<uint64_t, PostRequestInfo>& postRequestInfo,
+                                      std::mutex& postRequestInfoMutex,
                                       WebsocketApiListener& listener);
     }
 }
