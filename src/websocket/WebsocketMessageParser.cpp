@@ -102,6 +102,17 @@ namespace hyperliquid
     {
         simdjson::ondemand::parser parser;
         simdjson::padded_string padded;
+        simdjson::dom::parser domParser;
+
+        // simdjson's ondemand API can hit an internal assertion (abort) rather than a catchable
+        // simdjson_error when a value is looked up by name more than once on the same malformed
+        // object (see issue #109) - full DOM parsing validates document structure upfront and has
+        // no such failure mode, so running it first guarantees the ondemand pass below never sees
+        // a structurally invalid document.
+        void validateStructure(std::string_view message)
+        {
+            domParser.parse(message.data(), message.size()).value();
+        }
 
         static double toDouble(std::string_view sv)
         {
@@ -126,6 +137,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 std::string_view channel;
                 auto channelVal = doc["channel"];
                 auto channelType = channelVal.type().value();
@@ -1342,6 +1355,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(decompressed);
+
                 simdjson::ondemand::parser localParser;
                 simdjson::padded_string padded(decompressed);
                 auto localDoc = localParser.iterate(padded);

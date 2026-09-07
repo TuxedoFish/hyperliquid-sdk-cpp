@@ -206,3 +206,45 @@ TEST(RestApiMessageParserMiscTest, ParseAllPerpMetas)
     EXPECT_DOUBLE_EQ(dex.marginTables[1].marginTiers[1].lowerBound, 3000000.0);
     EXPECT_EQ(dex.marginTables[1].marginTiers[1].maxLeverage, 5);
 }
+
+TEST(RestApiMessageParserMiscTest, ParseAllPerpMetasUniverseFieldsOutOfOrder)
+{
+    std::string message = R"([
+        {
+            "universe": [
+                {"maxLeverage": 50, "name": "BTC", "szDecimals": 5}
+            ],
+            "collateralToken": 0
+        }
+    ])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseAllPerpMetas(message);
+
+    ASSERT_EQ(response.dexMetas.size(), 1u);
+    ASSERT_EQ(response.dexMetas[0].universe.size(), 1u);
+    EXPECT_EQ(response.dexMetas[0].universe[0].name, "BTC");
+    EXPECT_EQ(response.dexMetas[0].universe[0].szDecimals, 5);
+    EXPECT_EQ(response.dexMetas[0].universe[0].maxLeverage, 50);
+}
+
+TEST(RestApiMessageParserMiscTest, ParseAllPerpMetasMalformedInputDoesNotCrash)
+{
+    // Regression test for issue #109 - this fuzzer-found input used to abort the process via a
+    // simdjson internal assertion (find_field_unordered_raw) instead of raising a catchable
+    // simdjson_error.
+    std::string message = R"([
+        {
+            "universe": [
+                {"name": "BTC", "szDecimals": 5, "maxLeverage": 5                  {"lowerBound": "3000000.0", "maxLeverage": 5}
+                ]}]
+            ],
+            "collateralToken": 0
+        }
+    ])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseAllPerpMetas(message);
+
+    EXPECT_TRUE(response.dexMetas.empty());
+}
