@@ -1,12 +1,31 @@
 #include "Signing.h"
 #include "SigningHelpers.h"
 
+#include <atomic>
 #include <chrono>
 #include <spdlog/spdlog.h>
 
 namespace hyperliquid {
 
 namespace {
+
+// Hyperliquid requires nonces to be non-decreasing per user. system_clock::now() alone can
+// return the same millisecond for back-to-back calls (or go backwards on clock adjustment), so
+// this bumps past the last-issued nonce instead of blindly reusing the wall-clock reading.
+uint64_t nextNonce()
+{
+    static std::atomic<uint64_t> lastNonce{0};
+    uint64_t now = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count());
+    uint64_t prev = lastNonce.load(std::memory_order_relaxed);
+    uint64_t next;
+    do
+    {
+        next = now > prev ? now : prev + 1;
+    } while (!lastNonce.compare_exchange_weak(prev, next, std::memory_order_relaxed));
+    return next;
+}
 
 // EIP-712 field lists for user-signed actions, keyed by RestEndpointType. Field order
 // must match the on-chain HyperliquidTransaction:* struct definition.
@@ -56,13 +75,8 @@ nlohmann::ordered_json Signing::prepareBody(
     if (isAuthenticated(type))
     {
         if (!config.wallet.has_value())
-        {
-            spdlog::error("Wallet not configured, can't send authenticated request: {}", toString(type));
-            return body;
-        }
-        uint64_t nonce = static_cast<uint64_t>(
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count());
+            throw std::invalid_argument("Wallet not configured, can't send authenticated request: " + toString(type));
+        uint64_t nonce = nextNonce();
         body["nonce"] = nonce;
 
         bool isMainnet = (config.env == Environment::Mainnet);
@@ -125,15 +139,10 @@ nlohmann::ordered_json Signing::prepareApproveAgentBody(
     nlohmann::ordered_json body;
 
     if (!config.wallet.has_value())
-    {
-        spdlog::error("Wallet not configured, can't send authenticated request: {}",
-                      toString(RestEndpointType::ApproveAgent));
-        return body;
-    }
+        throw std::invalid_argument("Wallet not configured, can't send authenticated request: " +
+                                     toString(RestEndpointType::ApproveAgent));
 
-    uint64_t nonce = static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count());
+    uint64_t nonce = nextNonce();
     bool isMainnet = (config.env == Environment::Mainnet);
 
     nlohmann::ordered_json action;
@@ -203,10 +212,7 @@ nlohmann::ordered_json Signing::prepareUserSignedActionBody(
     nlohmann::ordered_json body;
 
     if (!config.wallet.has_value())
-    {
-        spdlog::error("Wallet not configured, can't send authenticated request: {}", toString(type));
-        return body;
-    }
+        throw std::invalid_argument("Wallet not configured, can't send authenticated request: " + toString(type));
 
     std::string primaryType;
     std::vector<EIP712Field> payloadTypes;
@@ -297,9 +303,7 @@ nlohmann::ordered_json Signing::prepareUserSignedActionBody(
         throw std::invalid_argument("Not a user-signed action: " + toString(type));
     }
 
-    uint64_t nonce = static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count());
+    uint64_t nonce = nextNonce();
     bool isMainnet = (config.env == Environment::Mainnet);
 
     action[timeField] = nonce;

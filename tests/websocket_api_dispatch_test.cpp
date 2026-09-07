@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <mutex>
 #include <unordered_map>
 
 #include "hyperliquid/websocket/WebsocketApiListener.h"
@@ -90,13 +91,14 @@ TEST(WebsocketApiDispatch, L2BookTypedDispatchAndGenericFallback)
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     postRequestInfo[1] = {RestEndpointType::L2Book, uint64_t{42}};
 
     const std::string payload = R"({"type":"l2Book","data":{"coin":"BTC","time":123,)"
                                  R"("levels":[[{"px":"100.0","sz":"1.0","n":1}],[{"px":"101.0","sz":"2.0","n":2}]]}})";
     const std::string raw = wrapPostMessage(1, "info", payload);
 
-    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+    internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener);
 
     ASSERT_TRUE(listener.l2Book.has_value());
     EXPECT_EQ(listener.l2Book->coin, "BTC");
@@ -115,12 +117,13 @@ TEST(WebsocketApiDispatch, AllMidsTypedDispatchAndGenericFallback)
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     postRequestInfo[2] = {RestEndpointType::AllMids, std::nullopt};
 
     const std::string payload = R"({"type":"allMids","data":{"BTC":"100000.0","ETH":"4000.0"}})";
     const std::string raw = wrapPostMessage(2, "info", payload);
 
-    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+    internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener);
 
     ASSERT_TRUE(listener.allMids.has_value());
     EXPECT_EQ(listener.allMids->mids.size(), 2u);
@@ -131,12 +134,13 @@ TEST(WebsocketApiDispatch, PerpCategoriesTypedDispatchAndGenericFallback)
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     postRequestInfo[3] = {RestEndpointType::PerpCategories, uint64_t{7}};
 
     const std::string payload = R"({"type":"perpCategories","data":[["BTC","layer1"],["ETH","layer1"]]})";
     const std::string raw = wrapPostMessage(3, "info", payload);
 
-    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+    internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener);
 
     ASSERT_TRUE(listener.perpCategories.has_value());
     ASSERT_EQ(listener.perpCategories->categories.size(), 2u);
@@ -149,6 +153,7 @@ TEST(WebsocketApiDispatch, ClearinghouseStateTypedDispatchAndGenericFallback)
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     postRequestInfo[4] = {RestEndpointType::ClearinghouseState, std::nullopt};
 
     const std::string payload = R"({"type":"clearinghouseState","data":{)"
@@ -157,7 +162,7 @@ TEST(WebsocketApiDispatch, ClearinghouseStateTypedDispatchAndGenericFallback)
                                  R"("crossMaintenanceMarginUsed":"0.5","withdrawable":"9.0","time":555,"assetPositions":[]}})";
     const std::string raw = wrapPostMessage(4, "info", payload);
 
-    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+    internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener);
 
     ASSERT_TRUE(listener.clearinghouseState.has_value());
     EXPECT_DOUBLE_EQ(listener.clearinghouseState->marginSummary.accountValue, 10.0);
@@ -169,12 +174,13 @@ TEST(WebsocketApiDispatch, UserDexAbstractionStateTypedDispatchAndGenericFallbac
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     postRequestInfo[8] = {RestEndpointType::UserDexAbstractionState, uint64_t{1}};
 
     const std::string payload = R"({"type":"userDexAbstraction","data":false})";
     const std::string raw = wrapPostMessage(8, "info", payload);
 
-    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+    internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener);
 
     ASSERT_TRUE(listener.userDexAbstraction.has_value());
     ASSERT_TRUE(listener.userDexAbstraction->enabled.has_value());
@@ -186,12 +192,13 @@ TEST(WebsocketApiDispatch, UserAbstractionTypedDispatchAndGenericFallback)
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     postRequestInfo[9] = {RestEndpointType::UserAbstraction, std::nullopt};
 
     const std::string payload = R"({"type":"userAbstraction","data":"disabled"})";
     const std::string raw = wrapPostMessage(9, "info", payload);
 
-    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+    internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener);
 
     ASSERT_TRUE(listener.userAbstraction.has_value());
     EXPECT_EQ(listener.userAbstraction->state, UserAbstractionState::Disabled);
@@ -202,12 +209,13 @@ TEST(WebsocketApiDispatch, ExchangeActionSuccessDispatchesSharedCallback)
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     postRequestInfo[5] = {RestEndpointType::Noop, uint64_t{99}};
 
     const std::string payload = R"({"status":"ok","response":{"type":"default"}})";
     const std::string raw = wrapPostMessage(5, "action", payload);
 
-    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+    internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener);
 
     ASSERT_EQ(listener.exchangeCount, 1);
     ASSERT_TRUE(listener.exchangeType.has_value());
@@ -223,12 +231,13 @@ TEST(WebsocketApiDispatch, ExchangeActionErrorDispatchesSharedCallbackWithError)
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     postRequestInfo[6] = {RestEndpointType::ReserveRequestWeight, std::nullopt};
 
     const std::string payload = R"({"status":"err","response":"Insufficient balance to reserve request weight."})";
     const std::string raw = wrapPostMessage(6, "action", payload);
 
-    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+    internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener);
 
     ASSERT_EQ(listener.exchangeCount, 1);
     EXPECT_EQ(*listener.exchangeType, RestEndpointType::ReserveRequestWeight);
@@ -243,12 +252,13 @@ TEST(WebsocketApiDispatch, UnknownIdFallsBackToOnMessageWithoutTypedOrGenericCal
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     // Deliberately empty: id 123 was never recorded.
 
     const std::string payload = R"({"type":"l2Book","data":{"coin":"BTC","time":1,"levels":[[],[]]}})";
     const std::string raw = wrapPostMessage(123, "info", payload);
 
-    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+    internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener);
 
     EXPECT_EQ(listener.onMessageCount, 1);
     EXPECT_EQ(listener.genericCount, 0);
@@ -261,12 +271,13 @@ TEST(WebsocketApiDispatch, MalformedTypedPayloadIsLoggedNotThrownAndGenericStill
 {
     CapturingListener listener;
     std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    std::mutex postRequestInfoMutex;
     postRequestInfo[7] = {RestEndpointType::L2Book, std::nullopt};
 
     const std::string payload = R"({"type":"l2Book"})"; // missing "data"
     const std::string raw = wrapPostMessage(7, "info", payload);
 
-    EXPECT_NO_THROW(internal::handlePostChannelMessage(raw, postRequestInfo, listener));
+    EXPECT_NO_THROW(internal::handlePostChannelMessage(raw, postRequestInfo, postRequestInfoMutex, listener));
 
     EXPECT_FALSE(listener.l2Book.has_value());
     EXPECT_EQ(listener.genericCount, 1);

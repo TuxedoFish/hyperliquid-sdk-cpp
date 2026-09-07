@@ -13,7 +13,7 @@ namespace hyperliquid
     class WebsocketApi
     {
     public:
-        explicit WebsocketApi(ApiConfig& config, WebsocketApiListener& listener);
+        explicit WebsocketApi(const ApiConfig& config, WebsocketApiListener& listener);
         ~WebsocketApi();
 
         WebsocketApi(const WebsocketApi&) = delete;

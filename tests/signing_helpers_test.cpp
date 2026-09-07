@@ -253,16 +253,14 @@ TEST(SigningPrepareBody, UnauthenticatedEndpointStillMergesVaultAndExpiresAfter)
     EXPECT_FALSE(result.contains("signature"));
 }
 
-TEST(SigningPrepareBody, AuthenticatedEndpointWithoutWalletSkipsSigning)
+TEST(SigningPrepareBody, AuthenticatedEndpointWithoutWalletThrows)
 {
     ApiConfig config;
     config.env = Environment::Mainnet;
     config.wallet = std::nullopt;
 
-    auto result = Signing::prepareBody(config, RestEndpointType::PlaceOrder, actionBody());
-
-    EXPECT_FALSE(result.contains("nonce"));
-    EXPECT_FALSE(result.contains("signature"));
+    EXPECT_THROW(Signing::prepareBody(config, RestEndpointType::PlaceOrder, actionBody()),
+                 std::invalid_argument);
 }
 
 TEST(SigningPrepareBody, AuthenticatedEndpointWithWalletAddsNonceAndSignature)
@@ -280,6 +278,22 @@ TEST(SigningPrepareBody, AuthenticatedEndpointWithWalletAddsNonceAndSignature)
     EXPECT_TRUE(result["signature"].contains("r"));
     EXPECT_TRUE(result["signature"].contains("s"));
     EXPECT_TRUE(result["signature"].contains("v"));
+}
+
+TEST(SigningPrepareBody, NoncesAreStrictlyIncreasingEvenWithinTheSameMillisecond)
+{
+    ApiConfig config;
+    config.env = Environment::Mainnet;
+    config.wallet = Wallet{"", TEST_PRIVATE_KEY};
+
+    uint64_t previous = 0;
+    for (int i = 0; i < 1000; ++i)
+    {
+        auto result = Signing::prepareBody(config, RestEndpointType::PlaceOrder, actionBody());
+        uint64_t nonce = result["nonce"].get<uint64_t>();
+        EXPECT_GT(nonce, previous);
+        previous = nonce;
+    }
 }
 
 TEST(SigningPrepareBody, VaultAddressIsIncludedInSignedBody)

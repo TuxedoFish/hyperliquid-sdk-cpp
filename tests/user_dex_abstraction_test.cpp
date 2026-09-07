@@ -111,7 +111,7 @@ TEST(PrepareUserSignedActionBody, UserDexAbstractionUsesMainnetChainLabel)
     EXPECT_EQ(body["action"]["hyperliquidChain"], "Mainnet");
 }
 
-TEST(PrepareUserSignedActionBody, UserDexAbstractionMissingWalletReturnsEmptyBody)
+TEST(PrepareUserSignedActionBody, UserDexAbstractionMissingWalletThrows)
 {
     ApiConfig config;
     config.env = Environment::Testnet;
@@ -123,8 +123,9 @@ TEST(PrepareUserSignedActionBody, UserDexAbstractionMissingWalletReturnsEmptyBod
     req.enabled = true;
     auto action = builder.userDexAbstraction(req)["action"];
 
-    auto body = Signing::prepareUserSignedActionBody(config, RestEndpointType::UserDexAbstraction, action);
-    EXPECT_TRUE(body.empty());
+    EXPECT_THROW(
+        Signing::prepareUserSignedActionBody(config, RestEndpointType::UserDexAbstraction, action),
+        std::invalid_argument);
 }
 
 // Response fixtures matching the TS SDK's UserDexAbstractionResponse shape (status:"ok"/

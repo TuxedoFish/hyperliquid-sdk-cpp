@@ -117,16 +117,14 @@ TEST(ApproveAgentSigning, UnnamedApprovalOmitsAgentNameFromOutgoingBodyButSignsW
     EXPECT_EQ(body["signature"]["v"], expectedSig.v);
 }
 
-TEST(ApproveAgentSigning, MissingWalletReturnsBodyWithoutSignature)
+TEST(ApproveAgentSigning, MissingWalletThrows)
 {
     ApiConfig config;
     config.env = Environment::Testnet;
     config.skipBuildingSymbolMap = true;
 
-    auto body = Signing::prepareApproveAgentBody(config, kDummyAgentAddress, std::nullopt);
-
-    EXPECT_FALSE(body.contains("signature"));
-    EXPECT_FALSE(body.contains("action"));
+    EXPECT_THROW(Signing::prepareApproveAgentBody(config, kDummyAgentAddress, std::nullopt),
+                 std::invalid_argument);
 }
 
 TEST(SigningHelpersTest, GeneratedKeypairAddressRoundTrips)

@@ -18,10 +18,10 @@ namespace hyperliquid
 
     struct ApiConfig
     {
-        Environment env;
+        Environment env = Environment::Testnet;
         std::optional<Wallet> wallet;
         std::set<std::string> dexes;
-        bool skipBuildingSymbolMap;
+        bool skipBuildingSymbolMap = false;
         std::optional<std::string> vaultAddress;
     };
 }
