@@ -7,6 +7,13 @@
 
 namespace hyperliquid
 {
+    // Turns a raw JSON response body into typed response structs. Two ways to use it:
+    //  - Construct with no listener and call the parseX(message) methods directly for a single
+    //    endpoint's response when you already know the type (stateless, no dispatch).
+    //  - Construct with a RestEndpointListener& and call parse(message, type, correlationId) to
+    //    have the right parseX method picked for you and the result delivered via the listener's
+    //    matching onX callback - this is what both RestApi's async methods and
+    //    WebsocketApi's post-response dispatch use internally.
     class RestApiMessageParser
     {
     public:
@@ -19,6 +26,9 @@ namespace hyperliquid
         RestApiMessageParser(const RestApiMessageParser&) = delete;
         RestApiMessageParser& operator=(const RestApiMessageParser&) = delete;
 
+        // Parses message as type's response shape and delivers it to the listener passed at
+        // construction. The default constructor wires up a no-op listener, so calling this
+        // without a real listener silently discards the result - pass one if you want it.
         void parse(const std::string& message, RestEndpointType type,
                    std::optional<uint64_t> correlationId = std::nullopt);
 

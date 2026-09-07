@@ -7,6 +7,10 @@
 
 namespace hyperliquid
 {
+    // Parses a single raw websocket subscription message and dispatches it, typed, to a
+    // WebsocketMessageHandler. Not tied to a specific connection or subscription - WebsocketApi
+    // hands you the raw message via WebsocketApiListener::onMessage; construct one of these
+    // (reusable across messages) and call crack() yourself to get typed callbacks.
     class WebsocketMessageParser
     {
     public:
@@ -19,7 +23,6 @@ namespace hyperliquid
         WebsocketMessageParser& operator=(const WebsocketMessageParser&) = delete;
 
         void crack(std::string_view message, WebsocketMessageHandler& listener);
-        void reset();
 
     private:
         struct Impl;

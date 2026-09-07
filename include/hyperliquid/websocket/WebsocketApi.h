@@ -10,6 +10,13 @@
 
 namespace hyperliquid
 {
+    // Websocket client: subscribe()/unsubscribe() manage channel subscriptions (typed updates
+    // arrive raw via WebsocketApiListener::onMessage - see WebsocketMessageParser::crack() to get
+    // them typed); every other method sends a "post" request over the same connection (the
+    // websocket equivalent of a RestApi call) and delivers its typed result via the matching
+    // WebsocketApiListener::onPostResponse overload, correlated back to the call by the
+    // correlationId you pass in. start()/stop() own a dedicated IO thread - all listener
+    // callbacks fire on that thread, not the caller's.
     class WebsocketApi
     {
     public:

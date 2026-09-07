@@ -6,7 +6,7 @@ Please note we have a [Code of Conduct](CODE_OF_CONDUCT.md) - by participating i
 
 ## Build first
 
-Follow the [Build section of the README](README.md#build). Confirm `cmake --build build -j$(nproc)` and `ctest --test-dir build` both pass on a clean checkout before making any changes, so you know a later failure is something you introduced.
+Follow the [Build section of the README](README.md#build). Confirm `cmake --build build -j "$(getconf _NPROCESSORS_ONLN)"` and `ctest --test-dir build` both pass on a clean checkout before making any changes, so you know a later failure is something you introduced.
 
 ## Adding a new `/info` endpoint
 

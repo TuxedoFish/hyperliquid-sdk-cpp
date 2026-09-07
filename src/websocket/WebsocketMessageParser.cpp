@@ -1503,8 +1503,4 @@ namespace hyperliquid
     {
         impl_->crack(message, listener);
     }
-
-    void WebsocketMessageParser::reset()
-    {
-    }
 } // namespace hyperliquid

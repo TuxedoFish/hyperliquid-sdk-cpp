@@ -9,6 +9,12 @@
 
 namespace hyperliquid {
 
+// Callback interface for WebsocketApi: connection lifecycle, raw subscription messages, and
+// typed post-response results (one onPostResponse overload per endpoint response type - the
+// websocket analogue of RestEndpointListener, dispatched automatically by WebsocketApi itself
+// rather than requiring you to call a parser). Subscription messages arrive raw via onMessage;
+// pass them to WebsocketMessageParser::crack() yourself (see WebsocketMessageHandler) for typed
+// subscription callbacks.
 class WebsocketApiListener {
 public:
     virtual ~WebsocketApiListener() = default;

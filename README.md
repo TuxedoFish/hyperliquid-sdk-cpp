@@ -21,7 +21,7 @@ cd hyperliquid-sdk-cpp
 
 export VCPKG_ROOT=/path/to/vcpkg
 cmake --preset default
-cmake --build build -j$(nproc)
+cmake --build build -j "$(getconf _NPROCESSORS_ONLN)"
 ```
 
 The `default` preset sets `HYPERLIQUID_BUILD_EXAMPLES=ON` and `HYPERLIQUID_BUILD_TESTS=ON`, and points `CMAKE_TOOLCHAIN_FILE` at `$VCPKG_ROOT`. To build only the library, configure manually with those options off:
@@ -29,7 +29,7 @@ The `default` preset sets `HYPERLIQUID_BUILD_EXAMPLES=ON` and `HYPERLIQUID_BUILD
 ```bash
 cmake -B build -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
   -DHYPERLIQUID_BUILD_EXAMPLES=OFF -DHYPERLIQUID_BUILD_TESTS=OFF
-cmake --build build -j$(nproc)
+cmake --build build -j "$(getconf _NPROCESSORS_ONLN)"
 ```
 
 Run the test suite:
@@ -101,6 +101,18 @@ int main() {
 ```
 
 More complete examples, including order placement/modification over both REST and WebSocket, are in `examples/`.
+
+Most examples read credentials from `examples/test.json`, a local, gitignored file you create yourself - it's never committed and the repo doesn't ship one. Create it with:
+
+```json
+{
+  "wallet": "0xYourAccountAddress",
+  "privateKey": "yourPrivateKeyHex",
+  "subaccount": "0xOptionalSubaccountAddress"
+}
+```
+
+`wallet`/`privateKey` are required (`subaccount` is only read by the handful of examples that need one, e.g. `ws_subaccount`). Point this at a testnet wallet, not mainnet, while trying things out.
 
 ## API coverage
 

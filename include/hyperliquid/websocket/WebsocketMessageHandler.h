@@ -4,6 +4,10 @@
 
 namespace hyperliquid {
 
+// Typed callback interface for WebsocketMessageParser::crack(): one onX per subscription channel
+// payload shape. WebsocketApi delivers every raw subscription message to WebsocketApiListener::
+// onMessage as a string - implement this interface and pass it (and that raw message) to crack()
+// yourself from onMessage to get parsed, typed callbacks instead of raw JSON.
 class WebsocketMessageHandler {
 public:
     virtual ~WebsocketMessageHandler() = default;

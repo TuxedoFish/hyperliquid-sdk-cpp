@@ -24,6 +24,12 @@ public:
     using RestApiTransportError::RestApiTransportError;
 };
 
+// Synchronous and fire-and-forget-async HTTP client for Hyperliquid's /info and /exchange REST
+// endpoints. Sync methods (spotMeta(), placeOrder(), ...) block and return a typed response, or
+// throw RestApiTransportError/RestApiRateLimitError on transport failure - an application-level
+// "err" response from the exchange is still returned as a typed value, not thrown. The matching
+// xAsync() methods instead deliver the result via the RestApiListener passed at construction (or
+// a no-op default listener if none was given).
 class RestApi {
 public:
     explicit RestApi(const ApiConfig& config);
