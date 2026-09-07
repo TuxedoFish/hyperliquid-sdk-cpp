@@ -39,7 +39,7 @@ find_package(simdjson CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(unofficial-secp256k1 CONFIG REQUIRED)
+find_package(libsecp256k1 CONFIG REQUIRED)
 
 set(SDK_SOURCES
         src/rest/RestApiMessageParser.cpp
@@ -84,8 +84,7 @@ target_link_libraries(hyperliquid-sdk
         spdlog::spdlog
         ZLIB::ZLIB
         PRIVATE
-        unofficial::secp256k1
-        unofficial::secp256k1_precomputed
+        libsecp256k1::secp256k1
 )
 
 if(NOT MSVC)
