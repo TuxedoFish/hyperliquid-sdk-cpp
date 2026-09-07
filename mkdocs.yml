@@ -1,0 +1,45 @@
+site_name: hyperliquid-sdk-cpp
+site_description: A C++23 SDK for the Hyperliquid perpetuals and spot exchange API
+site_url: https://TuxedoFish.github.io/hyperliquid-sdk-cpp/
+repo_url: https://github.com/TuxedoFish/hyperliquid-sdk-cpp
+repo_name: TuxedoFish/hyperliquid-sdk-cpp
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Examples: examples.md
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - content.code.copy
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - tables
+  - toc:
+      permalink: true
