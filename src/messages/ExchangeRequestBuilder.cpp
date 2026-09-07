@@ -398,6 +398,20 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::borrowLend(const BorrowLendRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "borrowLend";
+        action["operation"] = toString(request.operation);
+        action["token"] = request.token;
+        action["amount"] = request.amount ? nlohmann::ordered_json(floatToWire(*request.amount))
+                                           : nlohmann::ordered_json(nullptr);
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     nlohmann::ordered_json ExchangeRequestBuilder::usdClassTransfer(const UsdClassTransferRequest& request) const
     {
         nlohmann::ordered_json action;

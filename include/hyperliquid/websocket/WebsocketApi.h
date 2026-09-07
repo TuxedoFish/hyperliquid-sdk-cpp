@@ -202,6 +202,8 @@ namespace hyperliquid
                       std::optional<uint64_t> correlationId = std::nullopt);
         void tokenDelegate(const TokenDelegateRequest& request,
                            std::optional<uint64_t> correlationId = std::nullopt);
+        void borrowLend(const BorrowLendRequest& request,
+                        std::optional<uint64_t> correlationId = std::nullopt);
 
         void sendToEvmWithData(const SendToEvmWithDataRequest& request,
                                std::optional<uint64_t> correlationId = std::nullopt);

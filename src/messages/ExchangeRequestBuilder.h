@@ -47,6 +47,8 @@ public:
 
     nlohmann::ordered_json hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request) const;
 
+    nlohmann::ordered_json borrowLend(const BorrowLendRequest& request) const;
+
     nlohmann::ordered_json usdClassTransfer(const UsdClassTransferRequest& request) const;
 
     nlohmann::ordered_json sendAsset(const SendAssetRequest& request) const;
