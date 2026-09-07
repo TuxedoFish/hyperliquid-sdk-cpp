@@ -60,7 +60,7 @@ int main() {
 
 See the [Quickstart guide](https://TuxedoFish.github.io/hyperliquid-sdk-cpp/quickstart/) for the WebSocket equivalent and the async/typed-listener paths, and the [Examples index](https://TuxedoFish.github.io/hyperliquid-sdk-cpp/examples/) for every runnable example in `examples/` (order placement/modification, transfers, staking, vaults, and every websocket channel, over both REST and WebSocket).
 
-Most examples read credentials from `examples/test.json`, a local, gitignored file you create yourself - it's never committed and the repo doesn't ship one. Create it with:
+Most examples read credentials from `examples/test.json`, a local, gitignored file you create yourself - it's never committed and the repo doesn't ship one. Copy the template at [`examples/example.json`](examples/example.json) to `examples/test.json` and fill it in, or create it directly:
 
 ```json
 {

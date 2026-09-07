@@ -6,7 +6,7 @@ Examples are paired: most `/exchange` or `/info` call in `rest_*.cpp` has a `ws_
 
 ## Credentials
 
-Most examples read credentials from `examples/test.json`, a local file you create yourself — it's gitignored and never committed, and the repo doesn't ship one.
+Most examples read credentials from `examples/test.json`, a local file you create yourself — it's gitignored and never committed, and the repo doesn't ship one. Copy the template at [`examples/example.json`](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/blob/main/examples/example.json) to `examples/test.json` and fill it in, or create it directly:
 
 ```json
 {

@@ -13,7 +13,14 @@
     "nlohmann-json",
     "spdlog",
     "zlib",
-    "secp256k1",
-    "gtest"
-  ]
+    "secp256k1"
+  ],
+  "features": {
+    "tests": {
+      "description": "Build the test suite (HYPERLIQUID_BUILD_TESTS)",
+      "dependencies": [
+        "gtest"
+      ]
+    }
+  }
 }
