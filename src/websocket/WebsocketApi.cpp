@@ -805,6 +805,14 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::perpDeployRegisterAsset2(const PerpDeployRegisterAsset2Request& request,
+                                                std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::PerpDeployRegisterAsset2,
+                                  impl_->exchangeRequestBuilder.perpDeployRegisterAsset2(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::sendToEvmWithData(const SendToEvmWithDataRequest& request,
                                          std::optional<uint64_t> correlationId)
     {

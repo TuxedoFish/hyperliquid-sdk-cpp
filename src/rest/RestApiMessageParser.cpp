@@ -183,6 +183,7 @@ namespace hyperliquid
             case RestEndpointType::SpotDeployGenesis:
             case RestEndpointType::SpotDeployRegisterSpot:
             case RestEndpointType::SpotDeployRegisterHyperliquidity:
+            case RestEndpointType::PerpDeployRegisterAsset2:
             case RestEndpointType::UsdClassTransfer:
             case RestEndpointType::SendAsset:
             case RestEndpointType::UsdSend:
