@@ -33,28 +33,28 @@ namespace
             genericTypes.push_back(type);
         }
 
-        void onL2BookPostResponse(const L2BookResponse& resp, std::optional<uint64_t>) override
+        void onPostResponse(const L2BookResponse& resp, std::optional<uint64_t>) override
         {
             l2Book = resp;
         }
 
-        void onAllMidsPostResponse(const AllMidsResponse& resp, std::optional<uint64_t>) override
+        void onPostResponse(const AllMidsResponse& resp, std::optional<uint64_t>) override
         {
             allMids = resp;
         }
 
-        void onPerpCategoriesPostResponse(const PerpCategoriesResponse& resp, std::optional<uint64_t>) override
+        void onPostResponse(const PerpCategoriesResponse& resp, std::optional<uint64_t>) override
         {
             perpCategories = resp;
         }
 
-        void onClearinghouseStatePostResponse(const ClearinghouseState& resp, std::optional<uint64_t>) override
+        void onPostResponse(const ClearinghouseState& resp, std::optional<uint64_t>) override
         {
             clearinghouseState = resp;
         }
 
-        void onExchangeActionPostResponse(RestEndpointType type, const SimpleResponse& resp,
-                                          std::optional<uint64_t>) override
+        void onPostResponse(RestEndpointType type, const SimpleResponse& resp,
+                            std::optional<uint64_t>) override
         {
             exchangeCount++;
             exchangeType = type;

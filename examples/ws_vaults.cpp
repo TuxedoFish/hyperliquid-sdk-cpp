@@ -12,34 +12,34 @@ class PostResponseLogger : public hyperliquid::WebsocketApiListener
 {
 public:
     // Typed callbacks - demonstrate the new mechanism with real parsed fields instead of raw JSON.
-    void onVaultDetailsPostResponse(const hyperliquid::VaultDetailsResponse& resp,
+    void onPostResponse(const hyperliquid::VaultDetailsResponse& resp,
                                     std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[vaultDetails] correlationId={} name={} leader={} apr={}",
                      correlationId.value_or(0), resp.name, resp.leader, resp.apr);
     }
 
-    void onUserVaultEquitiesPostResponse(const hyperliquid::UserVaultEquitiesResponse& resp,
+    void onPostResponse(const hyperliquid::UserVaultEquitiesResponse& resp,
                                          std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[userVaultEquities] correlationId={} equities={}",
                      correlationId.value_or(0), resp.equities.size());
     }
 
-    void onPortfolioPostResponse(const hyperliquid::PortfolioResponse& resp,
+    void onPostResponse(const hyperliquid::PortfolioResponse& resp,
                                  std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[portfolio] correlationId={} periods={}", correlationId.value_or(0), resp.periods.size());
     }
 
-    void onReferralPostResponse(const hyperliquid::ReferralResponse& resp,
+    void onPostResponse(const hyperliquid::ReferralResponse& resp,
                                 std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[referral] correlationId={} cumVlm={} unclaimedRewards={}",
                      correlationId.value_or(0), resp.cumVlm, resp.unclaimedRewards);
     }
 
-    void onUserRolePostResponse(const hyperliquid::UserRoleResponse& resp,
+    void onPostResponse(const hyperliquid::UserRoleResponse& resp,
                                 std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[userRole] correlationId={} role={}",

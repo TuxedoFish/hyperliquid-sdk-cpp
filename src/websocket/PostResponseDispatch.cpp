@@ -33,145 +33,145 @@ namespace hyperliquid::internal
             switch (type)
             {
             case RestEndpointType::SpotMeta:
-                listener.onSpotMetaPostResponse(parser.parseSpotMeta(dataJson), correlationId);
+                listener.onPostResponse(parser.parseSpotMeta(dataJson), correlationId);
                 break;
             case RestEndpointType::Meta:
-                listener.onMetaPostResponse(parser.parseMeta(dataJson), correlationId);
+                listener.onPostResponse(parser.parseMeta(dataJson), correlationId);
                 break;
             case RestEndpointType::OutcomeMeta:
-                listener.onOutcomeMetaPostResponse(parser.parseOutcomeMeta(dataJson), correlationId);
+                listener.onPostResponse(parser.parseOutcomeMeta(dataJson), correlationId);
                 break;
             case RestEndpointType::PerpDexs:
-                listener.onPerpDexsPostResponse(parser.parsePerpDexs(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePerpDexs(dataJson), correlationId);
                 break;
             case RestEndpointType::PerpAnnotation:
-                listener.onPerpAnnotationPostResponse(parser.parsePerpAnnotation(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePerpAnnotation(dataJson), correlationId);
                 break;
             case RestEndpointType::PerpCategories:
-                listener.onPerpCategoriesPostResponse(parser.parsePerpCategories(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePerpCategories(dataJson), correlationId);
                 break;
             case RestEndpointType::PerpConciseAnnotations:
-                listener.onPerpConciseAnnotationsPostResponse(parser.parsePerpConciseAnnotations(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePerpConciseAnnotations(dataJson), correlationId);
                 break;
             case RestEndpointType::AllPerpMetas:
-                listener.onAllPerpMetasPostResponse(parser.parseAllPerpMetas(dataJson), correlationId);
+                listener.onPostResponse(parser.parseAllPerpMetas(dataJson), correlationId);
                 break;
             case RestEndpointType::PerpsAtOpenInterestCap:
-                listener.onPerpsAtOpenInterestCapPostResponse(parser.parsePerpsAtOpenInterestCap(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePerpsAtOpenInterestCap(dataJson), correlationId);
                 break;
             case RestEndpointType::PredictedFundings:
-                listener.onPredictedFundingsPostResponse(parser.parsePredictedFundings(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePredictedFundings(dataJson), correlationId);
                 break;
             case RestEndpointType::MetaAndAssetCtxs:
-                listener.onMetaAndAssetCtxsPostResponse(parser.parseMetaAndAssetCtxs(dataJson), correlationId);
+                listener.onPostResponse(parser.parseMetaAndAssetCtxs(dataJson), correlationId);
                 break;
             case RestEndpointType::SpotMetaAndAssetCtxs:
-                listener.onSpotMetaAndAssetCtxsPostResponse(parser.parseSpotMetaAndAssetCtxs(dataJson), correlationId);
+                listener.onPostResponse(parser.parseSpotMetaAndAssetCtxs(dataJson), correlationId);
                 break;
             case RestEndpointType::SpotClearinghouseState:
-                listener.onSpotClearinghouseStatePostResponse(parser.parseSpotClearinghouseState(dataJson), correlationId);
+                listener.onPostResponse(parser.parseSpotClearinghouseState(dataJson), correlationId);
                 break;
             case RestEndpointType::FrontendOpenOrders:
-                listener.onFrontendOpenOrdersPostResponse(parser.parseFrontendOpenOrders(dataJson), correlationId);
+                listener.onPostResponse(parser.parseFrontendOpenOrders(dataJson), correlationId);
                 break;
             case RestEndpointType::HistoricalOrders:
-                listener.onHistoricalOrdersPostResponse(parser.parseHistoricalOrders(dataJson), correlationId);
+                listener.onPostResponse(parser.parseHistoricalOrders(dataJson), correlationId);
                 break;
             case RestEndpointType::UserTwapSliceFills:
-                listener.onUserTwapSliceFillsPostResponse(parser.parseUserTwapSliceFills(dataJson), correlationId);
+                listener.onPostResponse(parser.parseUserTwapSliceFills(dataJson), correlationId);
                 break;
             case RestEndpointType::SubAccounts:
-                listener.onSubAccountsPostResponse(parser.parseSubAccounts(dataJson), correlationId);
+                listener.onPostResponse(parser.parseSubAccounts(dataJson), correlationId);
                 break;
             case RestEndpointType::UserFees:
-                listener.onUserFeesPostResponse(parser.parseUserFees(dataJson), correlationId);
+                listener.onPostResponse(parser.parseUserFees(dataJson), correlationId);
                 break;
             case RestEndpointType::MaxBuilderFee:
-                listener.onMaxBuilderFeePostResponse(parser.parseMaxBuilderFee(dataJson), correlationId);
+                listener.onPostResponse(parser.parseMaxBuilderFee(dataJson), correlationId);
                 break;
             case RestEndpointType::ApprovedBuilders:
-                listener.onApprovedBuildersPostResponse(parser.parseApprovedBuilders(dataJson), correlationId);
+                listener.onPostResponse(parser.parseApprovedBuilders(dataJson), correlationId);
                 break;
             case RestEndpointType::L2Book:
-                listener.onL2BookPostResponse(parser.parseL2Book(dataJson), correlationId);
+                listener.onPostResponse(parser.parseL2Book(dataJson), correlationId);
                 break;
             case RestEndpointType::CandleSnapshot:
-                listener.onCandleSnapshotPostResponse(parser.parseCandleSnapshot(dataJson), correlationId);
+                listener.onPostResponse(parser.parseCandleSnapshot(dataJson), correlationId);
                 break;
             case RestEndpointType::AllMids:
-                listener.onAllMidsPostResponse(parser.parseAllMids(dataJson), correlationId);
+                listener.onPostResponse(parser.parseAllMids(dataJson), correlationId);
                 break;
             case RestEndpointType::OpenOrders:
-                listener.onOpenOrdersPostResponse(parser.parseOpenOrders(dataJson), correlationId);
+                listener.onPostResponse(parser.parseOpenOrders(dataJson), correlationId);
                 break;
             case RestEndpointType::OrderStatus:
-                listener.onOrderStatusPostResponse(parser.parseOrderStatus(dataJson), correlationId);
+                listener.onPostResponse(parser.parseOrderStatus(dataJson), correlationId);
                 break;
             case RestEndpointType::UserFills:
-                listener.onUserFillsPostResponse(parser.parseUserFills(dataJson), correlationId);
+                listener.onPostResponse(type, parser.parseUserFills(dataJson), correlationId);
                 break;
             case RestEndpointType::UserFillsByTime:
-                listener.onUserFillsByTimePostResponse(parser.parseUserFillsByTime(dataJson), correlationId);
+                listener.onPostResponse(type, parser.parseUserFillsByTime(dataJson), correlationId);
                 break;
             case RestEndpointType::ClearinghouseState:
-                listener.onClearinghouseStatePostResponse(parser.parseClearinghouseState(dataJson), correlationId);
+                listener.onPostResponse(parser.parseClearinghouseState(dataJson), correlationId);
                 break;
             case RestEndpointType::VaultDetails:
-                listener.onVaultDetailsPostResponse(parser.parseVaultDetails(dataJson), correlationId);
+                listener.onPostResponse(parser.parseVaultDetails(dataJson), correlationId);
                 break;
             case RestEndpointType::UserVaultEquities:
-                listener.onUserVaultEquitiesPostResponse(parser.parseUserVaultEquities(dataJson), correlationId);
+                listener.onPostResponse(parser.parseUserVaultEquities(dataJson), correlationId);
                 break;
             case RestEndpointType::Portfolio:
-                listener.onPortfolioPostResponse(parser.parsePortfolio(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePortfolio(dataJson), correlationId);
                 break;
             case RestEndpointType::Referral:
-                listener.onReferralPostResponse(parser.parseReferral(dataJson), correlationId);
+                listener.onPostResponse(parser.parseReferral(dataJson), correlationId);
                 break;
             case RestEndpointType::UserRole:
-                listener.onUserRolePostResponse(parser.parseUserRole(dataJson), correlationId);
+                listener.onPostResponse(parser.parseUserRole(dataJson), correlationId);
                 break;
             case RestEndpointType::UserRateLimit:
-                listener.onUserRateLimitPostResponse(parser.parseUserRateLimit(dataJson), correlationId);
+                listener.onPostResponse(parser.parseUserRateLimit(dataJson), correlationId);
                 break;
             case RestEndpointType::PerpDexLimits:
-                listener.onPerpDexLimitsPostResponse(parser.parsePerpDexLimits(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePerpDexLimits(dataJson), correlationId);
                 break;
             case RestEndpointType::PerpDexStatus:
-                listener.onPerpDexStatusPostResponse(parser.parsePerpDexStatus(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePerpDexStatus(dataJson), correlationId);
                 break;
             case RestEndpointType::PerpDeployAuctionStatus:
-                listener.onPerpDeployAuctionStatusPostResponse(parser.parsePerpDeployAuctionStatus(dataJson), correlationId);
+                listener.onPostResponse(parser.parsePerpDeployAuctionStatus(dataJson), correlationId);
                 break;
             case RestEndpointType::SettledOutcome:
-                listener.onSettledOutcomePostResponse(parser.parseSettledOutcome(dataJson), correlationId);
+                listener.onPostResponse(parser.parseSettledOutcome(dataJson), correlationId);
                 break;
             case RestEndpointType::BorrowLendUserState:
-                listener.onBorrowLendUserStatePostResponse(parser.parseBorrowLendUserState(dataJson), correlationId);
+                listener.onPostResponse(parser.parseBorrowLendUserState(dataJson), correlationId);
                 break;
             case RestEndpointType::BorrowLendReserveState:
-                listener.onBorrowLendReserveStatePostResponse(parser.parseBorrowLendReserveState(dataJson), correlationId);
+                listener.onPostResponse(parser.parseBorrowLendReserveState(dataJson), correlationId);
                 break;
             case RestEndpointType::AllBorrowLendReserveStates:
-                listener.onAllBorrowLendReserveStatesPostResponse(parser.parseAllBorrowLendReserveStates(dataJson), correlationId);
+                listener.onPostResponse(parser.parseAllBorrowLendReserveStates(dataJson), correlationId);
                 break;
             case RestEndpointType::SpotDeployState:
-                listener.onSpotDeployStatePostResponse(parser.parseSpotDeployState(dataJson), correlationId);
+                listener.onPostResponse(parser.parseSpotDeployState(dataJson), correlationId);
                 break;
             case RestEndpointType::SpotPairDeployAuctionStatus:
-                listener.onSpotPairDeployAuctionStatusPostResponse(parser.parseSpotPairDeployAuctionStatus(dataJson), correlationId);
+                listener.onPostResponse(parser.parseSpotPairDeployAuctionStatus(dataJson), correlationId);
                 break;
             case RestEndpointType::Delegations:
-                listener.onDelegationsPostResponse(parser.parseDelegations(dataJson), correlationId);
+                listener.onPostResponse(parser.parseDelegations(dataJson), correlationId);
                 break;
             case RestEndpointType::DelegatorSummary:
-                listener.onDelegatorSummaryPostResponse(parser.parseDelegatorSummary(dataJson), correlationId);
+                listener.onPostResponse(parser.parseDelegatorSummary(dataJson), correlationId);
                 break;
             case RestEndpointType::DelegatorHistory:
-                listener.onDelegatorHistoryPostResponse(parser.parseDelegatorHistory(dataJson), correlationId);
+                listener.onPostResponse(parser.parseDelegatorHistory(dataJson), correlationId);
                 break;
             case RestEndpointType::DelegatorRewards:
-                listener.onDelegatorRewardsPostResponse(parser.parseDelegatorRewards(dataJson), correlationId);
+                listener.onPostResponse(parser.parseDelegatorRewards(dataJson), correlationId);
                 break;
             default:
                 getLogger()->error("PostResponseDispatch: unhandled info RestEndpointType: {}", toString(type));
@@ -183,7 +183,7 @@ namespace hyperliquid::internal
                                                 std::optional<uint64_t> correlationId, WebsocketApiListener& listener)
         {
             static thread_local RestApiMessageParser parser;
-            listener.onExchangeActionPostResponse(type, parser.parseSimpleResponse(payloadJson), correlationId);
+            listener.onPostResponse(type, parser.parseSimpleResponse(payloadJson), correlationId);
         }
     }
 

@@ -12,42 +12,42 @@ class PostResponseLogger : public hyperliquid::WebsocketApiListener
 {
 public:
     // Typed callbacks - demonstrate the new mechanism with real parsed fields instead of raw JSON.
-    void onPerpAnnotationPostResponse(const hyperliquid::PerpAnnotationResponse& resp,
+    void onPostResponse(const hyperliquid::PerpAnnotationResponse& resp,
                                       std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[perpAnnotation] correlationId={} category={} description={}",
                      correlationId.value_or(0), resp.category, resp.description);
     }
 
-    void onPerpCategoriesPostResponse(const hyperliquid::PerpCategoriesResponse& resp,
+    void onPostResponse(const hyperliquid::PerpCategoriesResponse& resp,
                                       std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[perpCategories] correlationId={} categories={}",
                      correlationId.value_or(0), resp.categories.size());
     }
 
-    void onPerpConciseAnnotationsPostResponse(const hyperliquid::PerpConciseAnnotationsResponse& resp,
+    void onPostResponse(const hyperliquid::PerpConciseAnnotationsResponse& resp,
                                               std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[perpConciseAnnotations] correlationId={} annotations={}",
                      correlationId.value_or(0), resp.annotations.size());
     }
 
-    void onAllPerpMetasPostResponse(const hyperliquid::AllPerpMetasResponse& resp,
+    void onPostResponse(const hyperliquid::AllPerpMetasResponse& resp,
                                     std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[allPerpMetas] correlationId={} dexMetas={}",
                      correlationId.value_or(0), resp.dexMetas.size());
     }
 
-    void onPerpsAtOpenInterestCapPostResponse(const hyperliquid::PerpsAtOpenInterestCapResponse& resp,
+    void onPostResponse(const hyperliquid::PerpsAtOpenInterestCapResponse& resp,
                                               std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[perpsAtOpenInterestCap] correlationId={} coins={}",
                      correlationId.value_or(0), resp.coins.size());
     }
 
-    void onPredictedFundingsPostResponse(const hyperliquid::PredictedFundingsResponse& resp,
+    void onPostResponse(const hyperliquid::PredictedFundingsResponse& resp,
                                          std::optional<uint64_t> correlationId) override
     {
         spdlog::info("[predictedFundings] correlationId={} fundings={}",

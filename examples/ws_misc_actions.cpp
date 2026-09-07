@@ -11,7 +11,7 @@ class PostResponseLogger : public hyperliquid::WebsocketApiListener
 {
 public:
     // Typed callback - every exchange action shares this one, since they all share SimpleResponse.
-    void onExchangeActionPostResponse(hyperliquid::RestEndpointType type,
+    void onPostResponse(hyperliquid::RestEndpointType type,
                                       const hyperliquid::SimpleResponse& resp,
                                       std::optional<uint64_t> correlationId) override
     {

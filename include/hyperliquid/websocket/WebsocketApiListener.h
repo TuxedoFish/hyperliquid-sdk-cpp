@@ -19,56 +19,57 @@ public:
     virtual void onConnected() {}
     virtual void onDisconnected(bool, const std::string&) {}
 
-    virtual void onSpotMetaPostResponse(const SpotMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onMetaPostResponse(const MetaResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onOutcomeMetaPostResponse(const OutcomeMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPerpDexsPostResponse(const PerpDexsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPerpAnnotationPostResponse(const PerpAnnotationResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPerpCategoriesPostResponse(const PerpCategoriesResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPerpConciseAnnotationsPostResponse(const PerpConciseAnnotationsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onAllPerpMetasPostResponse(const AllPerpMetasResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPerpsAtOpenInterestCapPostResponse(const PerpsAtOpenInterestCapResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPredictedFundingsPostResponse(const PredictedFundingsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onMetaAndAssetCtxsPostResponse(const MetaAndAssetCtxsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onSpotMetaAndAssetCtxsPostResponse(const SpotMetaAndAssetCtxsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onSpotClearinghouseStatePostResponse(const SpotClearinghouseStateResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onFrontendOpenOrdersPostResponse(const FrontendOpenOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onHistoricalOrdersPostResponse(const HistoricalOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onUserTwapSliceFillsPostResponse(const UserTwapSliceFillsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onSubAccountsPostResponse(const SubAccountsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onUserFeesPostResponse(const UserFeesResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onMaxBuilderFeePostResponse(const MaxBuilderFeeResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onApprovedBuildersPostResponse(const ApprovedBuildersResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onL2BookPostResponse(const L2BookResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onCandleSnapshotPostResponse(const CandleSnapshotResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onAllMidsPostResponse(const AllMidsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onOpenOrdersPostResponse(const OpenOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onOrderStatusPostResponse(const OrderStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onUserFillsPostResponse(const UserFillsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onUserFillsByTimePostResponse(const UserFillsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onClearinghouseStatePostResponse(const ClearinghouseState&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onVaultDetailsPostResponse(const VaultDetailsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onUserVaultEquitiesPostResponse(const UserVaultEquitiesResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPortfolioPostResponse(const PortfolioResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onReferralPostResponse(const ReferralResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onUserRolePostResponse(const UserRoleResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onUserRateLimitPostResponse(const UserRateLimitResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPerpDexLimitsPostResponse(const PerpDexLimitsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPerpDexStatusPostResponse(const PerpDexStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onPerpDeployAuctionStatusPostResponse(const PerpDeployAuctionStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onSettledOutcomePostResponse(const SettledOutcomeResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onBorrowLendUserStatePostResponse(const BorrowLendUserStateResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onBorrowLendReserveStatePostResponse(const BorrowLendReserveState&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onAllBorrowLendReserveStatesPostResponse(const AllBorrowLendReserveStatesResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onSpotDeployStatePostResponse(const SpotDeployStateResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onSpotPairDeployAuctionStatusPostResponse(const SpotPairDeployAuctionStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onDelegationsPostResponse(const DelegationsResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onDelegatorSummaryPostResponse(const DelegatorSummaryResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onDelegatorHistoryPostResponse(const DelegatorHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}
-    virtual void onDelegatorRewardsPostResponse(const DelegatorRewardsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const SpotMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const MetaResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const OutcomeMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PerpDexsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PerpAnnotationResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PerpCategoriesResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PerpConciseAnnotationsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const AllPerpMetasResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PerpsAtOpenInterestCapResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PredictedFundingsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const MetaAndAssetCtxsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const SpotMetaAndAssetCtxsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const SpotClearinghouseStateResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const FrontendOpenOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const HistoricalOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const UserTwapSliceFillsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const SubAccountsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const UserFeesResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const MaxBuilderFeeResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const ApprovedBuildersResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const L2BookResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const CandleSnapshotResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const AllMidsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const OpenOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const OrderStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
+    // userFills/userFillsByTime share this response shape, so RestEndpointType disambiguates.
+    virtual void onPostResponse(RestEndpointType, const UserFillsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const ClearinghouseState&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const VaultDetailsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const UserVaultEquitiesResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PortfolioResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const ReferralResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const UserRoleResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const UserRateLimitResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PerpDexLimitsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PerpDexStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const PerpDeployAuctionStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const SettledOutcomeResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const BorrowLendUserStateResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const BorrowLendReserveState&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const AllBorrowLendReserveStatesResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const SpotDeployStateResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const SpotPairDeployAuctionStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const DelegationsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const DelegatorSummaryResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const DelegatorHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const DelegatorRewardsResponse&, std::optional<uint64_t> = std::nullopt) {}
 
-    virtual void onExchangeActionPostResponse(RestEndpointType, const SimpleResponse&,
-                                              std::optional<uint64_t> = std::nullopt) {}
+    // Every exchange action shares this response shape, so RestEndpointType disambiguates.
+    virtual void onPostResponse(RestEndpointType, const SimpleResponse&,
+                                std::optional<uint64_t> = std::nullopt) {}
 };
 
 }
