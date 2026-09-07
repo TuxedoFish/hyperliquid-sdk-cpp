@@ -486,7 +486,7 @@ namespace hyperliquid
         nlohmann::ordered_json genesis;
         genesis["token"] = request.token;
         genesis["maxSupply"] = floatToWire(request.maxSupply);
-        if (request.noHyperliquidity && *request.noHyperliquidity) genesis["noHyperliquidity"] = true;
+        if (request.noHyperliquidity) genesis["noHyperliquidity"] = *request.noHyperliquidity;
 
         nlohmann::ordered_json action;
         action["type"] = "spotDeploy";

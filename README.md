@@ -244,7 +244,16 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `registerReferrer` | ⬜ | |
 | `setDisplayName` | ⬜ | |
 | `setReferrer` | ⬜ | |
-| `spotDeploy` (5 of 10 variants: `registerToken2`/`userGenesis`/`genesis`/`registerSpot`/`registerHyperliquidity` - the "create and launch a new spot token" flow; the 5 post-deployment admin variants are a follow-up) | ✅ | `RestApi::spotDeployRegisterToken2`, `spotDeployUserGenesis`, `spotDeployGenesis`, `spotDeployRegisterSpot`, `spotDeployRegisterHyperliquidity` |
+| `spotDeploy` (`registerToken2`) | ✅ | `RestApi::spotDeployRegisterToken2` |
+| `spotDeploy` (`userGenesis`) | ✅ | `RestApi::spotDeployUserGenesis` |
+| `spotDeploy` (`genesis`) | ✅ | `RestApi::spotDeployGenesis` |
+| `spotDeploy` (`registerSpot`) | ✅ | `RestApi::spotDeployRegisterSpot` |
+| `spotDeploy` (`registerHyperliquidity`) | ✅ | `RestApi::spotDeployRegisterHyperliquidity` |
+| `spotDeploy` (`setDeployerTradingFeeShare`) | ⬜ | |
+| `spotDeploy` (`enableQuoteToken`) | ⬜ | |
+| `spotDeploy` (`disableQuoteToken`) | ⬜ | |
+| `spotDeploy` (`requestEvmContract`) | ⬜ | |
+| `spotDeploy` (`outcome`) | ⬜ | |
 | `spotUser` | ⬜ | |
 | `stakingLinkDisableTradingUser` | ⬜ | |
 | `subAccountModify` | ⬜ | |
@@ -257,9 +266,11 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `vaultDistribute` | ⬜ | |
 | `vaultModify` | ⬜ | |
 
-32 of 59 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
+36 of 68 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
 
 `perpDeploy` is a large multi-variant action (16 sub-actions sharing `"type": "perpDeploy"`); only `registerAsset2` (deploying a new HIP-3 perp asset, optionally creating a new dex) is implemented. The other 15 variants (`registerAsset`, `setOracle`, `setFundingMultipliers`, `setFundingInterestRates`, `haltTrading`, `setMarginTableIds`, `insertMarginTable`, `setFeeRecipient`, `setOpenInterestCaps`, `setSubDeployers`, `setMarginModes`, `setFeeScale`, `setGrowthModes`, `setPerpAnnotation`, `disableDex`) are post-deployment admin/config actions for an already-deployed dex and are not yet implemented.
+
+`spotDeploy` is likewise a multi-variant action (10 sub-actions sharing `"type": "spotDeploy"`); the 5 that make up the "create and launch a new spot token" (HIP-1/HIP-2) flow are implemented: `registerToken2`, `userGenesis`, `genesis`, `registerSpot`, `registerHyperliquidity`. The other 5 variants (`setDeployerTradingFeeShare`, `enableQuoteToken`, `disableQuoteToken`, `requestEvmContract`, `outcome`) are post-deployment admin/config actions on an already-deployed token and are not yet implemented.
 
 ### WebSocket subscriptions
 

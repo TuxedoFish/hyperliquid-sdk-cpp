@@ -2,7 +2,6 @@
 
 #include "messages/ExchangeRequestBuilder.h"
 #include "messages/InfoRequestBuilder.h"
-#include "messages/ExchangeRequestBuilder.h"
 #include "hyperliquid/rest/RestApiMessageParser.h"
 
 #include <nlohmann/json.hpp>
@@ -357,6 +356,20 @@ TEST(SpotDeployBuilderTest, GenesisOmitsNoHyperliquidityWhenAbsent)
     EXPECT_FALSE(body["action"]["genesis"].contains("noHyperliquidity"));
 }
 
+TEST(SpotDeployBuilderTest, GenesisSendsExplicitFalseNoHyperliquidity)
+{
+    ExchangeRequestBuilder builder;
+
+    SpotDeployGenesisRequest request;
+    request.token = 40;
+    request.maxSupply = 10000.0;
+    request.noHyperliquidity = false;
+
+    auto body = builder.spotDeployGenesis(request);
+    ASSERT_TRUE(body["action"]["genesis"].contains("noHyperliquidity"));
+    EXPECT_EQ(body["action"]["genesis"]["noHyperliquidity"].get<bool>(), false);
+}
+
 TEST(SpotDeployBuilderTest, RegisterSpot)
 {
     ExchangeRequestBuilder builder;
@@ -408,6 +421,39 @@ TEST(SpotDeployBuilderTest, RegisterHyperliquidityOmitsNSeededLevelsWhenAbsent)
 
     auto body = builder.spotDeployRegisterHyperliquidity(request);
     EXPECT_FALSE(body["action"]["registerHyperliquidity"].contains("nSeededLevels"));
+}
+
+TEST(SpotDeployResponseParsing, SuccessResponse)
+{
+    static const std::string kOk = R"({
+        "status": "ok",
+        "response": {
+            "type": "default"
+        }
+    })";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kOk);
+
+    EXPECT_EQ(resp.status, "ok");
+    EXPECT_FALSE(resp.error.has_value());
+}
+
+TEST(SpotDeployResponseParsing, ErrorResponse)
+{
+    // Real testnet capture (registerToken2 against a completed gas auction) - see
+    // examples/json/rest/parseSimpleResponse/spot_deploy_gas_auction_completed.json.
+    static const std::string kErr = R"({
+        "status": "err",
+        "response": "Gas auction completed. Try again later."
+    })";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kErr);
+
+    EXPECT_EQ(resp.status, "err");
+    ASSERT_TRUE(resp.error.has_value());
+    EXPECT_EQ(*resp.error, "Gas auction completed. Try again later.");
 }
 
 // perpDeploy/registerAsset2 field shapes below (action = {type: "perpDeploy",
