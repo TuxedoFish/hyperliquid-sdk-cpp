@@ -31,7 +31,6 @@ namespace hyperliquid
         void outcomeMeta(std::optional<uint64_t> correlationId = std::nullopt);
         void perpDexs(std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_perp_info.cpp
         void perpAnnotation(const std::string& coin, std::optional<uint64_t> correlationId = std::nullopt);
         void perpCategories(std::optional<uint64_t> correlationId = std::nullopt);
         void perpConciseAnnotations(std::optional<uint64_t> correlationId = std::nullopt);
@@ -40,7 +39,6 @@ namespace hyperliquid
                                     std::optional<uint64_t> correlationId = std::nullopt);
         void predictedFundings(std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_metadata.cpp
         void metaAndAssetCtxs(const std::optional<std::string>& dex = std::nullopt,
                               std::optional<uint64_t> correlationId = std::nullopt);
         void spotMetaAndAssetCtxs(std::optional<uint64_t> correlationId = std::nullopt);
@@ -58,7 +56,6 @@ namespace hyperliquid
                            std::optional<uint64_t> correlationId = std::nullopt);
         void approvedBuilders(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_info.cpp
         void l2Book(const std::string& coin,
                    const std::optional<int>& nSigFigs = std::nullopt,
                    const std::optional<int>& mantissa = std::nullopt,
@@ -89,7 +86,6 @@ namespace hyperliquid
                                 const std::optional<std::string>& dex = std::nullopt,
                                 std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_funding_history.cpp
         void userFunding(const std::string& user,
                          uint64_t startTime,
                          const std::optional<uint64_t>& endTime = std::nullopt,
@@ -103,7 +99,6 @@ namespace hyperliquid
                             const std::optional<uint64_t>& endTime = std::nullopt,
                             std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_vaults.cpp
         void vaultDetails(const std::string& vaultAddress,
                           const std::optional<std::string>& user = std::nullopt,
                           std::optional<uint64_t> correlationId = std::nullopt);
@@ -112,27 +107,21 @@ namespace hyperliquid
         void referral(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void userRole(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_user_rate_limit.cpp
         void userRateLimit(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_hip3_deployer.cpp
         void perpDexLimits(const std::string& dex, std::optional<uint64_t> correlationId = std::nullopt);
         void perpDexStatus(const std::string& dex, std::optional<uint64_t> correlationId = std::nullopt);
         void perpDeployAuctionStatus(std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_settled_outcome.cpp
         void settledOutcome(int outcome, std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_borrow_lend.cpp
         void borrowLendUserState(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void borrowLendReserveState(int token, std::optional<uint64_t> correlationId = std::nullopt);
         void allBorrowLendReserveStates(std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_spot_deploy.cpp
         void spotDeployState(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void spotPairDeployAuctionStatus(std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_staking.cpp (info half; cDeposit/tokenDelegate/cWithdraw below are the exchange half)
         void delegations(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void delegatorSummary(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void delegatorHistory(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
@@ -161,7 +150,6 @@ namespace hyperliquid
                               std::optional<uint64_t> correlationId = std::nullopt,
                               const std::optional<std::string>& vaultAddress = std::nullopt);
 
-        // examples/ws_leverage.cpp
         void updateLeverage(const UpdateLeverageRequest& request,
                             std::optional<uint64_t> correlationId = std::nullopt,
                             const std::optional<std::string>& vaultAddress = std::nullopt);
@@ -169,16 +157,13 @@ namespace hyperliquid
                                   std::optional<uint64_t> correlationId = std::nullopt,
                                   const std::optional<std::string>& vaultAddress = std::nullopt);
 
-        // examples/ws_approve_agent.cpp
         void approveAgent(const ApproveAgentRequest& request,
                           std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_agent_set_abstraction.cpp
         void agentSetAbstraction(UserAbstractionMode abstraction,
                                  std::optional<uint64_t> correlationId = std::nullopt,
                                  const std::optional<std::string>& vaultAddress = std::nullopt);
 
-        // examples/ws_twap.cpp
         void twapOrder(const TwapOrderRequest& request,
                        std::optional<uint64_t> correlationId = std::nullopt,
                        const std::optional<std::string>& vaultAddress = std::nullopt);
@@ -186,22 +171,12 @@ namespace hyperliquid
                         std::optional<uint64_t> correlationId = std::nullopt,
                         const std::optional<std::string>& vaultAddress = std::nullopt);
 
-        // examples/ws_vault_transfer.cpp
-        // vaultTransfer/hip3LiquidatorTransfer/usdClassTransfer/sendAsset/usdSend/spotSend/
-        // withdraw3/approveBuilderFee/userSetAbstraction/cDeposit/cWithdraw/tokenDelegate/
-        // sendToEvmWithData/userDexAbstraction move funds or state against the calling wallet
-        // directly (their target vault/dex/destination/etc. is a field of the request itself, or
-        // they're EIP-712 user-signed actions that Hyperliquid never accepts a vaultAddress for),
-        // so unlike the other exchange methods they do not take a vaultAddress parameter - see
-        // RestApi.h for the matching rationale, shared across both transports.
         void vaultTransfer(const VaultTransferRequest& request,
                            std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_hip3_liquidator_transfer.cpp
         void hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request,
                                     std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_transfers.cpp
         void usdClassTransfer(const UsdClassTransferRequest& request,
                               std::optional<uint64_t> correlationId = std::nullopt);
         void sendAsset(const SendAssetRequest& request,
@@ -213,16 +188,12 @@ namespace hyperliquid
         void withdraw3(const Withdraw3Request& request,
                        std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_approve_builder_fee.cpp
         void approveBuilderFee(const ApproveBuilderFeeRequest& request,
                                std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_user_set_abstraction.cpp
         void userSetAbstraction(const UserSetAbstractionRequest& request,
                                 std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_staking.cpp (exchange half; delegations/delegatorSummary/delegatorHistory/
-        // delegatorRewards above are the info half)
         void cDeposit(uint64_t wei,
                      std::optional<uint64_t> correlationId = std::nullopt);
         void cWithdraw(uint64_t wei,
@@ -230,7 +201,6 @@ namespace hyperliquid
         void tokenDelegate(const TokenDelegateRequest& request,
                            std::optional<uint64_t> correlationId = std::nullopt);
 
-        // examples/ws_misc_actions.cpp
         void sendToEvmWithData(const SendToEvmWithDataRequest& request,
                                std::optional<uint64_t> correlationId = std::nullopt);
         // agentSendAsset/reserveRequestWeight/noop retain a vaultAddress parameter (matching
@@ -246,7 +216,6 @@ namespace hyperliquid
         void noop(std::optional<uint64_t> correlationId = std::nullopt,
                  const std::optional<std::string>& vaultAddress = std::nullopt);
 
-        // examples/ws_user_dex_abstraction.cpp
         void userDexAbstraction(const UserDexAbstractionRequest& request,
                                 std::optional<uint64_t> correlationId = std::nullopt);
 
