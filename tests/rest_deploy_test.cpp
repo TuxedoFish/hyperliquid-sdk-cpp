@@ -231,14 +231,6 @@ TEST(RestApiMessageParserInfoTest, ParseSpotDeployStateWithNullFullNameAndMaxSup
     EXPECT_TRUE(response.states[1].spots.empty());
 }
 
-// spotDeploy is a large multi-variant action (10 sub-actions sharing `type: "spotDeploy"`); only
-// the 5 variants making up the "create and launch a new spot token" flow are implemented here -
-// see issue #91. All 5 share `type: "spotDeploy"` with exactly one nested key present as the
-// discriminator, rather than a separate `type`/enum field. Field shapes confirmed against the
-// official TS SDK (@nktkas/hyperliquid, src/api/exchange/_methods/spotDeploy.ts), not a live
-// capture - a full live "happy path" deployment creates permanent testnet state and was out of
-// scope for this pass.
-
 TEST(SpotDeployBuilderTest, RegisterToken2)
 {
     ExchangeRequestBuilder builder;
