@@ -10,6 +10,7 @@ namespace hyperliquid
         RestEndpointListener& listener;
         simdjson::ondemand::parser parser;
         simdjson::padded_string padded;
+        simdjson::dom::parser domParser;
 
         explicit Impl(RestEndpointListener& listener) : listener(listener) {}
 
@@ -239,6 +240,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.status = std::string(doc["status"].get_string().value());
 
                 if (response.status != "ok") return response;
@@ -305,6 +308,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.status = std::string(doc["status"].get_string().value());
 
                 if (response.status != "ok") return response;
@@ -354,6 +359,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.status = std::string(doc["status"].get_string().value());
 
                 if (response.status != "ok") return response;
@@ -420,6 +427,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.status = std::string(doc["status"].get_string().value());
 
                 if (response.status != "ok")
@@ -457,6 +466,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.status = std::string(doc["status"].get_string().value());
 
                 if (response.status != "ok")
@@ -506,6 +517,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.status = std::string(doc["status"].get_string().value());
 
                 if (response.status != "ok")
@@ -583,6 +596,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto outcomes = doc["outcomes"].get_array().value();
                 for (auto entry : outcomes)
                 {
@@ -608,6 +623,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 if (doc.type().value() == simdjson::ondemand::json_type::null)
                     return response;
 
@@ -659,6 +676,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 bool firstElement = true;
                 for (auto entry : arr)
@@ -725,6 +744,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -752,6 +773,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
                 response.delegated = parseNumberField(obj, "delegated");
                 response.undelegated = parseNumberField(obj, "undelegated");
@@ -774,6 +797,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 if (doc.type().value() == simdjson::ondemand::json_type::null)
                     return response;
 
@@ -814,6 +839,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -872,6 +899,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 if (doc.type().value() == simdjson::ondemand::json_type::null)
                     return response;
 
@@ -895,6 +924,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -922,6 +953,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -944,6 +977,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1014,6 +1049,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 // The exchange returns a bare `null` (rather than an object) for a coin with no
                 // annotation data - leave category/description empty in that case, it's not a
                 // parse error.
@@ -1040,6 +1077,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1072,6 +1111,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1113,6 +1154,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 // Each top-level entry is a flat per-dex meta object ({universe, marginTables,
                 // collateralToken}) - unlike metaAndAssetCtxs, this endpoint does not pair each
                 // dex with live asset-context data (confirmed against real testnet responses).
@@ -1128,9 +1171,13 @@ namespace hyperliquid
                     {
                         auto uObj = u.get_object().value();
                         AssetMeta asset;
-                        asset.name = std::string(uObj["name"].get_string().value());
-                        asset.szDecimals = static_cast<int>(uObj["szDecimals"].get_int64().value());
-                        asset.maxLeverage = static_cast<int>(uObj["maxLeverage"].get_int64().value());
+                        for (auto field : uObj)
+                        {
+                            std::string_view key = field.unescaped_key().value();
+                            if (key == "name") asset.name = std::string(field.value().get_string().value());
+                            else if (key == "szDecimals") asset.szDecimals = static_cast<int>(field.value().get_int64().value());
+                            else if (key == "maxLeverage") asset.maxLeverage = static_cast<int>(field.value().get_int64().value());
+                        }
                         dexMeta.universe.push_back(std::move(asset));
                     }
 
@@ -1189,6 +1236,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
                 response.startTimeSeconds = obj["startTimeSeconds"].get_uint64().value();
                 response.durationSeconds = obj["durationSeconds"].get_uint64().value();
@@ -1218,6 +1267,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1321,6 +1372,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1351,6 +1404,16 @@ namespace hyperliquid
         UserFundingLedgerUpdateResponse parseUserNonFundingLedgerUpdates(const std::string& message)
         {
             return parseUserFundingLedgerUpdateResponse(message, "userNonFundingLedgerUpdates");
+        }
+
+        // simdjson's ondemand API can hit an internal assertion (abort) rather than a catchable
+        // simdjson_error when a value is looked up by name more than once on the same malformed
+        // object (see issue #109) - full DOM parsing validates document structure upfront and has
+        // no such failure mode, so running it first guarantees the ondemand pass below never sees
+        // a structurally invalid document.
+        void validateStructure(const std::string& message)
+        {
+            domParser.parse(message).value();
         }
 
         static double toDouble(std::string_view sv)
@@ -1446,6 +1509,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.coin = std::string(doc["coin"].get_string().value());
                 response.time = doc["time"].get_uint64().value();
 
@@ -1488,6 +1553,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1522,6 +1589,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1568,6 +1637,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
                 for (auto field : obj)
                 {
@@ -1593,6 +1664,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1616,6 +1689,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.status = std::string(doc["status"].get_string().value());
 
                 simdjson::ondemand::value orderVal;
@@ -1648,6 +1723,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -1691,6 +1768,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
                 response = parseBorrowLendReserveStateFields(obj);
             }
@@ -1710,6 +1789,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 // Top level is an array of [tokenId, reserveStateObj] pairs, not a flat array of objects.
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
@@ -1745,6 +1826,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
 
                 auto tokenToState = obj["tokenToState"].get_array().value();
@@ -1866,6 +1949,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
                 return parseClearinghouseStateObj(obj);
             }
@@ -1903,6 +1988,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
                 response = parseSpotClearinghouseStateObj(obj);
             }
@@ -1940,6 +2027,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
                 response = parseSpotPairDeployAuctionStatusObj(obj);
             }
@@ -1959,6 +2048,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
 
                 auto states = obj["states"].get_array().value();
@@ -1995,10 +2086,12 @@ namespace hyperliquid
                     {
                         auto pair = balanceEntry.get_array().value();
                         auto iter = pair.begin();
+                        if (iter == pair.end()) continue;
 
                         SpotDeployStateGenesisBalance balance;
                         balance.address = std::string((*iter).get_string().value());
                         ++iter;
+                        if (iter == pair.end()) continue;
                         balance.balance = toDouble((*iter).get_string().value());
                         state.userGenesisBalances.push_back(std::move(balance));
                     }
@@ -2008,10 +2101,12 @@ namespace hyperliquid
                     {
                         auto pair = balanceEntry.get_array().value();
                         auto iter = pair.begin();
+                        if (iter == pair.end()) continue;
 
                         SpotDeployStateExistingTokenBalance balance;
                         balance.token = static_cast<int>((*iter).get_int64().value());
                         ++iter;
+                        if (iter == pair.end()) continue;
                         balance.balance = toDouble((*iter).get_string().value());
                         state.existingTokenGenesisBalances.push_back(std::move(balance));
                     }
@@ -2045,6 +2140,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 auto it = arr.begin();
                 if (it == arr.end()) return response;
@@ -2099,6 +2196,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 auto it = arr.begin();
                 if (it == arr.end()) return response;
@@ -2219,6 +2318,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -2242,6 +2343,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -2270,6 +2373,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -2297,6 +2402,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 // The API returns a bare `null` rather than `[]` when the user has no sub-accounts.
                 if (doc.type().value() == simdjson::ondemand::json_type::null)
                     return response;
@@ -2335,6 +2442,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
 
                 auto dailyVlm = obj["dailyUserVlm"].get_array().value();
@@ -2436,6 +2545,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.maxFeeRateTenthsBps = static_cast<int>(doc.get_int64().value());
             }
             catch (const simdjson::simdjson_error& e)
@@ -2454,6 +2565,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 if (doc.type().value() == simdjson::ondemand::json_type::null)
                     response.enabled = std::nullopt;
                 else
@@ -2475,6 +2588,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.state = stringToUserAbstractionState(doc.get_string().value());
             }
             catch (const simdjson::simdjson_error& e)
@@ -2493,6 +2608,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                     response.builders.push_back(std::string(entry.get_string().value()));
@@ -2513,6 +2630,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 response.cumVlm = toDouble(doc["cumVlm"].get_string().value());
                 response.nRequestsUsed = doc["nRequestsUsed"].get_int64().value();
                 response.nRequestsCap = doc["nRequestsCap"].get_int64().value();
@@ -2582,6 +2701,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
                 response.name = std::string(obj["name"].get_string().value());
                 response.vaultAddress = std::string(obj["vaultAddress"].get_string().value());
@@ -2658,6 +2779,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 for (auto entry : arr)
                 {
@@ -2684,6 +2807,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto arr = doc.get_array().value();
                 response.periods = parsePortfolioArray(arr);
             }
@@ -2703,6 +2828,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
 
                 simdjson::ondemand::value referredByVal;
@@ -2809,6 +2936,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto obj = doc.get_object().value();
                 response.role = stringToUserRoleType(obj["role"].get_string().value());
 
@@ -2843,6 +2972,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto tokens = doc["tokens"].get_array().value();
                 for (auto entry : tokens)
                 {
@@ -2882,6 +3013,8 @@ namespace hyperliquid
 
             try
             {
+                validateStructure(message);
+
                 auto universe = doc["universe"].get_array().value();
                 for (auto entry : universe)
                 {

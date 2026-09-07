@@ -232,6 +232,24 @@ TEST(RestApiMessageParserInfoTest, ParseSpotDeployStateWithNullFullNameAndMaxSup
     EXPECT_TRUE(response.states[1].spots.empty());
 }
 
+TEST(RestApiMessageParserInfoTest, ParseSpotDeployStateShortGenesisBalancePairsDoNotCrash)
+{
+    // Regression test for issue #109 - userGenesisBalances/existingTokenGenesisBalances entries
+    // are normally [address, wei] / [token, wei] pairs; a short (0 or 1 element) or empty pair
+    // used to be dereferenced without a bounds check and crash instead of being skipped.
+    std::string message =
+        R"({"states":[{"token":40,"spec":{"name":"TEST5","szDecimals":1,"weiDecimals":7},"fullName":null,"deployerTradingFeeShare":"0.0","spots":[],"maxSupply":null,"hyperliquidityGenesisBalance":"0.0","totalGenesisBalanceWei":"0","userGenesisBalances":[[],["0xabc"],["0xabc","1.0"]],"existingTokenGenesisBalances":[[],[1],[1,"2.0"]],"blacklistUsers":[]}],"gasAuction":{"startTimeSeconds":1788613200,"durationSeconds":111600,"startGas":"3971.80961464","currentGas":"2607.76501543","endGas":null}})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseSpotDeployState(message);
+
+    ASSERT_EQ(response.states.size(), 1u);
+    ASSERT_EQ(response.states[0].userGenesisBalances.size(), 1u);
+    EXPECT_EQ(response.states[0].userGenesisBalances[0].address, "0xabc");
+    ASSERT_EQ(response.states[0].existingTokenGenesisBalances.size(), 1u);
+    EXPECT_EQ(response.states[0].existingTokenGenesisBalances[0].token, 1);
+}
+
 TEST(SpotDeployBuilderTest, RegisterToken2)
 {
     ExchangeRequestBuilder builder;
