@@ -292,6 +292,12 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 
 24 of 24 documented channels have full typed parsing. `fastAssetCtxs` payloads are raw-DEFLATE (RFC 1951) compressed on the wire and decompressed internally (zlib) before parsing. `outcomeMetaUpdates`'s `data` is itself an array of discriminated-union entries (one of `outcomeCreated`/`outcomeSettled`/`questionUpdated`/`questionSettled` per entry) - each entry dispatches its own `onOutcomeMetaUpdate` call.
 
+## Used by
+
+- [exchange-gateways](https://github.com/TuxedoFish/exchange-gateways) — a multi-exchange connectivity layer providing low-latency order routing to Deribit (FIX 4.4) and Hyperliquid (WebSocket).
+
+Using this SDK in your own project? Open a PR adding it here.
+
 ## Status
 
 This SDK is under active development. Remaining endpoint and channel coverage is tracked in the [issue tracker](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/issues). See [CHANGELOG.md](CHANGELOG.md) for release history.
