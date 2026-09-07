@@ -294,7 +294,20 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 
 ## Status
 
-This SDK is under active development. Remaining endpoint and channel coverage is tracked in the [issue tracker](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/issues).
+This SDK is under active development. Remaining endpoint and channel coverage is tracked in the [issue tracker](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/issues). See [CHANGELOG.md](CHANGELOG.md) for release history.
+
+## Using this library in your own project
+
+After `cmake --install`, downstream projects can consume the SDK via `find_package`:
+
+```cmake
+find_package(hyperliquid-sdk CONFIG REQUIRED)
+target_link_libraries(your_target PRIVATE hyperliquid-sdk::hyperliquid-sdk)
+```
+
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the repeatable pattern used to add a new endpoint, action, or websocket channel. This project follows a [Code of Conduct](CODE_OF_CONDUCT.md); please report security vulnerabilities per [SECURITY.md](SECURITY.md) rather than in a public issue.
 
 ## License
 
