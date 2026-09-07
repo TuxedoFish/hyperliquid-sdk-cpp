@@ -10,10 +10,6 @@ namespace hyperliquid::internal
 {
     namespace
     {
-        // Info-read post responses are wire-wrapped as {"type":"<endpoint>","data":{...}} - the
-        // "data" sub-object is exactly what RestApi's parseX functions expect (they parse the
-        // same shape RestApi's synchronous HTTP responses use). Extract just that sub-object here
-        // and hand it to the matching parser + typed callback.
         void dispatchInfoPostResponse(RestEndpointType type, const std::string& payloadJson,
                                       std::optional<uint64_t> correlationId, WebsocketApiListener& listener)
         {

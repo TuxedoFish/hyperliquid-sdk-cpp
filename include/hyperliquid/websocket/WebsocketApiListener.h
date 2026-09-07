@@ -19,10 +19,6 @@ public:
     virtual void onConnected() {}
     virtual void onDisconnected(bool, const std::string&) {}
 
-    // Typed post-response callbacks - additive to onPostResponse above, not a replacement.
-    //
-    // Info reads (unauthenticated): one typed callback per endpoint, each carrying the same
-    // response struct RestApi's synchronous call for that endpoint returns.
     virtual void onSpotMetaPostResponse(const SpotMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onMetaPostResponse(const MetaResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onOutcomeMetaPostResponse(const OutcomeMetaResponse&, std::optional<uint64_t> = std::nullopt) {}
@@ -71,9 +67,6 @@ public:
     virtual void onDelegatorHistoryPostResponse(const DelegatorHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onDelegatorRewardsPostResponse(const DelegatorRewardsResponse&, std::optional<uint64_t> = std::nullopt) {}
 
-    // Exchange actions (authenticated): every exchange endpoint shares the same response shape
-    // (SimpleResponse), so one callback covers all of them - the RestEndpointType tells the
-    // caller which action it was.
     virtual void onExchangeActionPostResponse(RestEndpointType, const SimpleResponse&,
                                               std::optional<uint64_t> = std::nullopt) {}
 };
