@@ -4,19 +4,10 @@
 #include <hyperliquid/config/Config.h>
 #include <spdlog/spdlog.h>
 
-// TODO: coordinator will decide whether to run this live (creates permanent testnet state +
-// costs deploy-auction gas) - may only get sad-path evidence.
-//
-// Demonstrates the full 5-step "create and launch a new spot token" (HIP-1/HIP-2) flow in
-// sequence: registerToken2 -> genesis -> userGenesis -> registerSpot -> registerHyperliquidity.
-// Each step depends on state created by the previous one (e.g. registerSpot needs the token index
-// assigned by registerToken2), so in a real deployment you'd inspect spotDeployState() between
-// steps to pick up the assigned token/spot indices rather than hardcoding them as done here.
-//
-// Deploying a token on testnet spends real (testnet) deploy-auction gas and creates permanent,
-// irreversible on-chain state - this wallet is not expected to have an active gas auction bid,
-// so registerToken2 is expected to be rejected with a real, informative error rather than
-// silently succeeding, and the later steps are not reachable without a genuine deployment.
+// Demonstrates the 5-step "create and launch a new spot token" (HIP-1/HIP-2) flow in sequence.
+// Deploying a real token costs testnet deploy-auction gas and creates permanent on-chain state;
+// registerToken2 is expected to be rejected here since this wallet has no active auction bid, so
+// the token/spot indices used by the later steps are hardcoded to illustrate their shape only.
 int main()
 {
     auto wallet = loadWalletFromConfig();

@@ -765,6 +765,46 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::spotDeployRegisterToken2(const SpotDeployRegisterToken2Request& request,
+                                                std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotDeployRegisterToken2,
+                                  impl_->exchangeRequestBuilder.spotDeployRegisterToken2(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::spotDeployUserGenesis(const SpotDeployUserGenesisRequest& request,
+                                             std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotDeployUserGenesis,
+                                  impl_->exchangeRequestBuilder.spotDeployUserGenesis(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::spotDeployGenesis(const SpotDeployGenesisRequest& request,
+                                         std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotDeployGenesis,
+                                  impl_->exchangeRequestBuilder.spotDeployGenesis(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::spotDeployRegisterSpot(const SpotDeployRegisterSpotRequest& request,
+                                              std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotDeployRegisterSpot,
+                                  impl_->exchangeRequestBuilder.spotDeployRegisterSpot(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::spotDeployRegisterHyperliquidity(const SpotDeployRegisterHyperliquidityRequest& request,
+                                                         std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SpotDeployRegisterHyperliquidity,
+                                  impl_->exchangeRequestBuilder.spotDeployRegisterHyperliquidity(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::sendToEvmWithData(const SendToEvmWithDataRequest& request,
                                          std::optional<uint64_t> correlationId)
     {

@@ -205,6 +205,17 @@ namespace hyperliquid
         void borrowLend(const BorrowLendRequest& request,
                         std::optional<uint64_t> correlationId = std::nullopt);
 
+        void spotDeployRegisterToken2(const SpotDeployRegisterToken2Request& request,
+                                      std::optional<uint64_t> correlationId = std::nullopt);
+        void spotDeployUserGenesis(const SpotDeployUserGenesisRequest& request,
+                                   std::optional<uint64_t> correlationId = std::nullopt);
+        void spotDeployGenesis(const SpotDeployGenesisRequest& request,
+                               std::optional<uint64_t> correlationId = std::nullopt);
+        void spotDeployRegisterSpot(const SpotDeployRegisterSpotRequest& request,
+                                    std::optional<uint64_t> correlationId = std::nullopt);
+        void spotDeployRegisterHyperliquidity(const SpotDeployRegisterHyperliquidityRequest& request,
+                                              std::optional<uint64_t> correlationId = std::nullopt);
+
         void sendToEvmWithData(const SendToEvmWithDataRequest& request,
                                std::optional<uint64_t> correlationId = std::nullopt);
         // agentSendAsset/reserveRequestWeight/noop retain a vaultAddress parameter (matching
