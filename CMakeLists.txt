@@ -1,4 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
+
+# Must come before project() so it can select vcpkg's "tests" feature (pulls in gtest).
+option(HYPERLIQUID_BUILD_TESTS "Build tests" OFF)
+if(HYPERLIQUID_BUILD_TESTS)
+    list(APPEND VCPKG_MANIFEST_FEATURES "tests")
+endif()
+
 project(hyperliquid-sdk-cpp VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -148,7 +155,6 @@ install(FILES
 )
 
 option(HYPERLIQUID_BUILD_EXAMPLES "Build example programs" OFF)
-option(HYPERLIQUID_BUILD_TESTS "Build tests" OFF)
 
 if(HYPERLIQUID_BUILD_TESTS)
     enable_testing()

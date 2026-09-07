@@ -17,7 +17,12 @@ inline TestConfig loadTestConfig(const std::string& path = EXAMPLES_DIR "test.js
 {
     std::ifstream file(path);
     if (!file.is_open())
-        throw std::runtime_error("Could not open config file: " + path);
+        throw std::runtime_error(
+            "Could not open config file: " + path +
+            "\nThis file is gitignored and not shipped with the repo - copy examples/example.json "
+            "to examples/test.json and fill in a testnet wallet's address/private key (and "
+            "optionally a subaccount address) before running examples. See the README's "
+            "\"Quickstart\" section, or https://TuxedoFish.github.io/hyperliquid-sdk-cpp/examples/#credentials.");
 
     auto json = nlohmann::json::parse(file);
 
