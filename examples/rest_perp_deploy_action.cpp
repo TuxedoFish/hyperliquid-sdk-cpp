@@ -4,14 +4,9 @@
 #include <hyperliquid/config/Config.h>
 #include <spdlog/spdlog.h>
 
-// TODO: coordinator will decide whether to run this live (creates permanent testnet state +
-// costs deploy-auction gas) - may only get sad-path evidence.
-//
-// perpDeploy is a large multi-variant L1 action (16 sub-actions sharing "type": "perpDeploy");
-// only registerAsset2 - deploying a new HIP-3 perp asset, optionally creating a new dex - is
-// wired up here. The other 15 variants (setOracle, setFundingMultipliers, haltTrading, margin
-// table config, fee config, sub-deployers, etc.) are out of scope for this issue.
-
+// Demonstrates registerAsset2 - deploying a new HIP-3 perp asset onto an existing dex. "test" is
+// a real, live HIP-3 dex on testnet with a deployer address that isn't this wallet, so this is
+// expected to be rejected with a real, informative error rather than silently succeeding.
 int main()
 {
     auto wallet = loadWalletFromConfig();
@@ -23,11 +18,6 @@ int main()
 
     hyperliquid::RestApi api(config);
 
-    // "test" is a real, live HIP-3 dex on testnet (see examples/json/rest/parsePerpDexs/perp_dexs.json)
-    // with a deployer address that isn't this wallet, so registering a new asset against it is
-    // expected to be rejected with a real, informative error rather than silently succeeding.
-    // schema is left unset (null) since we're adding an asset to an EXISTING dex, not creating
-    // a new one.
     hyperliquid::PerpDeployRegisterAsset2Request req;
     req.maxGas = std::nullopt; // use the current deploy auction price
     req.assetRequest.coin = "SDKTEST";

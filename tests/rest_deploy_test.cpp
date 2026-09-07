@@ -505,8 +505,6 @@ TEST(PerpDeployRegisterAsset2Builder, SchemaWithNullOracleUpdater)
 
 TEST(PerpDeployRegisterAsset2ResponseParsing, SuccessResponse)
 {
-    // Synthetic - shape verified against the official TS SDK/docs; a genuine successful
-    // deployment creates permanent, irreversible on-chain state, so this isn't live-captured.
     static const std::string kOk = R"({
         "status": "ok",
         "response": {
@@ -523,11 +521,6 @@ TEST(PerpDeployRegisterAsset2ResponseParsing, SuccessResponse)
 
 TEST(PerpDeployRegisterAsset2ResponseParsing, ErrorResponse)
 {
-    // Synthetic - a plausible rejection message for a wallet that isn't the target dex's
-    // deployer. This isn't a real, live-captured payload (deliberately not executed - see the
-    // TODO in examples/rest_perp_deploy_action.cpp); parseSimpleResponse's shape is already
-    // covered by real captures elsewhere (e.g. hip3_liquidator_transfer_test.cpp), so this only
-    // exercises this test file's err-status wiring, not a claim about the exact wording.
     static const std::string kErr = R"({
         "status": "err",
         "response": "Only the dex deployer can register new assets."
