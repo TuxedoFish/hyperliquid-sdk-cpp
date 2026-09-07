@@ -1,6 +1,7 @@
 # hyperliquid-sdk-cpp
 
 [![CI](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/actions/workflows/ci.yml/badge.svg)](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/actions/workflows/ci.yml)
+[![Docs](https://github.com/TuxedoFish/hyperliquid-sdk-cpp/actions/workflows/docs.yml/badge.svg)](https://TuxedoFish.github.io/hyperliquid-sdk-cpp/)
 [![codecov](https://codecov.io/gh/TuxedoFish/hyperliquid-sdk-cpp/branch/main/graph/badge.svg)](https://codecov.io/gh/TuxedoFish/hyperliquid-sdk-cpp)
 [![License](https://img.shields.io/github/license/TuxedoFish/hyperliquid-sdk-cpp)](LICENSE)
 ![C++](https://img.shields.io/badge/C%2B%2B-23-blue)
@@ -40,8 +41,6 @@ ctest --test-dir build
 
 ## Quickstart
 
-### REST
-
 ```cpp
 #include <hyperliquid/rest/RestApi.h>
 #include <hyperliquid/config/Config.h>
@@ -59,48 +58,7 @@ int main() {
 }
 ```
 
-`RestApi` methods are synchronous by default (e.g. `meta()` blocks and returns `MetaResponse`). Each has an `Async` counterpart (e.g. `metaAsync()`) that instead delivers the raw response via `RestApiListener::onMessage`, for a `RestApiListener` passed to the `RestApi(config, listener)` constructor — decode it with `RestApiMessageParser`.
-
-### WebSocket
-
-```cpp
-#include <hyperliquid/config/Config.h>
-#include <hyperliquid/websocket/WebsocketApi.h>
-#include <hyperliquid/websocket/WebsocketApiListener.h>
-#include <hyperliquid/websocket/WebsocketMessageHandler.h>
-#include <hyperliquid/websocket/WebsocketMessageParser.h>
-
-class BookHandler : public hyperliquid::WebsocketMessageHandler,
-                     public hyperliquid::WebsocketApiListener {
-public:
-    void onMessage(const std::string& message) override {
-        parser_.crack(message, *this);
-    }
-    void onConnected() override {}
-    void onDisconnected(bool hasError, const std::string& errMsg) override {}
-
-    void onL2Book(const hyperliquid::L2BookSnapshot& snapshot) override {
-        // snapshot.bids / snapshot.asks, snapshot.numBids / snapshot.numAsks
-    }
-
-private:
-    hyperliquid::WebsocketMessageParser parser_;
-};
-
-int main() {
-    BookHandler handler;
-    hyperliquid::ApiConfig config;
-    config.env = hyperliquid::Environment::Testnet;
-
-    hyperliquid::WebsocketApi ws(config, handler);
-    ws.start();
-    ws.subscribe(hyperliquid::SubscriptionType::L2Book, {{"coin", "BTC"}});
-    // ...
-    ws.stop();
-}
-```
-
-More complete examples, including order placement/modification over both REST and WebSocket, are in `examples/`.
+See the [Quickstart guide](https://TuxedoFish.github.io/hyperliquid-sdk-cpp/quickstart/) for the WebSocket equivalent and the async/typed-listener paths, and the [Examples index](https://TuxedoFish.github.io/hyperliquid-sdk-cpp/examples/) for every runnable example in `examples/` (order placement/modification, transfers, staking, vaults, and every websocket channel, over both REST and WebSocket).
 
 Most examples read credentials from `examples/test.json`, a local, gitignored file you create yourself - it's never committed and the repo doesn't ship one. Create it with:
 
