@@ -11,7 +11,7 @@ Initial release.
 
 ### Added
 
-- **REST API** (`RestApi`): 53 of 78 documented `/info` endpoints and 32 of 59 documented
+- **REST API** (`RestApi`): 53 of 78 documented `/info` endpoints and 36 of 68 documented
   `/exchange` actions, each with a synchronous method and an `Async` + `RestApiListener`
   counterpart. Covers market data, account/portfolio state, order placement/cancellation/
   modification, leverage and margin management, transfers (USD/spot/EVM), vaults, staking
@@ -24,12 +24,15 @@ Initial release.
   (transfers, staking, agent approval), shared between REST and WebSocket transports.
 - **Typed request/response models** throughout, replacing raw JSON with `struct`s and enums
   for every implemented endpoint and channel.
+- **Docs site**: quickstart, a full examples index, and API coverage tables at
+  https://TuxedoFish.github.io/hyperliquid-sdk-cpp/.
 - Worked examples for both transports under `examples/`, most verified live against testnet.
 - CI: build matrix across GCC/Clang/macOS, AddressSanitizer + UndefinedBehaviorSanitizer,
   code coverage via Codecov, CodeQL static analysis, OSV-Scanner dependency scanning, and a
   scheduled libFuzzer campaign against both message parsers.
 - Packaging: CMake install/export targets (`find_package(hyperliquid-sdk)`) and a vcpkg
-  manifest for consuming this SDK's own dependencies.
+  manifest for consuming this SDK's own dependencies, with `gtest` behind an opt-in `tests`
+  feature so library-only consumers never build it.
 - `SECURITY.md`, `CODE_OF_CONDUCT.md`, and `CONTRIBUTING.md` documenting the vulnerability
   reporting process, community standards, and the repeatable pattern for adding new
   endpoints/channels.
