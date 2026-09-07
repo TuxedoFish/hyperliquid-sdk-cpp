@@ -1416,6 +1416,41 @@ namespace hyperliquid
         std::optional<std::string> subAccountMaster;
     };
 
+    struct UserDexAbstractionResponse
+    {
+        std::optional<bool> enabled;
+    };
+
+    enum class UserAbstractionState { UnifiedAccount, PortfolioMargin, Disabled, Default, DexAbstraction, Unknown };
+
+    inline UserAbstractionState stringToUserAbstractionState(std::string_view s)
+    {
+        if (s == "unifiedAccount") return UserAbstractionState::UnifiedAccount;
+        if (s == "portfolioMargin") return UserAbstractionState::PortfolioMargin;
+        if (s == "disabled") return UserAbstractionState::Disabled;
+        if (s == "default") return UserAbstractionState::Default;
+        if (s == "dexAbstraction") return UserAbstractionState::DexAbstraction;
+        return UserAbstractionState::Unknown;
+    }
+
+    inline std::string toString(UserAbstractionState state)
+    {
+        switch (state)
+        {
+        case UserAbstractionState::UnifiedAccount: return "unifiedAccount";
+        case UserAbstractionState::PortfolioMargin: return "portfolioMargin";
+        case UserAbstractionState::Disabled: return "disabled";
+        case UserAbstractionState::Default: return "default";
+        case UserAbstractionState::DexAbstraction: return "dexAbstraction";
+        default: return "unknown";
+        }
+    }
+
+    struct UserAbstractionResponse
+    {
+        UserAbstractionState state;
+    };
+
     // --- Rest endpoint types (authenticated) ---
 
     struct OrderStatusResting

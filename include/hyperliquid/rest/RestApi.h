@@ -102,6 +102,8 @@ public:
     BorrowLendUserStateResponse borrowLendUserState(const std::string& user);
     BorrowLendReserveState borrowLendReserveState(int token);
     AllBorrowLendReserveStatesResponse allBorrowLendReserveStates();
+    UserDexAbstractionResponse userDexAbstractionState(const std::string& user);
+    UserAbstractionResponse userAbstraction(const std::string& user);
     PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
                            const std::optional<Builder>& builder = std::nullopt,
@@ -231,6 +233,8 @@ public:
     void borrowLendUserStateAsync(const std::string& user);
     void borrowLendReserveStateAsync(int token);
     void allBorrowLendReserveStatesAsync();
+    void userDexAbstractionStateAsync(const std::string& user);
+    void userAbstractionAsync(const std::string& user);
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
                          const std::optional<Builder>& builder = std::nullopt,

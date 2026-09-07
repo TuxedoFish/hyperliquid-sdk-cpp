@@ -19,6 +19,8 @@ namespace
         std::optional<AllMidsResponse> allMids;
         std::optional<PerpCategoriesResponse> perpCategories;
         std::optional<ClearinghouseState> clearinghouseState;
+        std::optional<UserDexAbstractionResponse> userDexAbstraction;
+        std::optional<UserAbstractionResponse> userAbstraction;
 
         int exchangeCount = 0;
         std::optional<RestEndpointType> exchangeType;
@@ -51,6 +53,16 @@ namespace
         void onPostResponse(const ClearinghouseState& resp, std::optional<uint64_t>) override
         {
             clearinghouseState = resp;
+        }
+
+        void onPostResponse(const UserDexAbstractionResponse& resp, std::optional<uint64_t>) override
+        {
+            userDexAbstraction = resp;
+        }
+
+        void onPostResponse(const UserAbstractionResponse& resp, std::optional<uint64_t>) override
+        {
+            userAbstraction = resp;
         }
 
         void onPostResponse(RestEndpointType type, const SimpleResponse& resp,
@@ -150,6 +162,39 @@ TEST(WebsocketApiDispatch, ClearinghouseStateTypedDispatchAndGenericFallback)
     ASSERT_TRUE(listener.clearinghouseState.has_value());
     EXPECT_DOUBLE_EQ(listener.clearinghouseState->marginSummary.accountValue, 10.0);
     EXPECT_EQ(listener.clearinghouseState->time, 555u);
+    EXPECT_EQ(listener.genericCount, 1);
+}
+
+TEST(WebsocketApiDispatch, UserDexAbstractionStateTypedDispatchAndGenericFallback)
+{
+    CapturingListener listener;
+    std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    postRequestInfo[8] = {RestEndpointType::UserDexAbstractionState, uint64_t{1}};
+
+    const std::string payload = R"({"type":"userDexAbstraction","data":false})";
+    const std::string raw = wrapPostMessage(8, "info", payload);
+
+    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+
+    ASSERT_TRUE(listener.userDexAbstraction.has_value());
+    ASSERT_TRUE(listener.userDexAbstraction->enabled.has_value());
+    EXPECT_FALSE(*listener.userDexAbstraction->enabled);
+    EXPECT_EQ(listener.genericCount, 1);
+}
+
+TEST(WebsocketApiDispatch, UserAbstractionTypedDispatchAndGenericFallback)
+{
+    CapturingListener listener;
+    std::unordered_map<uint64_t, PostRequestInfo> postRequestInfo;
+    postRequestInfo[9] = {RestEndpointType::UserAbstraction, std::nullopt};
+
+    const std::string payload = R"({"type":"userAbstraction","data":"disabled"})";
+    const std::string raw = wrapPostMessage(9, "info", payload);
+
+    internal::handlePostChannelMessage(raw, postRequestInfo, listener);
+
+    ASSERT_TRUE(listener.userAbstraction.has_value());
+    EXPECT_EQ(listener.userAbstraction->state, UserAbstractionState::Disabled);
     EXPECT_EQ(listener.genericCount, 1);
 }
 

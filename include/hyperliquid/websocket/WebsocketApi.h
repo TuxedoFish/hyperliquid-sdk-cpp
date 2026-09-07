@@ -124,6 +124,9 @@ namespace hyperliquid
         void spotDeployState(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void spotPairDeployAuctionStatus(std::optional<uint64_t> correlationId = std::nullopt);
 
+        void userDexAbstractionState(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void userAbstraction(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+
         void delegations(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void delegatorSummary(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void delegatorHistory(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);

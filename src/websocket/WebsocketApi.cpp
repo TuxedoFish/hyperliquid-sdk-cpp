@@ -430,6 +430,19 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::userDexAbstractionState(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserDexAbstractionState,
+                                  InfoRequestBuilder::userDexAbstractionState(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userAbstraction(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserAbstraction, InfoRequestBuilder::userAbstraction(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::frontendOpenOrders(const std::string& user, const std::optional<std::string>& dex,
                                           std::optional<uint64_t> correlationId)
     {
