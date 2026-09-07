@@ -7,6 +7,11 @@
 
 namespace hyperliquid {
 
+// Typed, per-endpoint callback interface: one onX per RestEndpointType, taking the already-parsed
+// response struct. Pass a listener to RestApiMessageParser's constructor and call parse(message,
+// type, correlationId) to have a raw response body dispatched here instead of parsed manually -
+// this is how you get typed callbacks for post-channel websocket responses too (WebsocketApi's own
+// WebsocketApiListener::onPostResponse overloads are a shortcut for the same dispatch).
 class RestEndpointListener {
 public:
     virtual ~RestEndpointListener() = default;
