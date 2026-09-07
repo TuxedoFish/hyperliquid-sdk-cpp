@@ -249,6 +249,11 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `spotDeploy` (`genesis`) | ✅ | `RestApi::spotDeployGenesis` |
 | `spotDeploy` (`registerSpot`) | ✅ | `RestApi::spotDeployRegisterSpot` |
 | `spotDeploy` (`registerHyperliquidity`) | ✅ | `RestApi::spotDeployRegisterHyperliquidity` |
+| `spotDeploy` (`setDeployerTradingFeeShare`) | ⬜ | |
+| `spotDeploy` (`enableQuoteToken`) | ⬜ | |
+| `spotDeploy` (`disableQuoteToken`) | ⬜ | |
+| `spotDeploy` (`requestEvmContract`) | ⬜ | |
+| `spotDeploy` (`outcome`) | ⬜ | |
 | `spotUser` | ⬜ | |
 | `stakingLinkDisableTradingUser` | ⬜ | |
 | `subAccountModify` | ⬜ | |
@@ -261,7 +266,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `vaultDistribute` | ⬜ | |
 | `vaultModify` | ⬜ | |
 
-36 of 63 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
+36 of 68 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
 
 `perpDeploy` is a large multi-variant action (16 sub-actions sharing `"type": "perpDeploy"`); only `registerAsset2` (deploying a new HIP-3 perp asset, optionally creating a new dex) is implemented. The other 15 variants (`registerAsset`, `setOracle`, `setFundingMultipliers`, `setFundingInterestRates`, `haltTrading`, `setMarginTableIds`, `insertMarginTable`, `setFeeRecipient`, `setOpenInterestCaps`, `setSubDeployers`, `setMarginModes`, `setFeeScale`, `setGrowthModes`, `setPerpAnnotation`, `disableDex`) are post-deployment admin/config actions for an already-deployed dex and are not yet implemented.
 
