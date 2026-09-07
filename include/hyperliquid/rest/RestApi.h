@@ -134,6 +134,11 @@ public:
     SimpleResponse vaultTransfer(const VaultTransferRequest& request);
     SimpleResponse hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request);
     SimpleResponse borrowLend(const BorrowLendRequest& request);
+    SimpleResponse spotDeployRegisterToken2(const SpotDeployRegisterToken2Request& request);
+    SimpleResponse spotDeployUserGenesis(const SpotDeployUserGenesisRequest& request);
+    SimpleResponse spotDeployGenesis(const SpotDeployGenesisRequest& request);
+    SimpleResponse spotDeployRegisterSpot(const SpotDeployRegisterSpotRequest& request);
+    SimpleResponse spotDeployRegisterHyperliquidity(const SpotDeployRegisterHyperliquidityRequest& request);
     SimpleResponse usdClassTransfer(const UsdClassTransferRequest& request);
     SimpleResponse sendAsset(const SendAssetRequest& request);
     SimpleResponse usdSend(const UsdSendRequest& request);
@@ -253,6 +258,11 @@ public:
     void vaultTransferAsync(const VaultTransferRequest& request);
     void hip3LiquidatorTransferAsync(const Hip3LiquidatorTransferRequest& request);
     void borrowLendAsync(const BorrowLendRequest& request);
+    void spotDeployRegisterToken2Async(const SpotDeployRegisterToken2Request& request);
+    void spotDeployUserGenesisAsync(const SpotDeployUserGenesisRequest& request);
+    void spotDeployGenesisAsync(const SpotDeployGenesisRequest& request);
+    void spotDeployRegisterSpotAsync(const SpotDeployRegisterSpotRequest& request);
+    void spotDeployRegisterHyperliquidityAsync(const SpotDeployRegisterHyperliquidityRequest& request);
     void usdClassTransferAsync(const UsdClassTransferRequest& request);
     void sendAssetAsync(const SendAssetRequest& request);
     void usdSendAsync(const UsdSendRequest& request);
