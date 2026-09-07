@@ -43,6 +43,7 @@ public:
                                                  const std::string& interval,
                                                  uint64_t startTime,
                                                  uint64_t endTime);
+    static nlohmann::ordered_json recentTrades(const std::string& coin);
     static nlohmann::ordered_json allMids(const std::optional<std::string>& dex = std::nullopt);
     static nlohmann::ordered_json openOrders(const std::string& user,
                                              const std::optional<std::string>& dex = std::nullopt);

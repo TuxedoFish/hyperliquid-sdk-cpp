@@ -179,7 +179,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Perpetuals | `liquidatable` | ⬜ | |
 | Perpetuals | `marginTable` | ⬜ | |
 | Perpetuals | `maxMarketOrderNtls` | ⬜ | |
-| Perpetuals | `recentTrades` | ⬜ | |
+| Perpetuals | `recentTrades` | ✅ | `RestApi::recentTrades` |
 | Spot / Outcomes | `spotMeta` | ✅ | `RestApi::spotMeta` |
 | Spot / Outcomes | `spotMetaAndAssetCtxs` | ✅ | `RestApi::spotMetaAndAssetCtxs` |
 | Spot / Outcomes | `spotClearinghouseState` | ✅ | `RestApi::spotClearinghouseState` |
@@ -191,7 +191,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 | Spot / Outcomes | `outcomeTemplates` | ⬜ | |
 
-50 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
+51 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 
