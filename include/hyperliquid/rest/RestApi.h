@@ -102,8 +102,6 @@ public:
     BorrowLendUserStateResponse borrowLendUserState(const std::string& user);
     BorrowLendReserveState borrowLendReserveState(int token);
     AllBorrowLendReserveStatesResponse allBorrowLendReserveStates();
-    // Info (read-only) query of the current dex-abstraction toggle state - distinct from the
-    // exchange-side userDexAbstraction(const UserDexAbstractionRequest&) write action below.
     UserDexAbstractionResponse userDexAbstractionState(const std::string& user);
     UserAbstractionResponse userAbstraction(const std::string& user);
     PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,

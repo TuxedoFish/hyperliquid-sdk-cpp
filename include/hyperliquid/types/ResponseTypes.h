@@ -1416,13 +1416,12 @@ namespace hyperliquid
         std::optional<std::string> subAccountMaster;
     };
 
-    // Bare top-level JSON boolean, or null if the user has never touched dex abstraction.
     struct UserDexAbstractionResponse
     {
         std::optional<bool> enabled;
     };
 
-    enum class UserAbstractionState { UnifiedAccount, PortfolioMargin, Disabled, Default, Unknown };
+    enum class UserAbstractionState { UnifiedAccount, PortfolioMargin, Disabled, Default, DexAbstraction, Unknown };
 
     inline UserAbstractionState stringToUserAbstractionState(std::string_view s)
     {
@@ -1430,6 +1429,7 @@ namespace hyperliquid
         if (s == "portfolioMargin") return UserAbstractionState::PortfolioMargin;
         if (s == "disabled") return UserAbstractionState::Disabled;
         if (s == "default") return UserAbstractionState::Default;
+        if (s == "dexAbstraction") return UserAbstractionState::DexAbstraction;
         return UserAbstractionState::Unknown;
     }
 
@@ -1441,11 +1441,11 @@ namespace hyperliquid
         case UserAbstractionState::PortfolioMargin: return "portfolioMargin";
         case UserAbstractionState::Disabled: return "disabled";
         case UserAbstractionState::Default: return "default";
+        case UserAbstractionState::DexAbstraction: return "dexAbstraction";
         default: return "unknown";
         }
     }
 
-    // Bare top-level JSON string: one of "unifiedAccount"/"portfolioMargin"/"disabled"/"default".
     struct UserAbstractionResponse
     {
         UserAbstractionState state;

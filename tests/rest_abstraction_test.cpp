@@ -86,3 +86,21 @@ TEST(RestApiMessageParserInfoTest, ParseUserAbstractionDefault)
 
     EXPECT_EQ(response.state, UserAbstractionState::Default);
 }
+
+TEST(RestApiMessageParserInfoTest, ParseUserAbstractionDexAbstraction)
+{
+    RestApiMessageParser parser;
+    auto response = parser.parseUserAbstraction(R"("dexAbstraction")");
+
+    EXPECT_EQ(response.state, UserAbstractionState::DexAbstraction);
+}
+
+TEST(UserAbstractionStateTest, ToStringRoundTripsAllKnownValues)
+{
+    EXPECT_EQ(toString(UserAbstractionState::UnifiedAccount), "unifiedAccount");
+    EXPECT_EQ(toString(UserAbstractionState::PortfolioMargin), "portfolioMargin");
+    EXPECT_EQ(toString(UserAbstractionState::Disabled), "disabled");
+    EXPECT_EQ(toString(UserAbstractionState::Default), "default");
+    EXPECT_EQ(toString(UserAbstractionState::DexAbstraction), "dexAbstraction");
+    EXPECT_EQ(toString(UserAbstractionState::Unknown), "unknown");
+}
