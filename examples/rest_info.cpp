@@ -31,6 +31,13 @@ int main()
     auto mids = api.allMids();
     spdlog::info("{} mids", mids.mids.size());
 
+    spdlog::info("=== liquidatable ===");
+    auto liquidatable = api.liquidatable();
+    spdlog::info("{} liquidatable positions", liquidatable.positions.size());
+    for (const auto& p : liquidatable.positions)
+        spdlog::info("  user={} isolatedAsset={} marginAvailable=[{}, {}]",
+                     p.user, p.isolatedAsset, p.marginAvailable[0], p.marginAvailable[1]);
+
     uint64_t now = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count());

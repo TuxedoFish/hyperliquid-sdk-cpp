@@ -480,6 +480,25 @@ nlohmann::ordered_json InfoRequestBuilder::allBorrowLendReserveStates()
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::userBorrowLendInterest(const std::string& user,
+                                                                   uint64_t startTime,
+                                                                   const std::optional<uint64_t>& endTime)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserBorrowLendInterest);
+    body["user"] = user;
+    body["startTime"] = startTime;
+    if (endTime) body["endTime"] = *endTime;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::liquidatable()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::Liquidatable);
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::userDexAbstractionState(const std::string& user)
 {
     nlohmann::ordered_json body;

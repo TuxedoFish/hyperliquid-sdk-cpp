@@ -206,6 +206,8 @@ namespace hyperliquid
         BorrowLendUserState,
         BorrowLendReserveState,
         AllBorrowLendReserveStates,
+        UserBorrowLendInterest,
+        Liquidatable,
         UserDexAbstractionState,
         UserAbstraction,
 
@@ -312,6 +314,8 @@ namespace hyperliquid
         case RestEndpointType::BorrowLendUserState: return "borrowLendUserState";
         case RestEndpointType::BorrowLendReserveState: return "borrowLendReserveState";
         case RestEndpointType::AllBorrowLendReserveStates: return "allBorrowLendReserveStates";
+        case RestEndpointType::UserBorrowLendInterest: return "userBorrowLendInterest";
+        case RestEndpointType::Liquidatable: return "liquidatable";
         case RestEndpointType::UserDexAbstractionState: return "userDexAbstraction";
         case RestEndpointType::UserAbstraction: return "userAbstraction";
 
@@ -418,6 +422,8 @@ namespace hyperliquid
         case RestEndpointType::BorrowLendUserState: return false;
         case RestEndpointType::BorrowLendReserveState: return false;
         case RestEndpointType::AllBorrowLendReserveStates: return false;
+        case RestEndpointType::UserBorrowLendInterest: return false;
+        case RestEndpointType::Liquidatable: return false;
         case RestEndpointType::UserDexAbstractionState: return false;
         case RestEndpointType::UserAbstraction: return false;
 

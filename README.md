@@ -122,7 +122,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | General | `subAccounts2` | ⬜ | |
 | General | `twapHistory` | ✅ | `RestApi::twapHistory` |
 | General | `usdcRouting` | ⬜ | |
-| General | `userBorrowLendInterest` | ⬜ | |
+| General | `userBorrowLendInterest` | ✅ | `RestApi::userBorrowLendInterest` |
 | General | `userToMultiSigSigners` | ⬜ | |
 | General | `userTwapSliceFillsByTime` | ✅ | `RestApi::userTwapSliceFillsByTime` |
 | General | `validatorL1Votes` | ⬜ | |
@@ -146,7 +146,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Perpetuals | `perpAnnotation` | ✅ | `RestApi::perpAnnotation` |
 | Perpetuals | `perpCategories` | ✅ | `RestApi::perpCategories` |
 | Perpetuals | `perpConciseAnnotations` | ✅ | `RestApi::perpConciseAnnotations` |
-| Perpetuals | `liquidatable` | ⬜ | |
+| Perpetuals | `liquidatable` | ✅ | `RestApi::liquidatable` |
 | Perpetuals | `marginTable` | ⬜ | |
 | Perpetuals | `maxMarketOrderNtls` | ⬜ | |
 | Perpetuals | `recentTrades` | ✅ | `RestApi::recentTrades` |
@@ -161,7 +161,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 | Spot / Outcomes | `outcomeTemplates` | ⬜ | |
 
-56 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
+58 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 

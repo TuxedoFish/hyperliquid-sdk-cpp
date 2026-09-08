@@ -594,6 +594,20 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::userBorrowLendInterest(const std::string& user, uint64_t startTime,
+                                              const std::optional<uint64_t>& endTime, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserBorrowLendInterest,
+                                  InfoRequestBuilder::userBorrowLendInterest(user, startTime, endTime),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::liquidatable(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::Liquidatable, InfoRequestBuilder::liquidatable(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::placeOrder(const std::vector<OrderRequest>& orders,
                                   Grouping grouping,
                                   const std::optional<Builder>& builder,

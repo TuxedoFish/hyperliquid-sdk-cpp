@@ -55,6 +55,20 @@ TEST(InfoRequestBuilderPayloads, BorrowLendReserveState)
     EXPECT_EQ(body["token"], 0);
 }
 
+TEST(InfoRequestBuilderPayloads, UserBorrowLendInterest)
+{
+    auto body = InfoRequestBuilder::userBorrowLendInterest("0xabc", 1700000000000ULL);
+    EXPECT_EQ(body["type"], "userBorrowLendInterest");
+    EXPECT_EQ(body["user"], "0xabc");
+    EXPECT_EQ(body["startTime"], 1700000000000ULL);
+}
+
+TEST(InfoRequestBuilderPayloads, Liquidatable)
+{
+    auto body = InfoRequestBuilder::liquidatable();
+    EXPECT_EQ(body["type"], "liquidatable");
+}
+
 namespace
 {
     struct NoopListener : WebsocketApiListener
@@ -114,6 +128,8 @@ TEST(WebsocketApiInfoWrappers, CompileLinkAndInvokeWithoutCrashing)
     EXPECT_NO_THROW(ws.borrowLendUserState("0xabc"));
     EXPECT_NO_THROW(ws.borrowLendReserveState(0));
     EXPECT_NO_THROW(ws.allBorrowLendReserveStates());
+    EXPECT_NO_THROW(ws.userBorrowLendInterest("0xabc", 0));
+    EXPECT_NO_THROW(ws.liquidatable());
     EXPECT_NO_THROW(ws.perpCategories());
     EXPECT_NO_THROW(ws.perpConciseAnnotations());
     EXPECT_NO_THROW(ws.allPerpMetas());

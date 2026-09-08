@@ -135,6 +135,11 @@ namespace hyperliquid
         void borrowLendUserState(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void borrowLendReserveState(int token, std::optional<uint64_t> correlationId = std::nullopt);
         void allBorrowLendReserveStates(std::optional<uint64_t> correlationId = std::nullopt);
+        void userBorrowLendInterest(const std::string& user,
+                                    uint64_t startTime,
+                                    const std::optional<uint64_t>& endTime = std::nullopt,
+                                    std::optional<uint64_t> correlationId = std::nullopt);
+        void liquidatable(std::optional<uint64_t> correlationId = std::nullopt);
 
         void spotDeployState(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void spotPairDeployAuctionStatus(std::optional<uint64_t> correlationId = std::nullopt);

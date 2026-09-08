@@ -114,6 +114,10 @@ public:
     BorrowLendUserStateResponse borrowLendUserState(const std::string& user);
     BorrowLendReserveState borrowLendReserveState(int token);
     AllBorrowLendReserveStatesResponse allBorrowLendReserveStates();
+    UserBorrowLendInterestResponse userBorrowLendInterest(const std::string& user,
+                                                           uint64_t startTime,
+                                                           const std::optional<uint64_t>& endTime = std::nullopt);
+    LiquidatableResponse liquidatable();
     UserDexAbstractionResponse userDexAbstractionState(const std::string& user);
     UserAbstractionResponse userAbstraction(const std::string& user);
     PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,
@@ -251,6 +255,10 @@ public:
     void borrowLendUserStateAsync(const std::string& user);
     void borrowLendReserveStateAsync(int token);
     void allBorrowLendReserveStatesAsync();
+    void userBorrowLendInterestAsync(const std::string& user,
+                                     uint64_t startTime,
+                                     const std::optional<uint64_t>& endTime = std::nullopt);
+    void liquidatableAsync();
     void userDexAbstractionStateAsync(const std::string& user);
     void userAbstractionAsync(const std::string& user);
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
