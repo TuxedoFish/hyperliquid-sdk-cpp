@@ -1539,6 +1539,14 @@ namespace hyperliquid
         std::optional<std::string> error;
     };
 
+    struct CreateVaultResponse
+    {
+        std::string status;
+        std::string type;
+        std::optional<std::string> vaultAddress;
+        std::optional<std::string> error;
+    };
+
     struct TwapCancelResponse
     {
         std::string status;

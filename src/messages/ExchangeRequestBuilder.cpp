@@ -425,6 +425,20 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::createVault(const CreateVaultRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "createVault";
+        action["name"] = request.name;
+        action["description"] = request.description;
+        // Same raw-1e6-unit USDC representation as vaultTransfer's "usd" field above.
+        action["initialUsd"] = static_cast<uint64_t>(std::llround(request.initialUsd * 1e6));
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     nlohmann::ordered_json ExchangeRequestBuilder::borrowLend(const BorrowLendRequest& request) const
     {
         nlohmann::ordered_json action;
@@ -687,6 +701,17 @@ namespace hyperliquid
         action["type"] = "userSetAbstraction";
         action["user"] = request.user;
         action["abstraction"] = toString(request.abstraction);
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::setReferrer(const SetReferrerRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "setReferrer";
+        action["code"] = request.code;
 
         nlohmann::ordered_json body;
         body["action"] = action;

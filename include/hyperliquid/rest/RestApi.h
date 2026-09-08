@@ -146,9 +146,9 @@ public:
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     TwapCancelResponse twapCancel(const TwapCancelRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
-    // vaultTransfer/hip3LiquidatorTransfer/createSubAccount/subAccountTransfer/borrowLend/
-    // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee move funds (or
-    // manage sub-accounts) against the calling wallet directly (their target
+    // vaultTransfer/hip3LiquidatorTransfer/createSubAccount/subAccountTransfer/createVault/
+    // borrowLend/usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee move
+    // funds (or manage sub-accounts/vaults) against the calling wallet directly (their target
     // vault/dex/destination/sub-account/etc. is a field of the request itself, or there is no
     // vault-like target at all), so unlike the other exchange methods they do not take a
     // vaultAddress parameter.
@@ -156,6 +156,7 @@ public:
     SimpleResponse hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request);
     CreateSubAccountResponse createSubAccount(const CreateSubAccountRequest& request);
     SimpleResponse subAccountTransfer(const SubAccountTransferRequest& request);
+    CreateVaultResponse createVault(const CreateVaultRequest& request);
     SimpleResponse borrowLend(const BorrowLendRequest& request);
     SimpleResponse spotDeployRegisterToken2(const SpotDeployRegisterToken2Request& request);
     SimpleResponse spotDeployUserGenesis(const SpotDeployUserGenesisRequest& request);
@@ -170,6 +171,7 @@ public:
     SimpleResponse withdraw3(const Withdraw3Request& request);
     SimpleResponse approveBuilderFee(const ApproveBuilderFeeRequest& request);
     SimpleResponse userSetAbstraction(const UserSetAbstractionRequest& request);
+    SimpleResponse setReferrer(const SetReferrerRequest& request);
     SimpleResponse cDeposit(uint64_t wei);
     SimpleResponse cWithdraw(uint64_t wei);
     SimpleResponse tokenDelegate(const TokenDelegateRequest& request);
@@ -297,6 +299,7 @@ public:
     void hip3LiquidatorTransferAsync(const Hip3LiquidatorTransferRequest& request);
     void createSubAccountAsync(const CreateSubAccountRequest& request);
     void subAccountTransferAsync(const SubAccountTransferRequest& request);
+    void createVaultAsync(const CreateVaultRequest& request);
     void borrowLendAsync(const BorrowLendRequest& request);
     void spotDeployRegisterToken2Async(const SpotDeployRegisterToken2Request& request);
     void spotDeployUserGenesisAsync(const SpotDeployUserGenesisRequest& request);
@@ -311,6 +314,7 @@ public:
     void withdraw3Async(const Withdraw3Request& request);
     void approveBuilderFeeAsync(const ApproveBuilderFeeRequest& request);
     void userSetAbstractionAsync(const UserSetAbstractionRequest& request);
+    void setReferrerAsync(const SetReferrerRequest& request);
     void cDepositAsync(uint64_t wei);
     void cWithdrawAsync(uint64_t wei);
     void tokenDelegateAsync(const TokenDelegateRequest& request);

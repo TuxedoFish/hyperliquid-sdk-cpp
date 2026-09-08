@@ -102,6 +102,12 @@ TEST(WebsocketApiExchangeBackfill, VaultAndHip3ActionsThrowWithoutWallet)
     subAccountTransferReq.isDeposit = true;
     subAccountTransferReq.usd = 10.0;
     EXPECT_THROW(ws.subAccountTransfer(subAccountTransferReq, 4), std::invalid_argument);
+
+    CreateVaultRequest createVaultReq;
+    createVaultReq.name = "My Vault";
+    createVaultReq.description = "A vault that does things.";
+    createVaultReq.initialUsd = 100.0;
+    EXPECT_THROW(ws.createVault(createVaultReq, 5), std::invalid_argument);
 }
 
 TEST(WebsocketApiExchangeBackfill, StakingActionsThrowWithoutWallet)
@@ -189,6 +195,10 @@ TEST(WebsocketApiExchangeBackfill, AgentAndAbstractionActionsThrowWithoutWallet)
     userDexReq.user = "0x5e9ee1089755c3435139848e47e6635505d5a13a";
     userDexReq.enabled = false;
     EXPECT_THROW(ws.userDexAbstraction(userDexReq, 5), std::invalid_argument);
+
+    SetReferrerRequest setReferrerReq;
+    setReferrerReq.code = "ABC123";
+    EXPECT_THROW(ws.setReferrer(setReferrerReq, 6), std::invalid_argument);
 }
 
 TEST(WebsocketApiExchangeBackfill, MiscActionsThrowWithoutWallet)

@@ -755,6 +755,14 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::createVault(const CreateVaultRequest& request,
+                                   std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::CreateVault,
+                                  impl_->exchangeRequestBuilder.createVault(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::usdClassTransfer(const UsdClassTransferRequest& request,
                                         std::optional<uint64_t> correlationId)
     {
@@ -808,6 +816,14 @@ namespace hyperliquid
     {
         return impl_->signAndSend(RestEndpointType::UserSetAbstraction,
                                   impl_->exchangeRequestBuilder.userSetAbstraction(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::setReferrer(const SetReferrerRequest& request,
+                                   std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SetReferrer,
+                                  impl_->exchangeRequestBuilder.setReferrer(request),
                                   std::nullopt, std::nullopt, correlationId);
     }
 

@@ -652,6 +652,13 @@ SimpleResponse RestApi::subAccountTransfer(const SubAccountTransferRequest& requ
                                    impl_->exchangeRequestBuilder.subAccountTransfer(request)));
 }
 
+CreateVaultResponse RestApi::createVault(const CreateVaultRequest& request)
+{
+    return RestApiMessageParser().parseCreateVault(
+        impl_->signAndSendSync(RestEndpointType::CreateVault,
+                                   impl_->exchangeRequestBuilder.createVault(request)));
+}
+
 SimpleResponse RestApi::borrowLend(const BorrowLendRequest& request)
 {
     return RestApiMessageParser().parseSimpleResponse(
@@ -748,6 +755,13 @@ SimpleResponse RestApi::userSetAbstraction(const UserSetAbstractionRequest& requ
     return RestApiMessageParser().parseSimpleResponse(
         impl_->signAndSendSync(RestEndpointType::UserSetAbstraction,
                                    impl_->exchangeRequestBuilder.userSetAbstraction(request)));
+}
+
+SimpleResponse RestApi::setReferrer(const SetReferrerRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SetReferrer,
+                                   impl_->exchangeRequestBuilder.setReferrer(request)));
 }
 
 SimpleResponse RestApi::cDeposit(uint64_t wei)
@@ -1262,6 +1276,12 @@ void RestApi::subAccountTransferAsync(const SubAccountTransferRequest& request)
                        impl_->exchangeRequestBuilder.subAccountTransfer(request));
 }
 
+void RestApi::createVaultAsync(const CreateVaultRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::CreateVault,
+                       impl_->exchangeRequestBuilder.createVault(request));
+}
+
 void RestApi::borrowLendAsync(const BorrowLendRequest& request)
 {
     impl_->signAndSend(RestEndpointType::BorrowLend,
@@ -1344,6 +1364,12 @@ void RestApi::userSetAbstractionAsync(const UserSetAbstractionRequest& request)
 {
     impl_->signAndSend(RestEndpointType::UserSetAbstraction,
                        impl_->exchangeRequestBuilder.userSetAbstraction(request));
+}
+
+void RestApi::setReferrerAsync(const SetReferrerRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::SetReferrer,
+                       impl_->exchangeRequestBuilder.setReferrer(request));
 }
 
 void RestApi::cDepositAsync(uint64_t wei)

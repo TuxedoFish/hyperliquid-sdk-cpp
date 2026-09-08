@@ -208,6 +208,7 @@ namespace hyperliquid
             case RestEndpointType::Withdraw3:
             case RestEndpointType::ApproveBuilderFee:
             case RestEndpointType::UserSetAbstraction:
+            case RestEndpointType::SetReferrer:
             case RestEndpointType::CDeposit:
             case RestEndpointType::CWithdraw:
             case RestEndpointType::TokenDelegate:
@@ -227,6 +228,9 @@ namespace hyperliquid
                 break;
             case RestEndpointType::CreateSubAccount:
                 listener.onCreateSubAccount(parseCreateSubAccount(message), correlationId);
+                break;
+            case RestEndpointType::CreateVault:
+                listener.onCreateVault(parseCreateVault(message), correlationId);
                 break;
             case RestEndpointType::Delegations:
                 listener.onDelegations(parseDelegations(message), correlationId);
@@ -616,6 +620,44 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& err)
             {
                 getLogger()->error("RestMessageParser: parse error in createSubAccount: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        CreateVaultResponse parseCreateVault(const std::string& message)
+        {
+            CreateVaultResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                validateStructure(message);
+
+                response.status = std::string(doc["status"].get_string().value());
+
+                if (response.status != "ok")
+                {
+                    simdjson::ondemand::value resp;
+                    if (doc["response"].get(resp) == simdjson::SUCCESS
+                        && resp.type().value() == simdjson::ondemand::json_type::string)
+                    {
+                        response.error = std::string(resp.get_string().value());
+                    }
+                    return response;
+                }
+
+                auto resp = doc["response"].get_object().value();
+                response.type = std::string(resp["type"].get_string().value());
+
+                simdjson::ondemand::value data;
+                if (resp["data"].get(data) == simdjson::SUCCESS)
+                    response.vaultAddress = std::string(data.get_string().value());
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in createVault: {}\n  raw: {}", err.what(), message);
             }
 
             return response;
@@ -3647,6 +3689,11 @@ namespace hyperliquid
     CreateSubAccountResponse RestApiMessageParser::parseCreateSubAccount(const std::string& message)
     {
         return impl_->parseCreateSubAccount(message);
+    }
+
+    CreateVaultResponse RestApiMessageParser::parseCreateVault(const std::string& message)
+    {
+        return impl_->parseCreateVault(message);
     }
 
     DelegationsResponse RestApiMessageParser::parseDelegations(const std::string& message)

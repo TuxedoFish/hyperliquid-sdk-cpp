@@ -229,6 +229,7 @@ namespace hyperliquid
         Hip3LiquidatorTransfer,
         CreateSubAccount,
         SubAccountTransfer,
+        CreateVault,
         BorrowLend,
         SpotDeployRegisterToken2,
         SpotDeployUserGenesis,
@@ -243,6 +244,7 @@ namespace hyperliquid
         Withdraw3,
         ApproveBuilderFee,
         UserSetAbstraction,
+        SetReferrer,
 
         // Exchange endpoints (signed, user-signed action)
         CDeposit,
@@ -340,6 +342,7 @@ namespace hyperliquid
         case RestEndpointType::Hip3LiquidatorTransfer: return "hip3LiquidatorTransfer";
         case RestEndpointType::CreateSubAccount: return "createSubAccount";
         case RestEndpointType::SubAccountTransfer: return "subAccountTransfer";
+        case RestEndpointType::CreateVault: return "createVault";
         case RestEndpointType::BorrowLend: return "borrowLend";
         case RestEndpointType::SpotDeployRegisterToken2: return "spotDeploy";
         case RestEndpointType::SpotDeployUserGenesis: return "spotDeploy";
@@ -354,6 +357,7 @@ namespace hyperliquid
         case RestEndpointType::Withdraw3: return "withdraw3";
         case RestEndpointType::ApproveBuilderFee: return "approveBuilderFee";
         case RestEndpointType::UserSetAbstraction: return "userSetAbstraction";
+        case RestEndpointType::SetReferrer: return "setReferrer";
 
         case RestEndpointType::CDeposit: return "cDeposit";
         case RestEndpointType::CWithdraw: return "cWithdraw";
@@ -452,6 +456,7 @@ namespace hyperliquid
         case RestEndpointType::Hip3LiquidatorTransfer: return true;
         case RestEndpointType::CreateSubAccount: return true;
         case RestEndpointType::SubAccountTransfer: return true;
+        case RestEndpointType::CreateVault: return true;
         case RestEndpointType::BorrowLend: return true;
         case RestEndpointType::SpotDeployRegisterToken2: return true;
         case RestEndpointType::SpotDeployUserGenesis: return true;
@@ -466,6 +471,7 @@ namespace hyperliquid
         case RestEndpointType::Withdraw3: return true;
         case RestEndpointType::ApproveBuilderFee: return true;
         case RestEndpointType::UserSetAbstraction: return true;
+        case RestEndpointType::SetReferrer: return true;
 
         case RestEndpointType::CDeposit: return true;
         case RestEndpointType::CWithdraw: return true;
@@ -939,6 +945,20 @@ namespace hyperliquid
     {
         int weight;
         std::optional<std::string> destination;
+    };
+
+    struct CreateVaultRequest
+    {
+        std::string name;
+        std::string description;
+        // USD, converted to raw 1e6 units on the wire (see ExchangeRequestBuilder::createVault).
+        // Hyperliquid requires at least 100 USD to create a vault; not enforced client-side.
+        double initialUsd;
+    };
+
+    struct SetReferrerRequest
+    {
+        std::string code;
     };
 
     inline int outcomeEncoding(int outcomeIndex, int side)

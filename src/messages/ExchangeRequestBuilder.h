@@ -51,6 +51,8 @@ public:
 
     nlohmann::ordered_json subAccountTransfer(const SubAccountTransferRequest& request) const;
 
+    nlohmann::ordered_json createVault(const CreateVaultRequest& request) const;
+
     nlohmann::ordered_json borrowLend(const BorrowLendRequest& request) const;
 
     nlohmann::ordered_json spotDeployRegisterToken2(const SpotDeployRegisterToken2Request& request) const;
@@ -78,6 +80,8 @@ public:
     nlohmann::ordered_json approveBuilderFee(const ApproveBuilderFeeRequest& request) const;
 
     nlohmann::ordered_json userSetAbstraction(const UserSetAbstractionRequest& request) const;
+
+    nlohmann::ordered_json setReferrer(const SetReferrerRequest& request) const;
 
     nlohmann::ordered_json cDeposit(uint64_t wei) const;
 
