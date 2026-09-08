@@ -59,5 +59,16 @@ int main()
     evmReq.data = "0x";
     logSimpleResponse("sendToEvmWithData", api.sendToEvmWithData(evmReq));
 
+    // Enables/disables portfolio margin mode for the calling account. EIP-712 user-signed action
+    // (see CONTRIBUTING.md) - request shape (user, enabled) cross-checked against
+    // nktkas/hyperliquid's userPortfolioMargin.ts, not independently confirmed against a live
+    // response in this environment (no funded testnet wallet available here); the generic
+    // {status,response} shape it's parsed with is already exercised by other exchange actions
+    // above (e.g. sendToEvmWithData).
+    hyperliquid::UserPortfolioMarginRequest portfolioMarginReq;
+    portfolioMarginReq.user = wallet.accountAddress;
+    portfolioMarginReq.enabled = true;
+    logSimpleResponse("userPortfolioMargin", api.userPortfolioMargin(portfolioMarginReq));
+
     return 0;
 }

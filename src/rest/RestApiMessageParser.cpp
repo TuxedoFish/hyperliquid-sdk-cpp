@@ -213,6 +213,7 @@ namespace hyperliquid
             case RestEndpointType::TokenDelegate:
             case RestEndpointType::SendToEvmWithData:
             case RestEndpointType::UserDexAbstraction:
+            case RestEndpointType::UserPortfolioMargin:
             case RestEndpointType::AgentSendAsset:
             case RestEndpointType::ReserveRequestWeight:
             case RestEndpointType::Noop:
@@ -244,6 +245,9 @@ namespace hyperliquid
                 break;
             case RestEndpointType::UserAbstraction:
                 listener.onUserAbstraction(parseUserAbstraction(message), correlationId);
+                break;
+            case RestEndpointType::ExchangeStatus:
+                listener.onExchangeStatus(parseExchangeStatus(message), correlationId);
                 break;
             default:
                 getLogger()->error("RestMessageParser: unhandled RestEndpointType: {}", toString(type));
@@ -2864,6 +2868,38 @@ namespace hyperliquid
             return response;
         }
 
+        ExchangeStatusResponse parseExchangeStatus(const std::string& message)
+        {
+            ExchangeStatusResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                validateStructure(message);
+
+                auto obj = doc.get_object().value();
+
+                // Confirmed live against both testnet and mainnet: {"specialStatuses":null,"time":<ms>} -
+                // specialStatuses is null in the common case, so only read it as an array when present.
+                simdjson::ondemand::value specialStatusesVal;
+                if (obj["specialStatuses"].get(specialStatusesVal) == simdjson::SUCCESS
+                    && !specialStatusesVal.is_null())
+                {
+                    for (auto entry : specialStatusesVal.get_array())
+                        response.specialStatuses.push_back(std::string(entry.get_string().value()));
+                }
+
+                response.time = obj["time"].get_uint64().value();
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in exchangeStatus: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
         ApprovedBuildersResponse parseApprovedBuilders(const std::string& message)
         {
             ApprovedBuildersResponse response;
@@ -3641,5 +3677,10 @@ namespace hyperliquid
     UserAbstractionResponse RestApiMessageParser::parseUserAbstraction(const std::string& message)
     {
         return impl_->parseUserAbstraction(message);
+    }
+
+    ExchangeStatusResponse RestApiMessageParser::parseExchangeStatus(const std::string& message)
+    {
+        return impl_->parseExchangeStatus(message);
     }
 } // namespace hyperliquid

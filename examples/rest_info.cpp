@@ -38,6 +38,15 @@ int main()
         spdlog::info("  user={} isolatedAsset={} marginAvailable=[{}, {}]",
                      p.user, p.isolatedAsset, p.marginAvailable[0], p.marginAvailable[1]);
 
+    // Cheap, no-wallet operational status check. Confirmed live against both testnet and
+    // mainnet: {"specialStatuses":null,"time":<ms>} - specialStatuses is null absent any active
+    // special status.
+    spdlog::info("=== exchangeStatus ===");
+    auto status = api.exchangeStatus();
+    spdlog::info("time={} specialStatuses={}", status.time, status.specialStatuses.size());
+    for (const auto& s : status.specialStatuses)
+        spdlog::info("  {}", s);
+
     uint64_t now = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count());

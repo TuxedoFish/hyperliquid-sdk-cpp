@@ -111,7 +111,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | General | `borrowLendReserveState` | ✅ | `RestApi::borrowLendReserveState` |
 | General | `allBorrowLendReserveStates` | ✅ | `RestApi::allBorrowLendReserveStates` |
 | General | `approvedBuilders` | ✅ | `RestApi::approvedBuilders` |
-| General | `exchangeStatus` | ⬜ | |
+| General | `exchangeStatus` | ✅ | `RestApi::exchangeStatus` |
 | General | `extraAgents` | ⬜ | |
 | General | `gossipPriorityAuctionStatus` | ⬜ | |
 | General | `gossipRootIps` | ⬜ | |
@@ -161,7 +161,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 | Spot / Outcomes | `outcomeTemplates` | ⬜ | |
 
-58 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
+59 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 
@@ -231,12 +231,12 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `subAccountTransfer` | ✅ | `RestApi::subAccountTransfer` |
 | `topUpIsolatedOnlyMargin` | ⬜ | |
 | `userOutcome` | ⬜ | |
-| `userPortfolioMargin` | ⬜ | |
+| `userPortfolioMargin` | ✅ | `RestApi::userPortfolioMargin` |
 | `validatorL1Stream` | ⬜ | |
 | `vaultDistribute` | ⬜ | |
 | `vaultModify` | ⬜ | |
 
-36 of 68 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
+39 of 68 documented exchange actions implemented on REST (`RestApi`). `WebsocketApi` covers a smaller subset — `placeOrder`, `cancelOrder`, `cancelOrderByCloid`, `scheduleCancel`, `modifyOrder`, `batchModifyOrder` — plus posting `meta`/`spotMeta`/`outcomeMeta`/`perpDexs` info reads over the socket; the newer transfer/staking/TWAP actions are REST-only so far.
 
 `perpDeploy` is a large multi-variant action (16 sub-actions sharing `"type": "perpDeploy"`); only `registerAsset2` (deploying a new HIP-3 perp asset, optionally creating a new dex) is implemented. The other 15 variants (`registerAsset`, `setOracle`, `setFundingMultipliers`, `setFundingInterestRates`, `haltTrading`, `setMarginTableIds`, `insertMarginTable`, `setFeeRecipient`, `setOpenInterestCaps`, `setSubDeployers`, `setMarginModes`, `setFeeScale`, `setGrowthModes`, `setPerpAnnotation`, `disableDex`) are post-deployment admin/config actions for an already-deployed dex and are not yet implemented.
 

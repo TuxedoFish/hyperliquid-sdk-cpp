@@ -301,6 +301,13 @@ nlohmann::ordered_json Signing::prepareUserSignedActionBody(
             {"enabled", "bool"}, {"nonce", "uint64"}};
         timeField = "nonce";
         break;
+    case RestEndpointType::UserPortfolioMargin:
+        primaryType = "HyperliquidTransaction:UserPortfolioMargin";
+        payloadTypes = {
+            {"hyperliquidChain", "string"}, {"user", "address"},
+            {"enabled", "bool"}, {"nonce", "uint64"}};
+        timeField = "nonce";
+        break;
     default:
         throw std::invalid_argument("Not a user-signed action: " + toString(type));
     }

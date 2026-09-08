@@ -188,6 +188,9 @@ namespace hyperliquid::internal
             case RestEndpointType::DelegatorRewards:
                 listener.onPostResponse(parser.parseDelegatorRewards(dataJson), correlationId);
                 break;
+            case RestEndpointType::ExchangeStatus:
+                listener.onPostResponse(parser.parseExchangeStatus(dataJson), correlationId);
+                break;
             default:
                 getLogger()->error("PostResponseDispatch: unhandled info RestEndpointType: {}", toString(type));
                 break;

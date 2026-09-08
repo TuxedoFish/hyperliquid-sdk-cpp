@@ -102,6 +102,8 @@ public:
 
     static nlohmann::ordered_json userDexAbstractionState(const std::string& user);
     static nlohmann::ordered_json userAbstraction(const std::string& user);
+
+    static nlohmann::ordered_json exchangeStatus();
 };
 
 } // namespace hyperliquid

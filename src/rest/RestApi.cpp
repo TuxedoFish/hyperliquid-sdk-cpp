@@ -510,6 +510,12 @@ UserAbstractionResponse RestApi::userAbstraction(const std::string& user)
         impl_->signAndSendSync(RestEndpointType::UserAbstraction, InfoRequestBuilder::userAbstraction(user)));
 }
 
+ExchangeStatusResponse RestApi::exchangeStatus()
+{
+    return RestApiMessageParser().parseExchangeStatus(
+        impl_->signAndSendSync(RestEndpointType::ExchangeStatus, InfoRequestBuilder::exchangeStatus()));
+}
+
 PlaceOrderResponse RestApi::placeOrder(const std::vector<OrderRequest>& orders,
                                 Grouping grouping,
                                 const std::optional<Builder>& builder,
@@ -798,6 +804,13 @@ SimpleResponse RestApi::userDexAbstraction(const UserDexAbstractionRequest& requ
     return RestApiMessageParser().parseSimpleResponse(
         impl_->signAndSendSync(RestEndpointType::UserDexAbstraction,
                                    impl_->exchangeRequestBuilder.userDexAbstraction(request)));
+}
+
+SimpleResponse RestApi::userPortfolioMargin(const UserPortfolioMarginRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::UserPortfolioMargin,
+                                   impl_->exchangeRequestBuilder.userPortfolioMargin(request)));
 }
 
 SimpleResponse RestApi::agentSendAsset(const AgentSendAssetRequest& request,
@@ -1124,6 +1137,11 @@ void RestApi::userAbstractionAsync(const std::string& user)
     impl_->signAndSend(RestEndpointType::UserAbstraction, InfoRequestBuilder::userAbstraction(user));
 }
 
+void RestApi::exchangeStatusAsync()
+{
+    impl_->signAndSend(RestEndpointType::ExchangeStatus, InfoRequestBuilder::exchangeStatus());
+}
+
 void RestApi::placeOrderAsync(const std::vector<OrderRequest>& orders,
                                Grouping grouping,
                                const std::optional<Builder>& builder,
@@ -1373,6 +1391,12 @@ void RestApi::userDexAbstractionAsync(const UserDexAbstractionRequest& request)
 {
     impl_->signAndSend(RestEndpointType::UserDexAbstraction,
                        impl_->exchangeRequestBuilder.userDexAbstraction(request));
+}
+
+void RestApi::userPortfolioMarginAsync(const UserPortfolioMarginRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::UserPortfolioMargin,
+                       impl_->exchangeRequestBuilder.userPortfolioMargin(request));
 }
 
 void RestApi::agentSendAssetAsync(const AgentSendAssetRequest& request,

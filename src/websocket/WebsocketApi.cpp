@@ -448,6 +448,12 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::exchangeStatus(std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::ExchangeStatus, InfoRequestBuilder::exchangeStatus(),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::frontendOpenOrders(const std::string& user, const std::optional<std::string>& dex,
                                           std::optional<uint64_t> correlationId)
     {
@@ -898,6 +904,14 @@ namespace hyperliquid
     {
         return impl_->signAndSend(RestEndpointType::UserDexAbstraction,
                                   impl_->exchangeRequestBuilder.userDexAbstraction(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::userPortfolioMargin(const UserPortfolioMarginRequest& request,
+                                           std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserPortfolioMargin,
+                                  impl_->exchangeRequestBuilder.userPortfolioMargin(request),
                                   std::nullopt, std::nullopt, correlationId);
     }
 

@@ -170,6 +170,7 @@ namespace hyperliquid
         UserFees,
         MaxBuilderFee,
         ApprovedBuilders,
+        ExchangeStatus,
         VaultDetails,
         UserVaultEquities,
         Portfolio,
@@ -249,6 +250,7 @@ namespace hyperliquid
         TokenDelegate,
         SendToEvmWithData,
         UserDexAbstraction,
+        UserPortfolioMargin,
         AgentSendAsset,
         ReserveRequestWeight,
         Noop,
@@ -281,6 +283,7 @@ namespace hyperliquid
         case RestEndpointType::UserFees: return "userFees";
         case RestEndpointType::MaxBuilderFee: return "maxBuilderFee";
         case RestEndpointType::ApprovedBuilders: return "approvedBuilders";
+        case RestEndpointType::ExchangeStatus: return "exchangeStatus";
         case RestEndpointType::VaultDetails: return "vaultDetails";
         case RestEndpointType::UserVaultEquities: return "userVaultEquities";
         case RestEndpointType::Portfolio: return "portfolio";
@@ -357,6 +360,7 @@ namespace hyperliquid
         case RestEndpointType::TokenDelegate: return "tokenDelegate";
         case RestEndpointType::SendToEvmWithData: return "sendToEvmWithData";
         case RestEndpointType::UserDexAbstraction: return "userDexAbstraction";
+        case RestEndpointType::UserPortfolioMargin: return "userPortfolioMargin";
         case RestEndpointType::AgentSendAsset: return "agentSendAsset";
         case RestEndpointType::ReserveRequestWeight: return "reserveRequestWeight";
         case RestEndpointType::Noop: return "noop";
@@ -391,6 +395,7 @@ namespace hyperliquid
         case RestEndpointType::UserFees: return false;
         case RestEndpointType::MaxBuilderFee: return false;
         case RestEndpointType::ApprovedBuilders: return false;
+        case RestEndpointType::ExchangeStatus: return false;
         case RestEndpointType::VaultDetails: return false;
         case RestEndpointType::UserVaultEquities: return false;
         case RestEndpointType::Portfolio: return false;
@@ -467,6 +472,7 @@ namespace hyperliquid
         case RestEndpointType::TokenDelegate: return true;
         case RestEndpointType::SendToEvmWithData: return true;
         case RestEndpointType::UserDexAbstraction: return true;
+        case RestEndpointType::UserPortfolioMargin: return true;
         case RestEndpointType::AgentSendAsset: return true;
         case RestEndpointType::ReserveRequestWeight: return true;
         case RestEndpointType::Noop: return true;
@@ -480,8 +486,8 @@ namespace hyperliquid
     }
 
     // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee/userSetAbstraction,
-    // the staking actions (cDeposit/cWithdraw/tokenDelegate), sendToEvmWithData, and
-    // userDexAbstraction are EIP-712 user-signed actions (see
+    // the staking actions (cDeposit/cWithdraw/tokenDelegate), sendToEvmWithData,
+    // userDexAbstraction, and userPortfolioMargin are EIP-712 user-signed actions (see
     // Signing::prepareUserSignedActionBody), not L1 actions. All other authenticated actions here
     // (including agentSendAsset/reserveRequestWeight/noop) are L1 actions signed with the
     // agent/master key directly.
@@ -501,6 +507,7 @@ namespace hyperliquid
         case RestEndpointType::TokenDelegate:
         case RestEndpointType::SendToEvmWithData:
         case RestEndpointType::UserDexAbstraction:
+        case RestEndpointType::UserPortfolioMargin:
             return true;
         default:
             return false;
@@ -907,6 +914,12 @@ namespace hyperliquid
     };
 
     struct UserDexAbstractionRequest
+    {
+        std::string user;
+        bool enabled;
+    };
+
+    struct UserPortfolioMarginRequest
     {
         std::string user;
         bool enabled;

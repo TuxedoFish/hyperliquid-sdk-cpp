@@ -804,6 +804,13 @@ namespace hyperliquid
         std::vector<std::string> coins;
     };
 
+    struct ExchangeStatusResponse
+    {
+        // Empty when the wire value is null (the common case - no active special statuses).
+        std::vector<std::string> specialStatuses;
+        uint64_t time = 0;
+    };
+
     struct PredictedFundingVenue
     {
         std::string venue;

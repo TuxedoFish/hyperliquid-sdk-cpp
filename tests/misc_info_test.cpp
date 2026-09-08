@@ -248,3 +248,51 @@ TEST(RestApiMessageParserMiscTest, ParseAllPerpMetasMalformedInputDoesNotCrash)
 
     EXPECT_TRUE(response.dexMetas.empty());
 }
+
+TEST(InfoRequestBuilderMiscTest, ExchangeStatus)
+{
+    auto body = InfoRequestBuilder::exchangeStatus();
+    EXPECT_EQ(body["type"], "exchangeStatus");
+}
+
+// Real payload captured live from both api.hyperliquid-testnet.xyz/info and
+// api.hyperliquid.xyz/info with body {"type":"exchangeStatus"} - specialStatuses is null in the
+// common case (no active special statuses), time is a raw (non-string-encoded) millisecond
+// timestamp.
+TEST(RestApiMessageParserMiscTest, ParseExchangeStatusNoSpecialStatuses)
+{
+    std::string message = R"({"specialStatuses":null,"time":1788859210259})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseExchangeStatus(message);
+
+    EXPECT_TRUE(response.specialStatuses.empty());
+    EXPECT_EQ(response.time, 1788859210259ULL);
+}
+
+TEST(RestApiMessageParserMiscTest, ParseExchangeStatusWithSpecialStatuses)
+{
+    // specialStatuses' element shape isn't documented anywhere we could find (it was null in
+    // every live capture) - assuming an array of strings by analogy with every other "list of
+    // status/message" field in this API (e.g. ApprovedBuildersResponse). Flagged as inferred, not
+    // confirmed, per CONTRIBUTING.md.
+    std::string message = R"({"specialStatuses":["scheduled maintenance"],"time":1699564800000})";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseExchangeStatus(message);
+
+    ASSERT_EQ(response.specialStatuses.size(), 1u);
+    EXPECT_EQ(response.specialStatuses[0], "scheduled maintenance");
+    EXPECT_EQ(response.time, 1699564800000ULL);
+}
+
+TEST(RestApiMessageParserMiscTest, ParseExchangeStatusMalformedInputDoesNotCrash)
+{
+    std::string message = R"({"specialStatuses":null,"time":)";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseExchangeStatus(message);
+
+    EXPECT_TRUE(response.specialStatuses.empty());
+    EXPECT_EQ(response.time, 0u);
+}
