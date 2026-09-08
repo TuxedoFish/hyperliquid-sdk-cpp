@@ -171,8 +171,6 @@ public:
     SimpleResponse withdraw3(const Withdraw3Request& request);
     SimpleResponse approveBuilderFee(const ApproveBuilderFeeRequest& request);
     SimpleResponse userSetAbstraction(const UserSetAbstractionRequest& request);
-    // setReferrer sets a referral code for the calling wallet itself, so like the transfer-style
-    // actions above it does not take a vaultAddress parameter.
     SimpleResponse setReferrer(const SetReferrerRequest& request);
     SimpleResponse cDeposit(uint64_t wei);
     SimpleResponse cWithdraw(uint64_t wei);
