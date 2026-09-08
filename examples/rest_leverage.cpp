@@ -41,6 +41,14 @@ int main()
     const std::string asset = "ETH";
     const double size = 0.01;
 
+    spdlog::info("=== activeAssetData ({}) ===", asset);
+    auto activeAssetData = api.activeAssetData(wallet.accountAddress, asset);
+    spdlog::info("activeAssetData: leverage={}x ({}) maxTradeSz=[{}, {}] availableToTrade=[{}, {}] markPx={}",
+                 activeAssetData.leverageValue, hyperliquid::toString(activeAssetData.leverageType),
+                 activeAssetData.maxTradeSzLong, activeAssetData.maxTradeSzShort,
+                 activeAssetData.availableToTradeLong, activeAssetData.availableToTradeShort,
+                 activeAssetData.markPx);
+
     spdlog::info("=== Switch {} to isolated leverage ===", asset);
 
     hyperliquid::UpdateLeverageRequest leverageReq;

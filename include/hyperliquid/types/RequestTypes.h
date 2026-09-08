@@ -163,6 +163,9 @@ namespace hyperliquid
         FrontendOpenOrders,
         HistoricalOrders,
         UserTwapSliceFills,
+        UserTwapSliceFillsByTime,
+        TwapHistory,
+        ActiveAssetData,
         SubAccounts,
         UserFees,
         MaxBuilderFee,
@@ -267,6 +270,9 @@ namespace hyperliquid
         case RestEndpointType::FrontendOpenOrders: return "frontendOpenOrders";
         case RestEndpointType::HistoricalOrders: return "historicalOrders";
         case RestEndpointType::UserTwapSliceFills: return "userTwapSliceFills";
+        case RestEndpointType::UserTwapSliceFillsByTime: return "userTwapSliceFillsByTime";
+        case RestEndpointType::TwapHistory: return "twapHistory";
+        case RestEndpointType::ActiveAssetData: return "activeAssetData";
         case RestEndpointType::SubAccounts: return "subAccounts";
         case RestEndpointType::UserFees: return "userFees";
         case RestEndpointType::MaxBuilderFee: return "maxBuilderFee";
@@ -370,6 +376,9 @@ namespace hyperliquid
         case RestEndpointType::FrontendOpenOrders: return false;
         case RestEndpointType::HistoricalOrders: return false;
         case RestEndpointType::UserTwapSliceFills: return false;
+        case RestEndpointType::UserTwapSliceFillsByTime: return false;
+        case RestEndpointType::TwapHistory: return false;
+        case RestEndpointType::ActiveAssetData: return false;
         case RestEndpointType::SubAccounts: return false;
         case RestEndpointType::UserFees: return false;
         case RestEndpointType::MaxBuilderFee: return false;

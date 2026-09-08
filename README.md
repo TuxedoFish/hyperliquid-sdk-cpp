@@ -120,11 +120,11 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | General | `legalCheck` | ⬜ | |
 | General | `preTransferCheck` | ⬜ | |
 | General | `subAccounts2` | ⬜ | |
-| General | `twapHistory` | ⬜ | |
+| General | `twapHistory` | ✅ | `RestApi::twapHistory` |
 | General | `usdcRouting` | ⬜ | |
 | General | `userBorrowLendInterest` | ⬜ | |
 | General | `userToMultiSigSigners` | ⬜ | |
-| General | `userTwapSliceFillsByTime` | ⬜ | |
+| General | `userTwapSliceFillsByTime` | ✅ | `RestApi::userTwapSliceFillsByTime` |
 | General | `validatorL1Votes` | ⬜ | |
 | General | `validatorSummaries` | ⬜ | |
 | General | `vaultSummaries` | ⬜ | |
@@ -139,7 +139,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Perpetuals | `predictedFundings` | ✅ | `RestApi::predictedFundings` |
 | Perpetuals | `perpsAtOpenInterestCap` | ✅ | `RestApi::perpsAtOpenInterestCap` |
 | Perpetuals | `perpDeployAuctionStatus` | ✅ | `RestApi::perpDeployAuctionStatus` |
-| Perpetuals | `activeAssetData` | ⬜ | |
+| Perpetuals | `activeAssetData` | ✅ | `RestApi::activeAssetData` |
 | Perpetuals | `perpDexLimits` | ✅ | `RestApi::perpDexLimits` |
 | Perpetuals | `perpDexStatus` | ✅ | `RestApi::perpDexStatus` |
 | Perpetuals | `allPerpMetas` | ✅ | `RestApi::allPerpMetas` |
@@ -161,7 +161,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | Spot / Outcomes | `outcomeDeployerLimits` | ⬜ | |
 | Spot / Outcomes | `outcomeTemplates` | ⬜ | |
 
-53 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
+56 of 78 documented info endpoints implemented. One (`tokenDetails`) has a `RestEndpointType` enum value reserved but no request builder or method yet.
 
 ### Exchange actions (`/exchange`)
 

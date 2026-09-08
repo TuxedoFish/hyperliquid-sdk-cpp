@@ -57,6 +57,14 @@ namespace hyperliquid
                                 std::optional<uint64_t> correlationId = std::nullopt);
         void historicalOrders(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void userTwapSliceFills(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void userTwapSliceFillsByTime(const std::string& user,
+                                      uint64_t startTime,
+                                      const std::optional<uint64_t>& endTime = std::nullopt,
+                                      const std::optional<bool>& aggregateByTime = std::nullopt,
+                                      std::optional<uint64_t> correlationId = std::nullopt);
+        void twapHistory(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void activeAssetData(const std::string& user, const std::string& coin,
+                             std::optional<uint64_t> correlationId = std::nullopt);
         void subAccounts(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void userFees(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void maxBuilderFee(const std::string& user, const std::string& builder,

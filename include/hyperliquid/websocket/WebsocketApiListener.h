@@ -41,6 +41,8 @@ public:
     virtual void onPostResponse(const FrontendOpenOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const HistoricalOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const UserTwapSliceFillsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const TwapHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const ActiveAssetData&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const SubAccountsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const UserFeesResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const MaxBuilderFeeResponse&, std::optional<uint64_t> = std::nullopt) {}

@@ -95,6 +95,9 @@ TEST(WebsocketApiInfoWrappers, CompileLinkAndInvokeWithoutCrashing)
     EXPECT_NO_THROW(ws.frontendOpenOrders("0xabc"));
     EXPECT_NO_THROW(ws.historicalOrders("0xabc"));
     EXPECT_NO_THROW(ws.userTwapSliceFills("0xabc"));
+    EXPECT_NO_THROW(ws.userTwapSliceFillsByTime("0xabc", 0));
+    EXPECT_NO_THROW(ws.twapHistory("0xabc"));
+    EXPECT_NO_THROW(ws.activeAssetData("0xabc", "ETH"));
     EXPECT_NO_THROW(ws.subAccounts("0xabc"));
     EXPECT_NO_THROW(ws.userFees("0xabc"));
     EXPECT_NO_THROW(ws.maxBuilderFee("0xabc", "0xbuilder"));

@@ -51,6 +51,9 @@ public:
     virtual void onFrontendOpenOrders(const FrontendOpenOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onHistoricalOrders(const HistoricalOrdersResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onUserTwapSliceFills(const UserTwapSliceFillsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onUserTwapSliceFillsByTime(const UserTwapSliceFillsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onTwapHistory(const TwapHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onActiveAssetData(const ActiveAssetData&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onSubAccounts(const SubAccountsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onUserFees(const UserFeesResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onMaxBuilderFee(const MaxBuilderFeeResponse&, std::optional<uint64_t> = std::nullopt) {}

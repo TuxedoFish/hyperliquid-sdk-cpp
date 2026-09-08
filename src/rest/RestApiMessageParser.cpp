@@ -124,6 +124,15 @@ namespace hyperliquid
             case RestEndpointType::UserTwapSliceFills:
                 listener.onUserTwapSliceFills(parseUserTwapSliceFills(message), correlationId);
                 break;
+            case RestEndpointType::UserTwapSliceFillsByTime:
+                listener.onUserTwapSliceFillsByTime(parseUserTwapSliceFillsByTime(message), correlationId);
+                break;
+            case RestEndpointType::TwapHistory:
+                listener.onTwapHistory(parseTwapHistory(message), correlationId);
+                break;
+            case RestEndpointType::ActiveAssetData:
+                listener.onActiveAssetData(parseActiveAssetData(message), correlationId);
+                break;
             case RestEndpointType::SubAccounts:
                 listener.onSubAccounts(parseSubAccounts(message), correlationId);
                 break;
@@ -1479,6 +1488,23 @@ namespace hyperliquid
             return fill;
         }
 
+        TwapState parseTwapStateEntry(simdjson::ondemand::object& obj)
+        {
+            TwapState state{};
+            state.coin = std::string(obj["coin"].get_string().value());
+            state.user = std::string(obj["user"].get_string().value());
+            auto sideStr = obj["side"].get_string().value();
+            state.side = sideStr.size() > 0 ? sideStr[0] : '?';
+            state.sz = parseNumberField(obj, "sz");
+            state.executedSz = parseNumberField(obj, "executedSz");
+            state.executedNtl = parseNumberField(obj, "executedNtl");
+            state.minutes = static_cast<int>(obj["minutes"].get_int64().value());
+            state.reduceOnly = obj["reduceOnly"].get_bool().value();
+            state.randomize = obj["randomize"].get_bool().value();
+            state.timestamp = obj["timestamp"].get_uint64().value();
+            return state;
+        }
+
         OpenOrder parseOpenOrderEntry(simdjson::ondemand::object& obj)
         {
             OpenOrder order;
@@ -2394,6 +2420,122 @@ namespace hyperliquid
             return response;
         }
 
+        UserTwapSliceFillsResponse parseUserTwapSliceFillsByTime(const std::string& message)
+        {
+            // Same array-of-{fill,twapId} schema as userTwapSliceFills, just filtered by time range.
+            return parseUserTwapSliceFills(message);
+        }
+
+        TwapHistoryResponse parseTwapHistory(const std::string& message)
+        {
+            TwapHistoryResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                validateStructure(message);
+
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    try
+                    {
+                        auto obj = entry.get_object().value();
+
+                        TwapHistoryEntry hist{};
+                        hist.time = obj["time"].get_uint64().value();
+
+                        auto stateObj = obj["state"].get_object().value();
+                        hist.state = parseTwapStateEntry(stateObj);
+
+                        auto statusObj = obj["status"].get_object().value();
+                        hist.status = stringToTwapHistoryStatus(statusObj["status"].get_string().value());
+                        std::string_view desc;
+                        if (!statusObj["description"].get_string().get(desc))
+                            hist.description = std::string(desc);
+
+                        hist.twapId = obj["twapId"].get_uint64().value();
+                        hist.isSnapshot = false;
+
+                        response.history.push_back(std::move(hist));
+                    }
+                    catch (const simdjson::simdjson_error& e)
+                    {
+                        getLogger()->error("RestMessageParser: parse error in twapHistory entry: {}\n  raw: {}", e.what(), message);
+                    }
+                }
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in twapHistory: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
+        ActiveAssetData parseActiveAssetData(const std::string& message)
+        {
+            ActiveAssetData response{};
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                validateStructure(message);
+
+                auto obj = doc.get_object().value();
+                response.user = std::string(obj["user"].get_string().value());
+                response.coin = std::string(obj["coin"].get_string().value());
+
+                auto leverageObj = obj["leverage"].get_object().value();
+                response.leverageType = stringToLeverageType(leverageObj["type"].get_string().value());
+                response.leverageValue = parseNumberField(leverageObj, "value");
+                // isolated-margin HIP-3 dex only - absent on the standard perp dex response.
+                std::string_view rawUsdStr;
+                if (!leverageObj["rawUsd"].get_string().get(rawUsdStr))
+                {
+                    response.leverageRawUsd = toDouble(rawUsdStr);
+                }
+                else
+                {
+                    double rawUsd;
+                    if (!leverageObj["rawUsd"].get_double().get(rawUsd))
+                        response.leverageRawUsd = rawUsd;
+                }
+
+                auto maxTradeSzs = obj["maxTradeSzs"].get_array().value();
+                size_t idx = 0;
+                for (auto v : maxTradeSzs)
+                {
+                    std::string_view sv;
+                    double val = !v.get_string().get(sv) ? toDouble(sv) : v.get_double().value();
+                    if (idx == 0) response.maxTradeSzLong = val;
+                    else if (idx == 1) response.maxTradeSzShort = val;
+                    idx++;
+                }
+
+                auto availableToTrade = obj["availableToTrade"].get_array().value();
+                idx = 0;
+                for (auto v : availableToTrade)
+                {
+                    std::string_view sv;
+                    double val = !v.get_string().get(sv) ? toDouble(sv) : v.get_double().value();
+                    if (idx == 0) response.availableToTradeLong = val;
+                    else if (idx == 1) response.availableToTradeShort = val;
+                    idx++;
+                }
+
+                response.markPx = parseNumberField(obj, "markPx");
+            }
+            catch (const simdjson::simdjson_error& e)
+            {
+                getLogger()->error("RestMessageParser: parse error in activeAssetData: {}\n  raw: {}", e.what(), message);
+            }
+
+            return response;
+        }
+
         SubAccountsResponse parseSubAccounts(const std::string& message)
         {
             SubAccountsResponse response;
@@ -3227,6 +3369,21 @@ namespace hyperliquid
     UserTwapSliceFillsResponse RestApiMessageParser::parseUserTwapSliceFills(const std::string& message)
     {
         return impl_->parseUserTwapSliceFills(message);
+    }
+
+    UserTwapSliceFillsResponse RestApiMessageParser::parseUserTwapSliceFillsByTime(const std::string& message)
+    {
+        return impl_->parseUserTwapSliceFillsByTime(message);
+    }
+
+    TwapHistoryResponse RestApiMessageParser::parseTwapHistory(const std::string& message)
+    {
+        return impl_->parseTwapHistory(message);
+    }
+
+    ActiveAssetData RestApiMessageParser::parseActiveAssetData(const std::string& message)
+    {
+        return impl_->parseActiveAssetData(message);
     }
 
     SubAccountsResponse RestApiMessageParser::parseSubAccounts(const std::string& message)

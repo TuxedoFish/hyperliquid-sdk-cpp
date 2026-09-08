@@ -7,11 +7,22 @@
 #include <chrono>
 #include <thread>
 
+namespace
+{
+    uint64_t nowMs()
+    {
+        return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                          std::chrono::system_clock::now().time_since_epoch())
+                                          .count());
+    }
+}
+
 int main()
 {
     auto wallet = loadWalletFromConfig();
     std::string userAddress = wallet.accountAddress;
     hyperliquid::setLogLevel(hyperliquid::LogLevel::Info);
+    uint64_t startTime = nowMs();
 
     hyperliquid::ApiConfig config;
     config.env = hyperliquid::Environment::Testnet;
@@ -65,6 +76,26 @@ int main()
         spdlog::info("  {}", *cancelResp.success);
     if (cancelResp.error)
         spdlog::info("  Error: {}", *cancelResp.error);
+
+    spdlog::info("=== twapHistory ===");
+    auto history = api.twapHistory(userAddress);
+    spdlog::info("twapHistory: {} entries", history.history.size());
+    for (const auto& entry : history.history)
+    {
+        if (entry.twapId != *twapResp.twapId) continue;
+        spdlog::info("  MATCH twapId={} status={} time={}",
+                     entry.twapId, hyperliquid::toString(entry.status), entry.time);
+    }
+
+    spdlog::info("=== userTwapSliceFillsByTime (since twapOrder was placed) ===");
+    auto slicesByTime = api.userTwapSliceFillsByTime(userAddress, startTime);
+    spdlog::info("userTwapSliceFillsByTime: {} fills since {}", slicesByTime.fills.size(), startTime);
+    for (const auto& slice : slicesByTime.fills)
+    {
+        if (slice.twapId != *twapResp.twapId) continue;
+        spdlog::info("  MATCH twapId={} coin={} px={} sz={} time={}",
+                     slice.twapId, slice.fill.coin, slice.fill.px, slice.fill.sz, slice.fill.time);
+    }
 
     return 0;
 }

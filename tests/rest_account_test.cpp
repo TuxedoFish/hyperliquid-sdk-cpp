@@ -28,6 +28,31 @@ TEST(InfoRequestBuilderTest, UserTwapSliceFills)
     EXPECT_EQ(body["user"], "0xabc");
 }
 
+TEST(InfoRequestBuilderTest, UserTwapSliceFillsByTime)
+{
+    auto body = InfoRequestBuilder::userTwapSliceFillsByTime("0xabc", 1681222254710ULL, 1681223254710ULL, true);
+    EXPECT_EQ(body["type"], "userTwapSliceFillsByTime");
+    EXPECT_EQ(body["user"], "0xabc");
+    EXPECT_EQ(body["startTime"], 1681222254710ULL);
+    EXPECT_EQ(body["endTime"], 1681223254710ULL);
+    EXPECT_EQ(body["aggregateByTime"], true);
+}
+
+TEST(InfoRequestBuilderTest, UserTwapSliceFillsByTimeStartOnly)
+{
+    auto body = InfoRequestBuilder::userTwapSliceFillsByTime("0xabc", 1681222254710ULL);
+    EXPECT_EQ(body["startTime"], 1681222254710ULL);
+    EXPECT_FALSE(body.contains("endTime"));
+    EXPECT_FALSE(body.contains("aggregateByTime"));
+}
+
+TEST(InfoRequestBuilderTest, TwapHistory)
+{
+    auto body = InfoRequestBuilder::twapHistory("0xabc");
+    EXPECT_EQ(body["type"], "twapHistory");
+    EXPECT_EQ(body["user"], "0xabc");
+}
+
 TEST(InfoRequestBuilderTest, SubAccounts)
 {
     auto body = InfoRequestBuilder::subAccounts("0xabc");
@@ -113,6 +138,106 @@ TEST(RestApiMessageParserInfoTest, ParseUserTwapSliceFills)
     ASSERT_EQ(response.fills.size(), 1u);
     EXPECT_EQ(response.fills[0].fill.coin, "ETH");
     EXPECT_EQ(response.fills[0].twapId, 42);
+}
+
+// userTwapSliceFillsByTime shares the exact array-of-{fill,twapId} schema as
+// userTwapSliceFills (confirmed live against mainnet with a real TWAP trader address),
+// just filtered by time range.
+TEST(RestApiMessageParserInfoTest, ParseUserTwapSliceFillsByTime)
+{
+    std::string message = R"([{
+        "fill": {
+            "coin": "ETH", "px": "1670.1", "sz": "0.5", "side": "B", "time": 1000,
+            "startPosition": "0.0", "dir": "Open Long", "closedPnl": "0.0", "hash": "0xabc",
+            "oid": 1, "crossed": true, "fee": "0.1", "tid": 1, "feeToken": "USDC"
+        },
+        "twapId": 42
+    }])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseUserTwapSliceFillsByTime(message);
+
+    ASSERT_EQ(response.fills.size(), 1u);
+    EXPECT_EQ(response.fills[0].fill.coin, "ETH");
+    EXPECT_EQ(response.fills[0].twapId, 42);
+}
+
+// Response shape confirmed live against mainnet (POST /info {"type":"twapHistory","user":..}) -
+// a flat array of {time, state, status, twapId}, field order exactly as below. "state" is the
+// same shape as the twapStates/userTwapHistory websocket channels' TwapState, plus "trigger"/
+// "stopPx" fields (trigger-based TWAP orders) not yet modeled here - safe to leave unread since
+// they're the last fields in the object. "status" is either {"status": "..."} or, for the "error"
+// status, {"status": "error", "description": "..."}. All five status strings below
+// (activated/terminated/waitingForTrigger/stopped/finished) plus "error" were observed live.
+TEST(RestApiMessageParserInfoTest, ParseTwapHistory)
+{
+    std::string message = R"([
+        {
+            "time": 1788773946,
+            "state": {
+                "coin": "HYPE", "user": "0x6973a383b202b4349d256bbf8b0187dc7b2ed6bb", "side": "B",
+                "sz": "11.45", "executedSz": "0.0", "executedNtl": "0.0", "minutes": 10080,
+                "reduceOnly": false, "randomize": false, "timestamp": 1788773946267,
+                "trigger": null, "stopPx": null
+            },
+            "status": {"status": "activated"},
+            "twapId": 2193307
+        },
+        {
+            "time": 1788843382,
+            "state": {
+                "coin": "HYPE", "user": "0x9b3cafa1209ac61f02d7bc3b219697fb171c9c91", "side": "B",
+                "sz": "10.0", "executedSz": "0.0", "executedNtl": "0.0", "minutes": 4350,
+                "reduceOnly": false, "randomize": false, "timestamp": 1788830253130,
+                "trigger": {"px": "80.0", "above": false}, "stopPx": "85.0"
+            },
+            "status": {"status": "waitingForTrigger"},
+            "twapId": 2195243
+        },
+        {
+            "time": 1787497839,
+            "state": {
+                "coin": "HYPE", "user": "0x13c50dcdee4bbcba71baf578b345cdd35c7928be", "side": "A",
+                "sz": "1535655.0", "executedSz": "0.0", "executedNtl": "0.0", "minutes": 60,
+                "reduceOnly": false, "randomize": false, "timestamp": 1787497839000,
+                "trigger": null, "stopPx": null
+            },
+            "status": {"status": "error", "description": "Insufficient spot balance"},
+            "twapId": 1535655
+        }
+    ])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseTwapHistory(message);
+
+    ASSERT_EQ(response.history.size(), 3u);
+
+    EXPECT_EQ(response.history[0].time, 1788773946ULL);
+    EXPECT_EQ(response.history[0].twapId, 2193307ULL);
+    EXPECT_EQ(response.history[0].status, TwapHistoryStatus::Activated);
+    EXPECT_EQ(response.history[0].state.coin, "HYPE");
+    EXPECT_DOUBLE_EQ(response.history[0].state.sz, 11.45);
+    EXPECT_EQ(response.history[0].state.side, 'B');
+
+    EXPECT_EQ(response.history[1].status, TwapHistoryStatus::WaitingForTrigger);
+    EXPECT_EQ(response.history[1].twapId, 2195243ULL);
+
+    EXPECT_EQ(response.history[2].status, TwapHistoryStatus::Error);
+    EXPECT_EQ(response.history[2].description, "Insufficient spot balance");
+    EXPECT_EQ(response.history[2].twapId, 1535655ULL);
+}
+
+// All six statuses observed live against mainnet twapHistory responses across several real
+// TWAP trader addresses (see PR description for the accounts/timestamps queried).
+TEST(TwapHistoryStatusTest, AllObservedLiveValuesRoundTrip)
+{
+    EXPECT_EQ(stringToTwapHistoryStatus("activated"), TwapHistoryStatus::Activated);
+    EXPECT_EQ(stringToTwapHistoryStatus("terminated"), TwapHistoryStatus::Terminated);
+    EXPECT_EQ(stringToTwapHistoryStatus("waitingForTrigger"), TwapHistoryStatus::WaitingForTrigger);
+    EXPECT_EQ(stringToTwapHistoryStatus("stopped"), TwapHistoryStatus::Stopped);
+    EXPECT_EQ(stringToTwapHistoryStatus("finished"), TwapHistoryStatus::Finished);
+    EXPECT_EQ(stringToTwapHistoryStatus("error"), TwapHistoryStatus::Error);
+    EXPECT_EQ(stringToTwapHistoryStatus("somethingNew"), TwapHistoryStatus::Unknown);
 }
 
 TEST(RestApiMessageParserInfoTest, ParseSubAccountsEmptyList)

@@ -69,6 +69,12 @@ public:
                                                      const std::optional<std::string>& dex = std::nullopt);
     static nlohmann::ordered_json historicalOrders(const std::string& user);
     static nlohmann::ordered_json userTwapSliceFills(const std::string& user);
+    static nlohmann::ordered_json userTwapSliceFillsByTime(const std::string& user,
+                                                            uint64_t startTime,
+                                                            const std::optional<uint64_t>& endTime = std::nullopt,
+                                                            const std::optional<bool>& aggregateByTime = std::nullopt);
+    static nlohmann::ordered_json twapHistory(const std::string& user);
+    static nlohmann::ordered_json activeAssetData(const std::string& user, const std::string& coin);
     static nlohmann::ordered_json subAccounts(const std::string& user);
     static nlohmann::ordered_json userFees(const std::string& user);
     static nlohmann::ordered_json maxBuilderFee(const std::string& user, const std::string& builder);

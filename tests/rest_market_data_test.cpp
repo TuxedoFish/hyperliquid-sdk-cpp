@@ -124,6 +124,14 @@ TEST(InfoRequestBuilderTest, ClearinghouseState)
     EXPECT_FALSE(body.contains("dex"));
 }
 
+TEST(InfoRequestBuilderTest, ActiveAssetData)
+{
+    auto body = InfoRequestBuilder::activeAssetData("0xabc", "ETH");
+    EXPECT_EQ(body["type"], "activeAssetData");
+    EXPECT_EQ(body["user"], "0xabc");
+    EXPECT_EQ(body["coin"], "ETH");
+}
+
 TEST(RestApiMessageParserInfoTest, ParseL2Book)
 {
     std::string message = R"({
@@ -365,4 +373,55 @@ TEST(RestApiMessageParserInfoTest, ParseClearinghouseState)
     EXPECT_DOUBLE_EQ(state.assetPositions[0].szi, 0.0335);
     EXPECT_TRUE(state.assetPositions[0].hasLiquidationPx);
     EXPECT_DOUBLE_EQ(state.assetPositions[0].liquidationPx, 2866.26936529);
+}
+
+// Response shape confirmed live against mainnet (POST /info {"type":"activeAssetData",...}):
+// {"user":..,"coin":..,"leverage":{"type":"cross","value":20},"maxTradeSzs":[..,..],
+//  "availableToTrade":[..,..],"markPx":".."}. The isolated-margin HIP-3 dex variant that adds
+// "rawUsd" alongside "type"/"value" in the leverage object is per the official docs only - not
+// independently verified against a live isolated HIP-3 position.
+TEST(RestApiMessageParserInfoTest, ParseActiveAssetDataCross)
+{
+    std::string message = R"({
+        "user": "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0",
+        "coin": "ETH",
+        "leverage": {"type": "cross", "value": 20},
+        "maxTradeSzs": ["12.34", "56.78"],
+        "availableToTrade": ["1000.5", "2000.25"],
+        "markPx": "2479.5"
+    })";
+
+    RestApiMessageParser parser;
+    auto data = parser.parseActiveAssetData(message);
+
+    EXPECT_EQ(data.user, "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0");
+    EXPECT_EQ(data.coin, "ETH");
+    EXPECT_EQ(data.leverageType, LeverageType::Cross);
+    EXPECT_DOUBLE_EQ(data.leverageValue, 20.0);
+    EXPECT_FALSE(data.leverageRawUsd.has_value());
+    EXPECT_DOUBLE_EQ(data.maxTradeSzLong, 12.34);
+    EXPECT_DOUBLE_EQ(data.maxTradeSzShort, 56.78);
+    EXPECT_DOUBLE_EQ(data.availableToTradeLong, 1000.5);
+    EXPECT_DOUBLE_EQ(data.availableToTradeShort, 2000.25);
+    EXPECT_DOUBLE_EQ(data.markPx, 2479.5);
+}
+
+TEST(RestApiMessageParserInfoTest, ParseActiveAssetDataIsolatedHip3)
+{
+    std::string message = R"({
+        "user": "0xabc",
+        "coin": "felix:CRCL",
+        "leverage": {"type": "isolated", "value": 5, "rawUsd": "123.45"},
+        "maxTradeSzs": ["1.0", "2.0"],
+        "availableToTrade": ["3.0", "4.0"],
+        "markPx": "10.5"
+    })";
+
+    RestApiMessageParser parser;
+    auto data = parser.parseActiveAssetData(message);
+
+    EXPECT_EQ(data.leverageType, LeverageType::Isolated);
+    EXPECT_DOUBLE_EQ(data.leverageValue, 5.0);
+    ASSERT_TRUE(data.leverageRawUsd.has_value());
+    EXPECT_DOUBLE_EQ(*data.leverageRawUsd, 123.45);
 }

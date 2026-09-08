@@ -469,6 +469,30 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::userTwapSliceFillsByTime(const std::string& user,
+                                                uint64_t startTime,
+                                                const std::optional<uint64_t>& endTime,
+                                                const std::optional<bool>& aggregateByTime,
+                                                std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::UserTwapSliceFillsByTime,
+                                  InfoRequestBuilder::userTwapSliceFillsByTime(user, startTime, endTime, aggregateByTime),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::twapHistory(const std::string& user, std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::TwapHistory, InfoRequestBuilder::twapHistory(user),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::activeAssetData(const std::string& user, const std::string& coin,
+                                       std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::ActiveAssetData, InfoRequestBuilder::activeAssetData(user, coin),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::subAccounts(const std::string& user, std::optional<uint64_t> correlationId)
     {
         return impl_->signAndSend(RestEndpointType::SubAccounts, InfoRequestBuilder::subAccounts(user),

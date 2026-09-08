@@ -95,6 +95,12 @@ public:
                                                   const std::optional<std::string>& dex = std::nullopt);
     HistoricalOrdersResponse historicalOrders(const std::string& user);
     UserTwapSliceFillsResponse userTwapSliceFills(const std::string& user);
+    UserTwapSliceFillsResponse userTwapSliceFillsByTime(const std::string& user,
+                                                         uint64_t startTime,
+                                                         const std::optional<uint64_t>& endTime = std::nullopt,
+                                                         const std::optional<bool>& aggregateByTime = std::nullopt);
+    TwapHistoryResponse twapHistory(const std::string& user);
+    ActiveAssetData activeAssetData(const std::string& user, const std::string& coin);
     SubAccountsResponse subAccounts(const std::string& user);
     UserFeesResponse userFees(const std::string& user);
     MaxBuilderFeeResponse maxBuilderFee(const std::string& user, const std::string& builder);
@@ -226,6 +232,12 @@ public:
                                  const std::optional<std::string>& dex = std::nullopt);
     void historicalOrdersAsync(const std::string& user);
     void userTwapSliceFillsAsync(const std::string& user);
+    void userTwapSliceFillsByTimeAsync(const std::string& user,
+                                       uint64_t startTime,
+                                       const std::optional<uint64_t>& endTime = std::nullopt,
+                                       const std::optional<bool>& aggregateByTime = std::nullopt);
+    void twapHistoryAsync(const std::string& user);
+    void activeAssetDataAsync(const std::string& user, const std::string& coin);
     void subAccountsAsync(const std::string& user);
     void userFeesAsync(const std::string& user);
     void maxBuilderFeeAsync(const std::string& user, const std::string& builder);
