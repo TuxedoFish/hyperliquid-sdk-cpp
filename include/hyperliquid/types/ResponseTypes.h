@@ -1539,6 +1539,15 @@ namespace hyperliquid
         std::optional<std::string> error;
     };
 
+    struct CreateVaultResponse
+    {
+        std::string status;
+        std::string type;
+        // The newly created vault's address (response.data on success).
+        std::optional<std::string> vaultAddress;
+        std::optional<std::string> error;
+    };
+
     struct TwapCancelResponse
     {
         std::string status;

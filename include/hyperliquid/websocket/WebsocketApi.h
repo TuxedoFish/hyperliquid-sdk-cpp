@@ -209,6 +209,9 @@ namespace hyperliquid
         void subAccountTransfer(const SubAccountTransferRequest& request,
                                 std::optional<uint64_t> correlationId = std::nullopt);
 
+        void createVault(const CreateVaultRequest& request,
+                         std::optional<uint64_t> correlationId = std::nullopt);
+
         void usdClassTransfer(const UsdClassTransferRequest& request,
                               std::optional<uint64_t> correlationId = std::nullopt);
         void sendAsset(const SendAssetRequest& request,
@@ -225,6 +228,9 @@ namespace hyperliquid
 
         void userSetAbstraction(const UserSetAbstractionRequest& request,
                                 std::optional<uint64_t> correlationId = std::nullopt);
+
+        void setReferrer(const SetReferrerRequest& request,
+                         std::optional<uint64_t> correlationId = std::nullopt);
 
         void cDeposit(uint64_t wei,
                      std::optional<uint64_t> correlationId = std::nullopt);

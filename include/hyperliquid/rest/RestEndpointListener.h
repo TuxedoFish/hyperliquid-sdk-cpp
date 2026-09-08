@@ -70,6 +70,7 @@ public:
     virtual void onTwapOrder(const TwapOrderResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onTwapCancel(const TwapCancelResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onCreateSubAccount(const CreateSubAccountResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onCreateVault(const CreateVaultResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onDelegations(const DelegationsResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onDelegatorSummary(const DelegatorSummaryResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onDelegatorHistory(const DelegatorHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}

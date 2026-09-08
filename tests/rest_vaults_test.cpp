@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "messages/InfoRequestBuilder.h"
+#include "messages/ExchangeRequestBuilder.h"
 #include "hyperliquid/rest/RestApiMessageParser.h"
 
 #include <nlohmann/json.hpp>
@@ -50,6 +51,69 @@ TEST(InfoRequestBuilderTest, UserRole)
     auto body = InfoRequestBuilder::userRole("0xabc");
     EXPECT_EQ(body["type"], "userRole");
     EXPECT_EQ(body["user"], "0xabc");
+}
+
+// --- createVault / setReferrer (exchange, L1 actions) ---
+// Field shapes (action = {type, name, description, initialUsd} for createVault, plain L1-action
+// signing with initialUsd converted to raw 1e6 USDC units like vaultTransfer's "usd"; action =
+// {type, code} for setReferrer) are cross-checked against the official TS SDK
+// (@nktkas/hyperliquid, src/api/exchange/_methods/{createVault,setReferrer}.ts), not a live
+// capture - please double-check before relying on this. createVault's action also carries its
+// own "nonce" field equal to the envelope nonce (injected downstream by Signing::prepareBody,
+// see the RestEndpointType::CreateVault special-case next to agentSendAsset's), so it isn't
+// present in the builder's own output below.
+
+TEST(CreateVaultBuilder, BodyShapeAndFieldOrder)
+{
+    ExchangeRequestBuilder builder;
+
+    CreateVaultRequest request;
+    request.name = "My Vault";
+    request.description = "A vault that does things.";
+    request.initialUsd = 100.0;
+
+    auto body = builder.createVault(request);
+    ASSERT_TRUE(body.contains("action"));
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "createVault");
+    EXPECT_EQ(action["name"], "My Vault");
+    EXPECT_EQ(action["description"], "A vault that does things.");
+    EXPECT_EQ(action["initialUsd"].get<uint64_t>(), 100000000ULL);
+
+    auto keys = std::vector<std::string>();
+    for (auto it = action.begin(); it != action.end(); ++it) keys.push_back(it.key());
+    EXPECT_EQ(keys, (std::vector<std::string>{"type", "name", "description", "initialUsd"}));
+}
+
+TEST(CreateVaultBuilder, InitialUsdScalesFractionalDollarsToRawUnits)
+{
+    ExchangeRequestBuilder builder;
+
+    CreateVaultRequest request;
+    request.name = "My Vault";
+    request.description = "A vault that does things.";
+    request.initialUsd = 100.5;
+
+    auto body = builder.createVault(request);
+    EXPECT_EQ(body["action"]["initialUsd"].get<uint64_t>(), 100500000ULL);
+}
+
+TEST(SetReferrerBuilder, BodyShapeAndFieldOrder)
+{
+    ExchangeRequestBuilder builder;
+
+    SetReferrerRequest request;
+    request.code = "ABC123";
+
+    auto body = builder.setReferrer(request);
+    ASSERT_TRUE(body.contains("action"));
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "setReferrer");
+    EXPECT_EQ(action["code"], "ABC123");
+
+    auto keys = std::vector<std::string>();
+    for (auto it = action.begin(); it != action.end(); ++it) keys.push_back(it.key());
+    EXPECT_EQ(keys, (std::vector<std::string>{"type", "code"}));
 }
 
 // --- Response parsing ---
@@ -192,4 +256,76 @@ TEST(RestApiMessageParserVaultsTest, ParseReferralWithReferredBy)
     EXPECT_EQ(response.referredBy->code, "ABC123");
     EXPECT_FALSE(response.referrerState.has_value());
     EXPECT_FALSE(response.tokenToState.has_value());
+}
+
+// createVault's success response shape ({"status":"ok","response":{"type":"createVault",
+// "data":"0x..."}}) is cross-checked against the official TS SDK's CreateVaultResponse type,
+// not a live capture - please double-check before relying on this.
+TEST(RestApiMessageParserVaultsTest, ParseCreateVaultSuccess)
+{
+    std::string message = R"({
+        "status": "ok",
+        "response": {
+            "type": "createVault",
+            "data": "0x1719884eb866cb12b2287399b15f7db5e7d775ea"
+        }
+    })";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseCreateVault(message);
+
+    EXPECT_EQ(response.status, "ok");
+    EXPECT_EQ(response.type, "createVault");
+    ASSERT_TRUE(response.vaultAddress.has_value());
+    EXPECT_EQ(*response.vaultAddress, "0x1719884eb866cb12b2287399b15f7db5e7d775ea");
+    EXPECT_FALSE(response.error.has_value());
+}
+
+TEST(RestApiMessageParserVaultsTest, ParseCreateVaultError)
+{
+    std::string message = R"({
+        "status": "err",
+        "response": "Initial balance must be at least 100 USD."
+    })";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseCreateVault(message);
+
+    EXPECT_EQ(response.status, "err");
+    ASSERT_TRUE(response.error.has_value());
+    EXPECT_EQ(*response.error, "Initial balance must be at least 100 USD.");
+    EXPECT_FALSE(response.vaultAddress.has_value());
+}
+
+// setReferrer returns SimpleResponse's usual {"status":"ok","response":{"type":"default"}}
+// shape, same as vaultTransfer/hip3LiquidatorTransfer above.
+TEST(RestApiMessageParserVaultsTest, ParseSetReferrerSuccess)
+{
+    std::string message = R"({
+        "status": "ok",
+        "response": {
+            "type": "default"
+        }
+    })";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseSimpleResponse(message);
+
+    EXPECT_EQ(response.status, "ok");
+    EXPECT_FALSE(response.error.has_value());
+}
+
+TEST(RestApiMessageParserVaultsTest, ParseSetReferrerError)
+{
+    std::string message = R"({
+        "status": "err",
+        "response": "Referral code does not exist."
+    })";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseSimpleResponse(message);
+
+    EXPECT_EQ(response.status, "err");
+    ASSERT_TRUE(response.error.has_value());
+    EXPECT_EQ(*response.error, "Referral code does not exist.");
 }
