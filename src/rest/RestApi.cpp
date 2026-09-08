@@ -632,6 +632,20 @@ SimpleResponse RestApi::hip3LiquidatorTransfer(const Hip3LiquidatorTransferReque
                                    impl_->exchangeRequestBuilder.hip3LiquidatorTransfer(request)));
 }
 
+CreateSubAccountResponse RestApi::createSubAccount(const CreateSubAccountRequest& request)
+{
+    return RestApiMessageParser().parseCreateSubAccount(
+        impl_->signAndSendSync(RestEndpointType::CreateSubAccount,
+                                   impl_->exchangeRequestBuilder.createSubAccount(request)));
+}
+
+SimpleResponse RestApi::subAccountTransfer(const SubAccountTransferRequest& request)
+{
+    return RestApiMessageParser().parseSimpleResponse(
+        impl_->signAndSendSync(RestEndpointType::SubAccountTransfer,
+                                   impl_->exchangeRequestBuilder.subAccountTransfer(request)));
+}
+
 SimpleResponse RestApi::borrowLend(const BorrowLendRequest& request)
 {
     return RestApiMessageParser().parseSimpleResponse(
@@ -1216,6 +1230,18 @@ void RestApi::hip3LiquidatorTransferAsync(const Hip3LiquidatorTransferRequest& r
 {
     impl_->signAndSend(RestEndpointType::Hip3LiquidatorTransfer,
                        impl_->exchangeRequestBuilder.hip3LiquidatorTransfer(request));
+}
+
+void RestApi::createSubAccountAsync(const CreateSubAccountRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::CreateSubAccount,
+                       impl_->exchangeRequestBuilder.createSubAccount(request));
+}
+
+void RestApi::subAccountTransferAsync(const SubAccountTransferRequest& request)
+{
+    impl_->signAndSend(RestEndpointType::SubAccountTransfer,
+                       impl_->exchangeRequestBuilder.subAccountTransfer(request));
 }
 
 void RestApi::borrowLendAsync(const BorrowLendRequest& request)

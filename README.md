@@ -203,7 +203,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `authorizeAqav2Role` | ⬜ | |
 | `claimRewards` | ⬜ | |
 | `convertToMultiSigUser` | ⬜ | |
-| `createSubAccount` | ⬜ | |
+| `createSubAccount` | ✅ | `RestApi::createSubAccount` |
 | `createVault` | ⬜ | |
 | `cSignerAction` | ⬜ | |
 | `cValidatorAction` | ⬜ | |
@@ -228,7 +228,7 @@ Legend: ✅ implemented — ⬜ not yet implemented.
 | `stakingLinkDisableTradingUser` | ⬜ | |
 | `subAccountModify` | ⬜ | |
 | `subAccountSpotTransfer` | ⬜ | |
-| `subAccountTransfer` | ⬜ | |
+| `subAccountTransfer` | ✅ | `RestApi::subAccountTransfer` |
 | `topUpIsolatedOnlyMargin` | ⬜ | |
 | `userOutcome` | ⬜ | |
 | `userPortfolioMargin` | ⬜ | |

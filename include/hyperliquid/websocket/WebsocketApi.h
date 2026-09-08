@@ -202,6 +202,12 @@ namespace hyperliquid
         void hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request,
                                     std::optional<uint64_t> correlationId = std::nullopt);
 
+        void createSubAccount(const CreateSubAccountRequest& request,
+                              std::optional<uint64_t> correlationId = std::nullopt);
+
+        void subAccountTransfer(const SubAccountTransferRequest& request,
+                                std::optional<uint64_t> correlationId = std::nullopt);
+
         void usdClassTransfer(const UsdClassTransferRequest& request,
                               std::optional<uint64_t> correlationId = std::nullopt);
         void sendAsset(const SendAssetRequest& request,

@@ -1540,6 +1540,14 @@ namespace hyperliquid
         std::optional<std::string> error;
     };
 
+    struct CreateSubAccountResponse
+    {
+        std::string status;
+        std::string type;
+        std::optional<std::string> subAccountUser;
+        std::optional<std::string> error;
+    };
+
     // --- Staking / delegation types ---
 
     struct Delegation

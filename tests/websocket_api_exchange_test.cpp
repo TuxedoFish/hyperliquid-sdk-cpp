@@ -92,6 +92,16 @@ TEST(WebsocketApiExchangeBackfill, VaultAndHip3ActionsThrowWithoutWallet)
     hip3Req.ntl = 1'000'000'000ULL;
     hip3Req.isDeposit = true;
     EXPECT_THROW(ws.hip3LiquidatorTransfer(hip3Req, 2), std::invalid_argument);
+
+    CreateSubAccountRequest createSubAccountReq;
+    createSubAccountReq.name = "example";
+    EXPECT_THROW(ws.createSubAccount(createSubAccountReq, 3), std::invalid_argument);
+
+    SubAccountTransferRequest subAccountTransferReq;
+    subAccountTransferReq.subAccountUser = "0x1d9470d4b963f552e6f671a81619d395877bf409";
+    subAccountTransferReq.isDeposit = true;
+    subAccountTransferReq.usd = 10.0;
+    EXPECT_THROW(ws.subAccountTransfer(subAccountTransferReq, 4), std::invalid_argument);
 }
 
 TEST(WebsocketApiExchangeBackfill, StakingActionsThrowWithoutWallet)
