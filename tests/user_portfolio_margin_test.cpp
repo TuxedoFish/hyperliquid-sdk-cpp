@@ -130,14 +130,11 @@ TEST(PrepareUserSignedActionBody, UserPortfolioMarginMissingWalletThrows)
         std::invalid_argument);
 }
 
-// userPortfolioMargin's response shape isn't separately documented anywhere we could find - the
-// TS SDK types it as the same generic {status:"ok", response:{type:"default"}} / {status:"err",
-// response:<string>} shape shared by every other simple exchange action (matching
-// UserPortfolioMarginResponse in nktkas/hyperliquid's userPortfolioMargin.ts). These fixtures are
-// therefore inferred from that shared shape, not captured from a live call - unlike
-// userDexAbstraction's fixtures in user_dex_abstraction_test.cpp, which were captured live.
-// parseSimpleResponse itself is already exercised against real payloads elsewhere (e.g.
-// SimpleResponseParsing.VaultTransferSuccess, UserDexAbstractionResponseParsing.SuccessResponse).
+// Both fixtures below are real testnet captures (POST /exchange, userPortfolioMargin), not
+// inferred from the TS SDK: enabling failed with a real business-rule error on this test wallet
+// (insufficient account value/volume), and disabling (already-off, so a no-op) succeeded with
+// the generic {status:"ok", response:{type:"default"}} shape shared by every other simple
+// exchange action.
 
 TEST(UserPortfolioMarginResponseParsing, SuccessResponse)
 {
@@ -150,10 +147,11 @@ TEST(UserPortfolioMarginResponseParsing, SuccessResponse)
 
 TEST(UserPortfolioMarginResponseParsing, ErrorResponse)
 {
-    static const std::string kErr = R"({"status":"err","response":"Portfolio margin transition not allowed"})";
+    static const std::string kErr =
+        R"({"status":"err","response":"Portfolio margin requires account value of $10000 or total volume of $5000000."})";
     RestApiMessageParser parser;
     auto resp = parser.parseSimpleResponse(kErr);
     EXPECT_EQ(resp.status, "err");
     ASSERT_TRUE(resp.error.has_value());
-    EXPECT_EQ(*resp.error, "Portfolio margin transition not allowed");
+    EXPECT_EQ(*resp.error, "Portfolio margin requires account value of $10000 or total volume of $5000000.");
 }
