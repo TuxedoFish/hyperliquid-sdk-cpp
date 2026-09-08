@@ -28,6 +28,23 @@ TEST(InfoRequestBuilderTest, AllBorrowLendReserveStates)
     EXPECT_EQ(body["type"], "allBorrowLendReserveStates");
 }
 
+TEST(InfoRequestBuilderTest, UserBorrowLendInterestNoEndTime)
+{
+    auto body = InfoRequestBuilder::userBorrowLendInterest("0xabc", 1700000000000ULL);
+    EXPECT_EQ(body["type"], "userBorrowLendInterest");
+    EXPECT_EQ(body["user"], "0xabc");
+    EXPECT_EQ(body["startTime"], 1700000000000ULL);
+    EXPECT_FALSE(body.contains("endTime"));
+}
+
+TEST(InfoRequestBuilderTest, UserBorrowLendInterestWithEndTime)
+{
+    auto body = InfoRequestBuilder::userBorrowLendInterest("0xabc", 1700000000000ULL, 1700100000000ULL);
+    EXPECT_EQ(body["type"], "userBorrowLendInterest");
+    EXPECT_EQ(body["startTime"], 1700000000000ULL);
+    EXPECT_EQ(body["endTime"], 1700100000000ULL);
+}
+
 TEST(RestApiMessageParserInfoTest, ParseBorrowLendReserveState)
 {
     std::string message = R"({
@@ -118,6 +135,35 @@ TEST(RestApiMessageParserInfoTest, ParseBorrowLendUserStateHealthFactorPresent)
 
     ASSERT_TRUE(response.healthFactor.has_value());
     EXPECT_DOUBLE_EQ(*response.healthFactor, 1.5);
+}
+
+TEST(RestApiMessageParserInfoTest, ParseUserBorrowLendInterestEmpty)
+{
+    // Live mainnet response for accounts with no borrow/lend activity in the requested window.
+    std::string message = R"([])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseUserBorrowLendInterest(message);
+
+    EXPECT_TRUE(response.interest.empty());
+}
+
+TEST(RestApiMessageParserInfoTest, ParseUserBorrowLendInterestPopulated)
+{
+    // Shape taken from the official TS SDK (@nktkas/hyperliquid) source, not a live capture -
+    // every account tried returned an empty array in the requested window.
+    std::string message = R"([
+        {"time": 1700000000000, "token": "USDC", "borrow": "0.0013", "supply": "1.25"}
+    ])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseUserBorrowLendInterest(message);
+
+    ASSERT_EQ(response.interest.size(), 1u);
+    EXPECT_EQ(response.interest[0].time, 1700000000000ULL);
+    EXPECT_EQ(response.interest[0].token, "USDC");
+    EXPECT_DOUBLE_EQ(response.interest[0].borrow, 0.0013);
+    EXPECT_DOUBLE_EQ(response.interest[0].supply, 1.25);
 }
 
 // --- borrowLend exchange action (write side) ---

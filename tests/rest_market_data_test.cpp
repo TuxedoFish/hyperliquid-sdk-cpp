@@ -425,3 +425,44 @@ TEST(RestApiMessageParserInfoTest, ParseActiveAssetDataIsolatedHip3)
     ASSERT_TRUE(data.leverageRawUsd.has_value());
     EXPECT_DOUBLE_EQ(*data.leverageRawUsd, 123.45);
 }
+
+TEST(InfoRequestBuilderTest, Liquidatable)
+{
+    auto body = InfoRequestBuilder::liquidatable();
+    EXPECT_EQ(body["type"], "liquidatable");
+    EXPECT_FALSE(body.contains("user"));
+}
+
+TEST(RestApiMessageParserInfoTest, ParseLiquidatableEmpty)
+{
+    // Live mainnet response with zero accounts currently liquidatable.
+    std::string message = R"([])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseLiquidatable(message);
+
+    EXPECT_TRUE(response.positions.empty());
+}
+
+TEST(RestApiMessageParserInfoTest, ParseLiquidatablePopulated)
+{
+    // Shape taken from the official TS SDK (@nktkas/hyperliquid) source, not a live capture -
+    // the endpoint returned an empty array for every account tried, so this couldn't be
+    // confirmed against a populated payload.
+    std::string message = R"([
+        {
+            "user": "0x31ca8395cf837de08b24da3f660e77761dfb974",
+            "positionIndex": {"isolated": {"asset": 5}},
+            "marginAvailable": [12.5, 0.0]
+        }
+    ])";
+
+    RestApiMessageParser parser;
+    auto response = parser.parseLiquidatable(message);
+
+    ASSERT_EQ(response.positions.size(), 1u);
+    EXPECT_EQ(response.positions[0].user, "0x31ca8395cf837de08b24da3f660e77761dfb974");
+    EXPECT_EQ(response.positions[0].isolatedAsset, 5);
+    EXPECT_DOUBLE_EQ(response.positions[0].marginAvailable[0], 12.5);
+    EXPECT_DOUBLE_EQ(response.positions[0].marginAvailable[1], 0.0);
+}

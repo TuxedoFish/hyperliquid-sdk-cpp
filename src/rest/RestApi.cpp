@@ -482,6 +482,21 @@ AllBorrowLendReserveStatesResponse RestApi::allBorrowLendReserveStates()
                                InfoRequestBuilder::allBorrowLendReserveStates()));
 }
 
+UserBorrowLendInterestResponse RestApi::userBorrowLendInterest(const std::string& user,
+                                                                uint64_t startTime,
+                                                                const std::optional<uint64_t>& endTime)
+{
+    return RestApiMessageParser().parseUserBorrowLendInterest(
+        impl_->signAndSendSync(RestEndpointType::UserBorrowLendInterest,
+                               InfoRequestBuilder::userBorrowLendInterest(user, startTime, endTime)));
+}
+
+LiquidatableResponse RestApi::liquidatable()
+{
+    return RestApiMessageParser().parseLiquidatable(
+        impl_->signAndSendSync(RestEndpointType::Liquidatable, InfoRequestBuilder::liquidatable()));
+}
+
 UserDexAbstractionResponse RestApi::userDexAbstractionState(const std::string& user)
 {
     return RestApiMessageParser().parseUserDexAbstractionState(
@@ -1070,6 +1085,19 @@ void RestApi::borrowLendReserveStateAsync(int token)
 void RestApi::allBorrowLendReserveStatesAsync()
 {
     impl_->signAndSend(RestEndpointType::AllBorrowLendReserveStates, InfoRequestBuilder::allBorrowLendReserveStates());
+}
+
+void RestApi::userBorrowLendInterestAsync(const std::string& user,
+                                          uint64_t startTime,
+                                          const std::optional<uint64_t>& endTime)
+{
+    impl_->signAndSend(RestEndpointType::UserBorrowLendInterest,
+                       InfoRequestBuilder::userBorrowLendInterest(user, startTime, endTime));
+}
+
+void RestApi::liquidatableAsync()
+{
+    impl_->signAndSend(RestEndpointType::Liquidatable, InfoRequestBuilder::liquidatable());
 }
 
 void RestApi::userDexAbstractionStateAsync(const std::string& user)

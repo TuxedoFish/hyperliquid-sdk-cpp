@@ -1701,6 +1701,32 @@ namespace hyperliquid
         std::optional<double> healthFactor;
     };
 
+    struct UserBorrowLendInterestEntry
+    {
+        uint64_t time = 0;
+        std::string token;
+        double borrow = 0.0;
+        double supply = 0.0;
+    };
+
+    struct UserBorrowLendInterestResponse
+    {
+        std::vector<UserBorrowLendInterestEntry> interest;
+    };
+
+    struct LiquidatableEntry
+    {
+        std::string user;
+        int isolatedAsset = 0;
+        // Meaning of the two values is not documented upstream.
+        std::array<double, 2> marginAvailable{};
+    };
+
+    struct LiquidatableResponse
+    {
+        std::vector<LiquidatableEntry> positions;
+    };
+
     // --- HIP-3 deployer (perp dex abstraction) ---
 
     struct PerpDexLimitsCoinCap

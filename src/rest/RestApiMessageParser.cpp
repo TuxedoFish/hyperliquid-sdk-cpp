@@ -169,6 +169,12 @@ namespace hyperliquid
             case RestEndpointType::AllBorrowLendReserveStates:
                 listener.onAllBorrowLendReserveStates(parseAllBorrowLendReserveStates(message), correlationId);
                 break;
+            case RestEndpointType::UserBorrowLendInterest:
+                listener.onUserBorrowLendInterest(parseUserBorrowLendInterest(message), correlationId);
+                break;
+            case RestEndpointType::Liquidatable:
+                listener.onLiquidatable(parseLiquidatable(message), correlationId);
+                break;
             case RestEndpointType::PlaceOrder:
                 listener.onPlaceOrder(parsePlaceOrder(message), correlationId);
                 break;
@@ -1898,6 +1904,80 @@ namespace hyperliquid
             return response;
         }
 
+        UserBorrowLendInterestResponse parseUserBorrowLendInterest(const std::string& message)
+        {
+            UserBorrowLendInterestResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                validateStructure(message);
+
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    UserBorrowLendInterestEntry item{};
+                    item.time = obj["time"].get_uint64().value();
+                    item.token = std::string(obj["token"].get_string().value());
+                    item.borrow = parseNumberField(obj, "borrow");
+                    item.supply = parseNumberField(obj, "supply");
+                    response.interest.push_back(std::move(item));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in userBorrowLendInterest: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        LiquidatableResponse parseLiquidatable(const std::string& message)
+        {
+            LiquidatableResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                validateStructure(message);
+
+                auto arr = doc.get_array().value();
+                for (auto entry : arr)
+                {
+                    auto obj = entry.get_object().value();
+                    LiquidatableEntry item{};
+                    item.user = std::string(obj["user"].get_string().value());
+
+                    auto positionIndexObj = obj["positionIndex"].get_object().value();
+                    auto isolatedObj = positionIndexObj["isolated"].get_object().value();
+                    item.isolatedAsset = static_cast<int>(isolatedObj["asset"].get_int64().value());
+
+                    auto marginArr = obj["marginAvailable"].get_array().value();
+                    auto iter = marginArr.begin();
+                    if (iter != marginArr.end())
+                    {
+                        item.marginAvailable[0] = (*iter).get_double().value();
+                        ++iter;
+                        if (iter != marginArr.end())
+                        {
+                            item.marginAvailable[1] = (*iter).get_double().value();
+                        }
+                    }
+
+                    response.positions.push_back(std::move(item));
+                }
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in liquidatable: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
         ClearinghouseState parseClearinghouseStateObj(simdjson::ondemand::object& doc)
         {
             ClearinghouseState response{};
@@ -3444,6 +3524,16 @@ namespace hyperliquid
     AllBorrowLendReserveStatesResponse RestApiMessageParser::parseAllBorrowLendReserveStates(const std::string& message)
     {
         return impl_->parseAllBorrowLendReserveStates(message);
+    }
+
+    UserBorrowLendInterestResponse RestApiMessageParser::parseUserBorrowLendInterest(const std::string& message)
+    {
+        return impl_->parseUserBorrowLendInterest(message);
+    }
+
+    LiquidatableResponse RestApiMessageParser::parseLiquidatable(const std::string& message)
+    {
+        return impl_->parseLiquidatable(message);
     }
 
     PlaceOrderResponse RestApiMessageParser::parsePlaceOrder(const std::string& message)

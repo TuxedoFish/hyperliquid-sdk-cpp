@@ -4,6 +4,8 @@
 #include <hyperliquid/config/Config.h>
 #include <spdlog/spdlog.h>
 
+#include <chrono>
+
 int main() {
     auto wallet = loadWalletFromConfig();
     hyperliquid::setLogLevel(hyperliquid::LogLevel::Debug);
@@ -37,6 +39,18 @@ int main() {
     for (const auto& position : userState.tokenToState) {
         spdlog::info("  token={} supply.value={} borrow.value={}",
                      position.token, position.supply.value, position.borrow.value);
+    }
+
+    spdlog::info("=== userBorrowLendInterest(own wallet, last 30d) ===");
+    uint64_t now = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count());
+    uint64_t thirtyDaysAgo = now - 30ULL * 24ULL * 3600ULL * 1000ULL;
+    auto interest = api.userBorrowLendInterest(wallet.accountAddress, thirtyDaysAgo);
+    spdlog::info("{} interest entries", interest.interest.size());
+    for (const auto& entry : interest.interest) {
+        spdlog::info("  time={} token={} borrow={} supply={}",
+                     entry.time, entry.token, entry.borrow, entry.supply);
     }
 
     return 0;
