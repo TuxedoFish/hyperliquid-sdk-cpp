@@ -120,6 +120,7 @@ public:
     LiquidatableResponse liquidatable();
     UserDexAbstractionResponse userDexAbstractionState(const std::string& user);
     UserAbstractionResponse userAbstraction(const std::string& user);
+    ExchangeStatusResponse exchangeStatus();
     PlaceOrderResponse placeOrder(const std::vector<OrderRequest>& orders,
                            Grouping grouping,
                            const std::optional<Builder>& builder = std::nullopt,
@@ -178,6 +179,7 @@ public:
     DelegatorRewardsResponse delegatorRewards(const std::string& user);
     SimpleResponse sendToEvmWithData(const SendToEvmWithDataRequest& request);
     SimpleResponse userDexAbstraction(const UserDexAbstractionRequest& request);
+    SimpleResponse userPortfolioMargin(const UserPortfolioMarginRequest& request);
     SimpleResponse agentSendAsset(const AgentSendAssetRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     SimpleResponse reserveRequestWeight(const ReserveRequestWeightRequest& request,
@@ -265,6 +267,7 @@ public:
     void liquidatableAsync();
     void userDexAbstractionStateAsync(const std::string& user);
     void userAbstractionAsync(const std::string& user);
+    void exchangeStatusAsync();
     void placeOrderAsync(const std::vector<OrderRequest>& orders,
                          Grouping grouping,
                          const std::optional<Builder>& builder = std::nullopt,
@@ -317,6 +320,7 @@ public:
     void delegatorRewardsAsync(const std::string& user);
     void sendToEvmWithDataAsync(const SendToEvmWithDataRequest& request);
     void userDexAbstractionAsync(const UserDexAbstractionRequest& request);
+    void userPortfolioMarginAsync(const UserPortfolioMarginRequest& request);
     void agentSendAssetAsync(const AgentSendAssetRequest& request,
                              const std::optional<std::string>& vaultAddress = std::nullopt);
     void reserveRequestWeightAsync(const ReserveRequestWeightRequest& request,

@@ -146,6 +146,7 @@ namespace hyperliquid
 
         void userDexAbstractionState(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void userAbstraction(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
+        void exchangeStatus(std::optional<uint64_t> correlationId = std::nullopt);
 
         void delegations(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
         void delegatorSummary(const std::string& user, std::optional<uint64_t> correlationId = std::nullopt);
@@ -264,6 +265,8 @@ namespace hyperliquid
 
         void userDexAbstraction(const UserDexAbstractionRequest& request,
                                 std::optional<uint64_t> correlationId = std::nullopt);
+        void userPortfolioMargin(const UserPortfolioMarginRequest& request,
+                                 std::optional<uint64_t> correlationId = std::nullopt);
 
         void start();
         void stop();

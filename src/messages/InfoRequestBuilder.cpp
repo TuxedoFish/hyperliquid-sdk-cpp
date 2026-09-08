@@ -515,4 +515,11 @@ nlohmann::ordered_json InfoRequestBuilder::userAbstraction(const std::string& us
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::exchangeStatus()
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::ExchangeStatus);
+    return body;
+}
+
 }

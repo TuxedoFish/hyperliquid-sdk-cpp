@@ -81,6 +81,7 @@ public:
     virtual void onLiquidatable(const LiquidatableResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onUserDexAbstractionState(const UserDexAbstractionResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onUserAbstraction(const UserAbstractionResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onExchangeStatus(const ExchangeStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
 };
 
 }

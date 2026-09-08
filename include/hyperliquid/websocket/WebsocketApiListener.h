@@ -76,6 +76,7 @@ public:
     virtual void onPostResponse(const DelegatorSummaryResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const DelegatorHistoryResponse&, std::optional<uint64_t> = std::nullopt) {}
     virtual void onPostResponse(const DelegatorRewardsResponse&, std::optional<uint64_t> = std::nullopt) {}
+    virtual void onPostResponse(const ExchangeStatusResponse&, std::optional<uint64_t> = std::nullopt) {}
 
     // Every exchange action shares this response shape, so RestEndpointType disambiguates.
     virtual void onPostResponse(RestEndpointType, const SimpleResponse&,

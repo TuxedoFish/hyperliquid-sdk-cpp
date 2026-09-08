@@ -97,6 +97,7 @@ namespace hyperliquid
         DelegatorRewardsResponse parseDelegatorRewards(const std::string& message);
         UserDexAbstractionResponse parseUserDexAbstractionState(const std::string& message);
         UserAbstractionResponse parseUserAbstraction(const std::string& message);
+        ExchangeStatusResponse parseExchangeStatus(const std::string& message);
 
     private:
         struct Impl;
