@@ -344,8 +344,6 @@ namespace hyperliquid
         std::vector<TwapState> states;
     };
 
-    // Confirmed live against mainnet (twapHistory info endpoint): activated, terminated,
-    // waitingForTrigger, stopped, finished, error have all been observed on real accounts.
     enum class TwapHistoryStatus { Activated, Terminated, WaitingForTrigger, Stopped, Finished, Error, Unknown };
 
     inline TwapHistoryStatus stringToTwapHistoryStatus(std::string_view s)

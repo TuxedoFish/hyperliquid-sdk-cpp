@@ -1488,12 +1488,6 @@ namespace hyperliquid
             return fill;
         }
 
-        // Shared by twapOrder/twapCancel-style state shapes wherever a REST endpoint embeds one
-        // (currently just twapHistory's "state" object). Mirrors WebsocketMessageParser's
-        // crackTwapState. Only reads fields through "timestamp" - "trigger"/"stopPx" also appear on
-        // the wire (trigger-TWAP orders) but aren't modeled by TwapState yet, and it's safe to leave
-        // trailing fields unread since simdjson's ondemand only requires in-order reads, not
-        // exhaustive ones.
         TwapState parseTwapStateEntry(simdjson::ondemand::object& obj)
         {
             TwapState state{};
