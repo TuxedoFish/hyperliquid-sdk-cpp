@@ -226,6 +226,8 @@ namespace hyperliquid
         TwapCancel,
         VaultTransfer,
         Hip3LiquidatorTransfer,
+        CreateSubAccount,
+        SubAccountTransfer,
         BorrowLend,
         SpotDeployRegisterToken2,
         SpotDeployUserGenesis,
@@ -333,6 +335,8 @@ namespace hyperliquid
         case RestEndpointType::TwapCancel: return "twapCancel";
         case RestEndpointType::VaultTransfer: return "vaultTransfer";
         case RestEndpointType::Hip3LiquidatorTransfer: return "hip3LiquidatorTransfer";
+        case RestEndpointType::CreateSubAccount: return "createSubAccount";
+        case RestEndpointType::SubAccountTransfer: return "subAccountTransfer";
         case RestEndpointType::BorrowLend: return "borrowLend";
         case RestEndpointType::SpotDeployRegisterToken2: return "spotDeploy";
         case RestEndpointType::SpotDeployUserGenesis: return "spotDeploy";
@@ -441,6 +445,8 @@ namespace hyperliquid
         case RestEndpointType::TwapCancel: return true;
         case RestEndpointType::VaultTransfer: return true;
         case RestEndpointType::Hip3LiquidatorTransfer: return true;
+        case RestEndpointType::CreateSubAccount: return true;
+        case RestEndpointType::SubAccountTransfer: return true;
         case RestEndpointType::BorrowLend: return true;
         case RestEndpointType::SpotDeployRegisterToken2: return true;
         case RestEndpointType::SpotDeployUserGenesis: return true;
@@ -671,6 +677,18 @@ namespace hyperliquid
         // Quote-token 1e-6 units; must be a multiple of 1000 quote tokens (i.e. 1_000_000_000).
         uint64_t ntl;
         bool isDeposit;
+    };
+
+    struct CreateSubAccountRequest
+    {
+        std::string name;
+    };
+
+    struct SubAccountTransferRequest
+    {
+        std::string subAccountUser;
+        bool isDeposit;
+        double usd;
     };
 
     enum class BorrowLendOperation { Supply, Withdraw, Repay, Borrow };

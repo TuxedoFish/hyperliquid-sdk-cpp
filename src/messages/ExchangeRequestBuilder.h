@@ -47,6 +47,10 @@ public:
 
     nlohmann::ordered_json hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request) const;
 
+    nlohmann::ordered_json createSubAccount(const CreateSubAccountRequest& request) const;
+
+    nlohmann::ordered_json subAccountTransfer(const SubAccountTransferRequest& request) const;
+
     nlohmann::ordered_json borrowLend(const BorrowLendRequest& request) const;
 
     nlohmann::ordered_json spotDeployRegisterToken2(const SpotDeployRegisterToken2Request& request) const;

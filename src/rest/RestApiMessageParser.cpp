@@ -193,6 +193,7 @@ namespace hyperliquid
             case RestEndpointType::AgentSetAbstraction:
             case RestEndpointType::VaultTransfer:
             case RestEndpointType::Hip3LiquidatorTransfer:
+            case RestEndpointType::SubAccountTransfer:
             case RestEndpointType::BorrowLend:
             case RestEndpointType::SpotDeployRegisterToken2:
             case RestEndpointType::SpotDeployUserGenesis:
@@ -222,6 +223,9 @@ namespace hyperliquid
                 break;
             case RestEndpointType::TwapCancel:
                 listener.onTwapCancel(parseTwapCancel(message), correlationId);
+                break;
+            case RestEndpointType::CreateSubAccount:
+                listener.onCreateSubAccount(parseCreateSubAccount(message), correlationId);
                 break;
             case RestEndpointType::Delegations:
                 listener.onDelegations(parseDelegations(message), correlationId);
@@ -570,6 +574,44 @@ namespace hyperliquid
             catch (const simdjson::simdjson_error& err)
             {
                 getLogger()->error("RestMessageParser: parse error in twapCancel: {}\n  raw: {}", err.what(), message);
+            }
+
+            return response;
+        }
+
+        CreateSubAccountResponse parseCreateSubAccount(const std::string& message)
+        {
+            CreateSubAccountResponse response;
+            padded = simdjson::padded_string(message.data(), message.size());
+            auto doc = parser.iterate(padded);
+
+            try
+            {
+                validateStructure(message);
+
+                response.status = std::string(doc["status"].get_string().value());
+
+                if (response.status != "ok")
+                {
+                    simdjson::ondemand::value resp;
+                    if (doc["response"].get(resp) == simdjson::SUCCESS
+                        && resp.type().value() == simdjson::ondemand::json_type::string)
+                    {
+                        response.error = std::string(resp.get_string().value());
+                    }
+                    return response;
+                }
+
+                auto resp = doc["response"].get_object().value();
+                response.type = std::string(resp["type"].get_string().value());
+
+                std::string_view data;
+                if (!resp["data"].get_string().get(data))
+                    response.subAccountUser = std::string(data);
+            }
+            catch (const simdjson::simdjson_error& err)
+            {
+                getLogger()->error("RestMessageParser: parse error in createSubAccount: {}\n  raw: {}", err.what(), message);
             }
 
             return response;
@@ -3564,6 +3606,11 @@ namespace hyperliquid
     TwapCancelResponse RestApiMessageParser::parseTwapCancel(const std::string& message)
     {
         return impl_->parseTwapCancel(message);
+    }
+
+    CreateSubAccountResponse RestApiMessageParser::parseCreateSubAccount(const std::string& message)
+    {
+        return impl_->parseCreateSubAccount(message);
     }
 
     DelegationsResponse RestApiMessageParser::parseDelegations(const std::string& message)

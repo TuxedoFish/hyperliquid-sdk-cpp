@@ -197,7 +197,9 @@ nlohmann::ordered_json Signing::prepareBodyForType(
         return prepareUserSignedActionBody(config, type, body.at("action"));
 
     bool allowConfigVaultFallback = type != RestEndpointType::VaultTransfer &&
-                                     type != RestEndpointType::Hip3LiquidatorTransfer;
+                                     type != RestEndpointType::Hip3LiquidatorTransfer &&
+                                     type != RestEndpointType::CreateSubAccount &&
+                                     type != RestEndpointType::SubAccountTransfer;
     auto effectiveVault = vaultAddress ? vaultAddress
                          : allowConfigVaultFallback ? config.vaultAddress
                          : std::nullopt;

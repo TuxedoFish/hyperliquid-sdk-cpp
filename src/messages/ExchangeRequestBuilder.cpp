@@ -398,6 +398,33 @@ namespace hyperliquid
         return body;
     }
 
+    nlohmann::ordered_json ExchangeRequestBuilder::createSubAccount(const CreateSubAccountRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "createSubAccount";
+        action["name"] = request.name;
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
+    nlohmann::ordered_json ExchangeRequestBuilder::subAccountTransfer(const SubAccountTransferRequest& request) const
+    {
+        nlohmann::ordered_json action;
+        action["type"] = "subAccountTransfer";
+        action["subAccountUser"] = request.subAccountUser;
+        action["isDeposit"] = request.isDeposit;
+        // Like vaultTransfer, this is a plain L1 action whose usd field mirrors USDC's own
+        // on-chain representation: raw integer units at USDC's 6 decimals, so $5 is sent as
+        // 5_000_000.
+        action["usd"] = static_cast<uint64_t>(std::llround(request.usd * 1e6));
+
+        nlohmann::ordered_json body;
+        body["action"] = action;
+        return body;
+    }
+
     nlohmann::ordered_json ExchangeRequestBuilder::borrowLend(const BorrowLendRequest& request) const
     {
         nlohmann::ordered_json action;

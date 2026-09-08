@@ -733,6 +733,22 @@ namespace hyperliquid
                                   std::nullopt, std::nullopt, correlationId);
     }
 
+    void WebsocketApi::createSubAccount(const CreateSubAccountRequest& request,
+                                        std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::CreateSubAccount,
+                                  impl_->exchangeRequestBuilder.createSubAccount(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
+    void WebsocketApi::subAccountTransfer(const SubAccountTransferRequest& request,
+                                          std::optional<uint64_t> correlationId)
+    {
+        return impl_->signAndSend(RestEndpointType::SubAccountTransfer,
+                                  impl_->exchangeRequestBuilder.subAccountTransfer(request),
+                                  std::nullopt, std::nullopt, correlationId);
+    }
+
     void WebsocketApi::usdClassTransfer(const UsdClassTransferRequest& request,
                                         std::optional<uint64_t> correlationId)
     {

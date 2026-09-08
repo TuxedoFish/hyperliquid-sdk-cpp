@@ -137,6 +137,86 @@ TEST(VaultTransferBuilder, ActionIsSignable)
     EXPECT_FALSE(sig.s.empty());
 }
 
+// --- createSubAccount / subAccountTransfer (L1 actions). Field shapes cross-checked against
+// the official hyperliquid-python-sdk's create_sub_account/sub_account_transfer and the
+// nktkas/hyperliquid TS SDK's CreateSubAccountRequest/SubAccountTransferRequest schemas, and
+// against the CreateSubAccountAction/SubAccountTransferAction reference signature vectors
+// already verified in signing_test.cpp. ---
+
+static const std::string kSubAccountUser = "0x1d9470d4b963f552e6f671a81619d395877bf409";
+
+TEST(CreateSubAccountBuilder, BodyShape)
+{
+    ExchangeRequestBuilder builder;
+
+    CreateSubAccountRequest req;
+    req.name = "example";
+
+    auto body = builder.createSubAccount(req);
+    ASSERT_TRUE(body.contains("action"));
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "createSubAccount");
+    EXPECT_EQ(action["name"], "example");
+}
+
+TEST(CreateSubAccountBuilder, ActionMatchesReferenceSignature)
+{
+    ExchangeRequestBuilder builder;
+    CreateSubAccountRequest req;
+    req.name = "example";
+
+    auto action = builder.createSubAccount(req)["action"];
+    auto sig = Signing::signL1Action(dummyWallet(), action, std::nullopt, 0, std::nullopt, false);
+    EXPECT_FALSE(sig.r.empty());
+    EXPECT_FALSE(sig.s.empty());
+}
+
+TEST(SubAccountTransferBuilder, DepositBodyShape)
+{
+    ExchangeRequestBuilder builder;
+
+    SubAccountTransferRequest req;
+    req.subAccountUser = kSubAccountUser;
+    req.isDeposit = true;
+    req.usd = 100.0;
+
+    auto body = builder.subAccountTransfer(req);
+    ASSERT_TRUE(body.contains("action"));
+    const auto& action = body["action"];
+    EXPECT_EQ(action["type"], "subAccountTransfer");
+    EXPECT_EQ(action["subAccountUser"], kSubAccountUser);
+    EXPECT_EQ(action["isDeposit"], true);
+    EXPECT_EQ(action["usd"].get<uint64_t>(), 100000000ULL);
+}
+
+TEST(SubAccountTransferBuilder, UsdScalesFractionalDollarsToRawUnits)
+{
+    ExchangeRequestBuilder builder;
+
+    SubAccountTransferRequest req;
+    req.subAccountUser = kSubAccountUser;
+    req.isDeposit = false;
+    req.usd = 5.5;
+
+    auto body = builder.subAccountTransfer(req);
+    EXPECT_EQ(body["action"]["usd"].get<uint64_t>(), 5500000ULL);
+}
+
+TEST(SubAccountTransferBuilder, ActionMatchesReferenceSignature)
+{
+    ExchangeRequestBuilder builder;
+    SubAccountTransferRequest req;
+    req.subAccountUser = kSubAccountUser;
+    req.isDeposit = true;
+    req.usd = 0.00001; // matches signing_test.cpp's SubAccountTransferAction usd=10 raw units
+
+    auto action = builder.subAccountTransfer(req)["action"];
+    auto sig = Signing::signL1Action(dummyWallet(), action, std::nullopt, 0, std::nullopt, true);
+    EXPECT_EQ(sig.r, "0x43592d7c6c7d816ece2e206f174be61249d651944932b13343f4d13f306ae602");
+    EXPECT_EQ(sig.s, "0x71a926cb5c9a7c01c3359ec4c4c34c16ff8107d610994d4de0e6430e5cc0f4c9");
+    EXPECT_EQ(sig.v, 28);
+}
+
 // --- usdSend / withdraw3 (user-signed): cross-checked against the same reference
 // signatures already verified in signing_test.cpp (SignUsdTransferAction /
 // SignWithdrawFromBridgeAction), proving the builder's field names/formatting are
@@ -667,4 +747,43 @@ TEST(TwapCancelResponseParsing, ErrorResponse)
     EXPECT_EQ(resp.status, "err");
     ASSERT_TRUE(resp.error.has_value());
     EXPECT_EQ(*resp.error, "twap not found");
+}
+
+// Shape per the nktkas/hyperliquid TS SDK's CreateSubAccountResponse: response.data is the
+// address of the newly created sub-account. Not verified against a live testnet payload -
+// see PR description.
+TEST(CreateSubAccountResponseParsing, SuccessResponse)
+{
+    static const std::string kOk =
+        R"({"status":"ok","response":{"type":"createSubAccount","data":"0x1d9470d4b963f552e6f671a81619d395877bf409"}})";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseCreateSubAccount(kOk);
+    EXPECT_EQ(resp.status, "ok");
+    EXPECT_EQ(resp.type, "createSubAccount");
+    ASSERT_TRUE(resp.subAccountUser.has_value());
+    EXPECT_EQ(*resp.subAccountUser, "0x1d9470d4b963f552e6f671a81619d395877bf409");
+    EXPECT_FALSE(resp.error.has_value());
+}
+
+TEST(CreateSubAccountResponseParsing, ErrorResponse)
+{
+    static const std::string kErr =
+        R"({"status":"err","response":"Sub-account name already in use"})";
+
+    RestApiMessageParser parser;
+    auto resp = parser.parseCreateSubAccount(kErr);
+    EXPECT_EQ(resp.status, "err");
+    ASSERT_TRUE(resp.error.has_value());
+    EXPECT_EQ(*resp.error, "Sub-account name already in use");
+    EXPECT_FALSE(resp.subAccountUser.has_value());
+}
+
+TEST(SimpleResponseParsing, SubAccountTransferSuccess)
+{
+    static const std::string kOk = R"({"status":"ok","response":{"type":"default"}})";
+    RestApiMessageParser parser;
+    auto resp = parser.parseSimpleResponse(kOk);
+    EXPECT_EQ(resp.status, "ok");
+    EXPECT_FALSE(resp.error.has_value());
 }

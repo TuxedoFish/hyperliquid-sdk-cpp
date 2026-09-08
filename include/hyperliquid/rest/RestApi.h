@@ -145,12 +145,16 @@ public:
                           const std::optional<std::string>& vaultAddress = std::nullopt);
     TwapCancelResponse twapCancel(const TwapCancelRequest& request,
                           const std::optional<std::string>& vaultAddress = std::nullopt);
-    // vaultTransfer/hip3LiquidatorTransfer/borrowLend/usdClassTransfer/sendAsset/usdSend/spotSend/
-    // withdraw3/approveBuilderFee move funds against the calling wallet directly (their target
-    // vault/dex/destination/etc. is a field of the request itself), so unlike the other exchange
-    // methods they do not take a vaultAddress parameter.
+    // vaultTransfer/hip3LiquidatorTransfer/createSubAccount/subAccountTransfer/borrowLend/
+    // usdClassTransfer/sendAsset/usdSend/spotSend/withdraw3/approveBuilderFee move funds (or
+    // manage sub-accounts) against the calling wallet directly (their target
+    // vault/dex/destination/sub-account/etc. is a field of the request itself, or there is no
+    // vault-like target at all), so unlike the other exchange methods they do not take a
+    // vaultAddress parameter.
     SimpleResponse vaultTransfer(const VaultTransferRequest& request);
     SimpleResponse hip3LiquidatorTransfer(const Hip3LiquidatorTransferRequest& request);
+    CreateSubAccountResponse createSubAccount(const CreateSubAccountRequest& request);
+    SimpleResponse subAccountTransfer(const SubAccountTransferRequest& request);
     SimpleResponse borrowLend(const BorrowLendRequest& request);
     SimpleResponse spotDeployRegisterToken2(const SpotDeployRegisterToken2Request& request);
     SimpleResponse spotDeployUserGenesis(const SpotDeployUserGenesisRequest& request);
@@ -288,6 +292,8 @@ public:
                                    const std::optional<std::string>& vaultAddress = std::nullopt);
     void vaultTransferAsync(const VaultTransferRequest& request);
     void hip3LiquidatorTransferAsync(const Hip3LiquidatorTransferRequest& request);
+    void createSubAccountAsync(const CreateSubAccountRequest& request);
+    void subAccountTransferAsync(const SubAccountTransferRequest& request);
     void borrowLendAsync(const BorrowLendRequest& request);
     void spotDeployRegisterToken2Async(const SpotDeployRegisterToken2Request& request);
     void spotDeployUserGenesisAsync(const SpotDeployUserGenesisRequest& request);
