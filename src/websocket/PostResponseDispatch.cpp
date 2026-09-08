@@ -80,6 +80,15 @@ namespace hyperliquid::internal
             case RestEndpointType::UserTwapSliceFills:
                 listener.onPostResponse(parser.parseUserTwapSliceFills(dataJson), correlationId);
                 break;
+            case RestEndpointType::UserTwapSliceFillsByTime:
+                listener.onPostResponse(parser.parseUserTwapSliceFillsByTime(dataJson), correlationId);
+                break;
+            case RestEndpointType::TwapHistory:
+                listener.onPostResponse(parser.parseTwapHistory(dataJson), correlationId);
+                break;
+            case RestEndpointType::ActiveAssetData:
+                listener.onPostResponse(parser.parseActiveAssetData(dataJson), correlationId);
+                break;
             case RestEndpointType::SubAccounts:
                 listener.onPostResponse(parser.parseSubAccounts(dataJson), correlationId);
                 break;

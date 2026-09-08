@@ -326,6 +326,37 @@ nlohmann::ordered_json InfoRequestBuilder::userTwapSliceFills(const std::string&
     return body;
 }
 
+nlohmann::ordered_json InfoRequestBuilder::userTwapSliceFillsByTime(const std::string& user,
+                                                                     uint64_t startTime,
+                                                                     const std::optional<uint64_t>& endTime,
+                                                                     const std::optional<bool>& aggregateByTime)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::UserTwapSliceFillsByTime);
+    body["user"] = user;
+    body["startTime"] = startTime;
+    if (endTime) body["endTime"] = *endTime;
+    if (aggregateByTime) body["aggregateByTime"] = *aggregateByTime;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::twapHistory(const std::string& user)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::TwapHistory);
+    body["user"] = user;
+    return body;
+}
+
+nlohmann::ordered_json InfoRequestBuilder::activeAssetData(const std::string& user, const std::string& coin)
+{
+    nlohmann::ordered_json body;
+    body["type"] = toString(RestEndpointType::ActiveAssetData);
+    body["user"] = user;
+    body["coin"] = coin;
+    return body;
+}
+
 nlohmann::ordered_json InfoRequestBuilder::subAccounts(const std::string& user)
 {
     nlohmann::ordered_json body;

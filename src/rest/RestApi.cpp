@@ -384,6 +384,28 @@ UserTwapSliceFillsResponse RestApi::userTwapSliceFills(const std::string& user)
         impl_->signAndSendSync(RestEndpointType::UserTwapSliceFills, InfoRequestBuilder::userTwapSliceFills(user)));
 }
 
+UserTwapSliceFillsResponse RestApi::userTwapSliceFillsByTime(const std::string& user,
+                                                              uint64_t startTime,
+                                                              const std::optional<uint64_t>& endTime,
+                                                              const std::optional<bool>& aggregateByTime)
+{
+    return RestApiMessageParser().parseUserTwapSliceFillsByTime(
+        impl_->signAndSendSync(RestEndpointType::UserTwapSliceFillsByTime,
+                               InfoRequestBuilder::userTwapSliceFillsByTime(user, startTime, endTime, aggregateByTime)));
+}
+
+TwapHistoryResponse RestApi::twapHistory(const std::string& user)
+{
+    return RestApiMessageParser().parseTwapHistory(
+        impl_->signAndSendSync(RestEndpointType::TwapHistory, InfoRequestBuilder::twapHistory(user)));
+}
+
+ActiveAssetData RestApi::activeAssetData(const std::string& user, const std::string& coin)
+{
+    return RestApiMessageParser().parseActiveAssetData(
+        impl_->signAndSendSync(RestEndpointType::ActiveAssetData, InfoRequestBuilder::activeAssetData(user, coin)));
+}
+
 SubAccountsResponse RestApi::subAccounts(const std::string& user)
 {
     return RestApiMessageParser().parseSubAccounts(
@@ -969,6 +991,25 @@ void RestApi::historicalOrdersAsync(const std::string& user)
 void RestApi::userTwapSliceFillsAsync(const std::string& user)
 {
     impl_->signAndSend(RestEndpointType::UserTwapSliceFills, InfoRequestBuilder::userTwapSliceFills(user));
+}
+
+void RestApi::userTwapSliceFillsByTimeAsync(const std::string& user,
+                                            uint64_t startTime,
+                                            const std::optional<uint64_t>& endTime,
+                                            const std::optional<bool>& aggregateByTime)
+{
+    impl_->signAndSend(RestEndpointType::UserTwapSliceFillsByTime,
+                       InfoRequestBuilder::userTwapSliceFillsByTime(user, startTime, endTime, aggregateByTime));
+}
+
+void RestApi::twapHistoryAsync(const std::string& user)
+{
+    impl_->signAndSend(RestEndpointType::TwapHistory, InfoRequestBuilder::twapHistory(user));
+}
+
+void RestApi::activeAssetDataAsync(const std::string& user, const std::string& coin)
+{
+    impl_->signAndSend(RestEndpointType::ActiveAssetData, InfoRequestBuilder::activeAssetData(user, coin));
 }
 
 void RestApi::subAccountsAsync(const std::string& user)

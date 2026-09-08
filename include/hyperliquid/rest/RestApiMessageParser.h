@@ -67,6 +67,9 @@ namespace hyperliquid
         FrontendOpenOrdersResponse parseFrontendOpenOrders(const std::string& message);
         HistoricalOrdersResponse parseHistoricalOrders(const std::string& message);
         UserTwapSliceFillsResponse parseUserTwapSliceFills(const std::string& message);
+        UserTwapSliceFillsResponse parseUserTwapSliceFillsByTime(const std::string& message);
+        TwapHistoryResponse parseTwapHistory(const std::string& message);
+        ActiveAssetData parseActiveAssetData(const std::string& message);
         SubAccountsResponse parseSubAccounts(const std::string& message);
         UserFeesResponse parseUserFees(const std::string& message);
         MaxBuilderFeeResponse parseMaxBuilderFee(const std::string& message);

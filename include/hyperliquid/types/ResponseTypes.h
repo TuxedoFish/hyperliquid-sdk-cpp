@@ -344,12 +344,16 @@ namespace hyperliquid
         std::vector<TwapState> states;
     };
 
-    enum class TwapHistoryStatus { Activated, Terminated, Finished, Error, Unknown };
+    // Confirmed live against mainnet (twapHistory info endpoint): activated, terminated,
+    // waitingForTrigger, stopped, finished, error have all been observed on real accounts.
+    enum class TwapHistoryStatus { Activated, Terminated, WaitingForTrigger, Stopped, Finished, Error, Unknown };
 
     inline TwapHistoryStatus stringToTwapHistoryStatus(std::string_view s)
     {
         if (s == "activated") return TwapHistoryStatus::Activated;
         if (s == "terminated") return TwapHistoryStatus::Terminated;
+        if (s == "waitingForTrigger") return TwapHistoryStatus::WaitingForTrigger;
+        if (s == "stopped") return TwapHistoryStatus::Stopped;
         if (s == "finished") return TwapHistoryStatus::Finished;
         if (s == "error") return TwapHistoryStatus::Error;
         return TwapHistoryStatus::Unknown;
@@ -361,6 +365,8 @@ namespace hyperliquid
         {
         case TwapHistoryStatus::Activated: return "activated";
         case TwapHistoryStatus::Terminated: return "terminated";
+        case TwapHistoryStatus::WaitingForTrigger: return "waitingForTrigger";
+        case TwapHistoryStatus::Stopped: return "stopped";
         case TwapHistoryStatus::Finished: return "finished";
         case TwapHistoryStatus::Error: return "error";
         default: return "unknown";
@@ -373,6 +379,7 @@ namespace hyperliquid
         TwapHistoryStatus status;
         std::string description;
         uint64_t time;
+        uint64_t twapId = 0; // only populated by the REST twapHistory endpoint, not the userTwapHistory websocket channel
         bool isSnapshot = false;
     };
 
@@ -493,10 +500,16 @@ namespace hyperliquid
         std::string user;
         std::string coin;
         LeverageType leverageType;
+        double leverageValue = 0.0;
+        // isolated-margin HIP-3 dex only ("rawUsd" alongside "type"/"value" in the leverage object).
+        std::optional<double> leverageRawUsd;
         double maxTradeSzLong;
         double maxTradeSzShort;
         double availableToTradeLong;
         double availableToTradeShort;
+        // Only present on the REST activeAssetData response, confirmed live - not observed on the
+        // activeAssetData websocket channel payload, so left unset (0.0) there.
+        double markPx = 0.0;
     };
 
     struct Notification
@@ -1149,6 +1162,11 @@ namespace hyperliquid
     struct UserTwapSliceFillsResponse
     {
         std::vector<TwapSliceFill> fills;
+    };
+
+    struct TwapHistoryResponse
+    {
+        std::vector<TwapHistoryEntry> history;
     };
 
     struct SubAccount
