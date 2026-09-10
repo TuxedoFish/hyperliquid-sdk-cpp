@@ -501,10 +501,8 @@ TEST(WebsocketParser, TwapStates)
     EXPECT_EQ(state.timestamp, 1700000000000u);
 }
 
-TEST(WebsocketParser, L2BookFastPath)
+TEST(WebsocketParser, L2BookCompact)
 {
-    // Byte-for-byte matches what crackL2BookFast's raw string scan expects
-    // ("coin":", "time":, [[ ... ], [ ... ) - exercises the fast path.
     static const std::string kMsg =
         R"({"channel":"l2Book","data":{"coin":"BTC","time":1700000000000,"levels":[[)"
         R"({"px":"29800.0","sz":"1.5","n":2},{"px":"29799.0","sz":"0.5","n":1}],[)"
@@ -526,12 +524,10 @@ TEST(WebsocketParser, L2BookFastPath)
     EXPECT_EQ(snapshot.asks[0].px, "29801.0");
 }
 
-TEST(WebsocketParser, L2BookFallbackPath)
+TEST(WebsocketParser, L2BookWithWhitespace)
 {
-    // A space after "coin": breaks crackL2BookFast's exact literal scan ("coin":\"), so this
-    // falls through to the simdjson-based crackL2Book - the path with the dangling-reference
-    // bug (fixed: the inner per-side array must be bound to a named variable before the
-    // range-for, same as the outer per-book array already was).
+    // The dangling-reference bug (fixed: the inner per-side array must be bound to a named
+    // variable before the range-for, same as the outer per-book array already was).
     static const std::string kMsg = R"({
         "channel": "l2Book",
         "data": {

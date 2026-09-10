@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cstring>
 #include <zlib.h>
 
 namespace hyperliquid
@@ -62,22 +61,5 @@ namespace hyperliquid
 
         inflateEnd(&stream);
         return ret == Z_STREAM_END;
-    }
-
-    const char* WebsocketParsingUtils::scanTo(const char* p, const char* end, const char* pattern, size_t len)
-    {
-        const char* found = static_cast<const char*>(memmem(p, end - p, pattern, len));
-        return found ? found + len : nullptr;
-    }
-
-    uint64_t WebsocketParsingUtils::parseUint64Fast(const char*& p, const char* end)
-    {
-        uint64_t val = 0;
-        while (p < end && *p >= '0' && *p <= '9')
-        {
-            val = val * 10 + (*p - '0');
-            p++;
-        }
-        return val;
     }
 }
