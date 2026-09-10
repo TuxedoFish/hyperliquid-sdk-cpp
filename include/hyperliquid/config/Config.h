@@ -36,5 +36,7 @@ namespace hyperliquid
         // Default vault/subaccount address used when a per-call vaultAddress isn't given - see
         // Signing::prepareBodyForType for which action types this fallback does and doesn't apply to.
         std::optional<std::string> vaultAddress;
+        // Set false to skip WebsocketMessageParser's extra DOM validation pass (see crack()).
+        bool validateJson = true;
     };
 }

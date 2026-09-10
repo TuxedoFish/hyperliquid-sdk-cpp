@@ -103,6 +103,9 @@ namespace hyperliquid
         simdjson::ondemand::parser parser;
         simdjson::padded_string padded;
         simdjson::dom::parser domParser;
+        bool validateJson_;
+
+        explicit Impl(bool validateJson) : validateJson_(validateJson) {}
 
         // simdjson's ondemand API can hit an internal assertion (abort) rather than a catchable
         // simdjson_error when a value is looked up by name more than once on the same malformed
@@ -111,6 +114,7 @@ namespace hyperliquid
         // a structurally invalid document.
         void validateStructure(std::string_view message)
         {
+            if (!validateJson_) return;
             domParser.parse(message.data(), message.size()).value();
         }
 
@@ -1493,7 +1497,7 @@ namespace hyperliquid
         }
     };
 
-    WebsocketMessageParser::WebsocketMessageParser() : impl_(std::make_unique<Impl>()) {}
+    WebsocketMessageParser::WebsocketMessageParser(const ApiConfig& config) : impl_(std::make_unique<Impl>(config.validateJson)) {}
 
     WebsocketMessageParser::~WebsocketMessageParser() = default;
     WebsocketMessageParser::WebsocketMessageParser(WebsocketMessageParser&&) noexcept = default;
