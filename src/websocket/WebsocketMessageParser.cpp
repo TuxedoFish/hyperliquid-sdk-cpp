@@ -1,7 +1,5 @@
 #include "hyperliquid/websocket/WebsocketMessageParser.h"
-#include <array>
 #include <charconv>
-#include <cstring>
 #include <simdjson.h>
 #include "../config/Logger.h"
 #include "WebsocketParsingUtils.h"
@@ -10,94 +8,6 @@
 
 namespace hyperliquid
 {
-    static void parseLevels(const char*& p, const char* end,
-                            std::array<PriceLevel, L2_BOOK_MAX_LEVELS>& levels,
-                            uint8_t& count, Side side)
-    {
-        while (p < end && count < L2_BOOK_MAX_LEVELS)
-        {
-            // Find next "px":"
-            const char* px = WebsocketParsingUtils::scanTo(p, end, "\"px\":\"", 6);
-            if (!px) return;
-
-            // Check if we crossed the ],[ boundary (bid/ask split)
-            // by seeing if there's a ],[ between our current position and px
-            for (const char* scan = p; scan < px - 1; ++scan)
-            {
-                if (scan[0] == ']' && scan[1] == ',' && scan[2] == '[')
-                {
-                    p = scan + 3;
-                    return;  // done with this side
-                }
-            }
-
-            const char* pxEnd = static_cast<const char*>(memchr(px, '"', end - px));
-            if (!pxEnd) return;
-
-            const char* sz = WebsocketParsingUtils::scanTo(pxEnd, end, "\"sz\":\"", 6);
-            if (!sz) return;
-            const char* szEnd = static_cast<const char*>(memchr(sz, '"', end - sz));
-            if (!szEnd) return;
-
-            const char* nPos = WebsocketParsingUtils::scanTo(szEnd, end, "\"n\":", 4);
-            if (!nPos) return;
-            int n = 0;
-            while (nPos < end && *nPos >= '0' && *nPos <= '9')
-            {
-                n = n * 10 + (*nPos - '0');
-                nPos++;
-            }
-
-            levels[count].side = side;
-            levels[count].px = std::string_view(px, pxEnd - px);
-            levels[count].sz = std::string_view(sz, szEnd - sz);
-            levels[count].n = n;
-            count++;
-
-            p = nPos;
-        }
-    }
-
-    static bool crackL2BookFast(std::string_view msg, WebsocketMessageHandler& listener)
-    {
-        L2BookSnapshot snapshot;
-        snapshot.numBids = 0;
-        snapshot.numAsks = 0;
-
-        const char* p = msg.data();
-        const char* end = p + msg.size();
-
-        // Find "coin":" — extract coin name up to closing quote
-        p = WebsocketParsingUtils::scanTo(p, end, "\"coin\":\"", 8);
-        if (!p) return false;
-        const char* coinEnd = static_cast<const char*>(memchr(p, '"', end - p));
-        if (!coinEnd) return false;
-        snapshot.coin = std::string(p, coinEnd - p);
-
-        // Find "time": — parse uint64
-        p = WebsocketParsingUtils::scanTo(coinEnd, end, "\"time\":", 7);
-        if (!p) return false;
-        snapshot.time = WebsocketParsingUtils::parseUint64Fast(p, end);
-
-        // Find start of levels array: "levels":[[
-        p = WebsocketParsingUtils::scanTo(p, end, "[[", 2);
-        if (!p) return false;
-
-        // Parse bid levels until we hit ],[ boundary
-        parseLevels(p, end, snapshot.bids, snapshot.numBids, Side::Bid);
-
-        // If parseLevels exited due to count limit (not finding ],[),
-        // we need to skip past the ],[ boundary before parsing asks.
-        const char* boundary = WebsocketParsingUtils::scanTo(p, end, "],[", 3);
-        if (boundary) p = boundary;
-
-        // Parse ask levels
-        parseLevels(p, end, snapshot.asks, snapshot.numAsks, Side::Ask);
-
-        listener.onL2Book(snapshot);
-        return true;
-    }
-
     struct WebsocketMessageParser::Impl
     {
         simdjson::ondemand::parser parser;
@@ -127,15 +37,6 @@ namespace hyperliquid
 
         void crack(std::string_view message, WebsocketMessageHandler& listener)
         {
-            // Fast path: l2Book is the most common message type.
-            // Detect via cheap string scan and parse without simdjson.
-            if (message.size() > 30 && message.find("\"l2Book\"") != std::string_view::npos)
-            {
-                if (crackL2BookFast(message, listener))
-                    return;
-                // Fall through to simdjson if fast parse failed
-            }
-
             padded = simdjson::padded_string(message.data(), message.size());
             auto doc = parser.iterate(padded);
 
@@ -164,7 +65,6 @@ namespace hyperliquid
 
                 if (channel == "l2Book")
                 {
-                    // Fast path already handled this above — only here as fallback
                     auto data = doc["data"].get_object().value();
                     crackL2Book(data, listener);
                 }
