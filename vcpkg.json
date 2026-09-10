@@ -13,7 +13,10 @@
     "nlohmann-json",
     "spdlog",
     "zlib",
-    "secp256k1"
+    {
+      "name": "secp256k1",
+      "features": ["recovery"]
+    }
   ],
   "features": {
     "tests": {
