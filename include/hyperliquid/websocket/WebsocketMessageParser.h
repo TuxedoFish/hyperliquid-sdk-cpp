@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include "WebsocketMessageHandler.h"
+#include "../config/Config.h"
 
 namespace hyperliquid
 {
@@ -14,7 +15,8 @@ namespace hyperliquid
     class WebsocketMessageParser
     {
     public:
-        WebsocketMessageParser();
+        // See ApiConfig::validateJson.
+        explicit WebsocketMessageParser(const ApiConfig& config = ApiConfig{});
         ~WebsocketMessageParser();
 
         WebsocketMessageParser(WebsocketMessageParser&&) noexcept;
