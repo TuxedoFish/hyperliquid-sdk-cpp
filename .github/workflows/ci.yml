@@ -61,9 +61,13 @@ jobs:
         run: cmake --preset default -DHYPERLIQUID_WARNINGS_AS_ERRORS=ON
 
       # --config/-C are no-ops on the single-config Makefiles generator Linux/macOS use, and
-      # select Release on Windows' multi-config Visual Studio generator.
+      # select Release on Windows' multi-config Visual Studio generator. --parallel with no
+      # number is unbounded on the Makefiles generator (bare `make -j`, not "one job per core") -
+      # this repo's ~80 independent test/example targets all become ready at once after the
+      # shared library links, and firing all of them at once reliably OOMs a standard hosted
+      # runner (reproduced locally under a matching memory cgroup - not flakiness).
       - name: Build
-        run: cmake --build build --config Release --parallel
+        run: cmake --build build --config Release --parallel 4
 
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
