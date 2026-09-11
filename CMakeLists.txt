@@ -98,6 +98,22 @@ if(NOT MSVC)
     target_compile_options(hyperliquid-sdk PRIVATE ${HYPERLIQUID_WARNING_FLAGS})
 endif()
 
+if(WIN32)
+    # Boost.Asio pulls in <windows.h> transitively; NOMINMAX/WIN32_LEAN_AND_MEAN avoid its
+    # min/max macros colliding with std::min/std::max and cut unneeded header bloat.
+    # _WIN32_WINNT pins the target Windows API version Asio otherwise has to guess at (with a
+    # build warning) - 0x0A00 is Windows 10, matching CI's windows-latest runner.
+    target_compile_definitions(hyperliquid-sdk PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0A00)
+    target_link_libraries(hyperliquid-sdk PUBLIC ws2_32 mswsock)
+endif()
+
+if(MSVC)
+    # /EHsc: MSVC needs the exception model spelled out explicitly (this codebase throws/catches
+    # throughout). /bigobj: Boost.Asio/Beast's heavy template instantiation blows past MSVC's
+    # default COFF section-table limit (C1128) in translation units like WebsocketRunner.cpp.
+    target_compile_options(hyperliquid-sdk PUBLIC /EHsc /bigobj)
+endif()
+
 if(HYPERLIQUID_SANITIZE)
     target_compile_options(hyperliquid-sdk PUBLIC ${HYPERLIQUID_SANITIZE_FLAGS})
     target_link_options(hyperliquid-sdk PUBLIC ${HYPERLIQUID_SANITIZE_FLAGS})

@@ -3,6 +3,7 @@
 #include <array>
 #include <chrono>
 #include <cstdint>
+#include <ctime>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -619,7 +620,11 @@ namespace hyperliquid
         tm.tm_min = std::stoi(s.substr(11, 2));
         tm.tm_sec = 0;
         tm.tm_isdst = 0;
+#ifdef _WIN32
+        std::time_t t = _mkgmtime(&tm);
+#else
         std::time_t t = timegm(&tm);
+#endif
         return std::chrono::system_clock::from_time_t(t);
     }
 
