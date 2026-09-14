@@ -6,7 +6,7 @@ if(HYPERLIQUID_BUILD_TESTS)
     list(APPEND VCPKG_MANIFEST_FEATURES "tests")
 endif()
 
-project(hyperliquid-sdk-cpp VERSION 0.1.0 LANGUAGES C CXX)
+project(hyperliquid-sdk-cpp VERSION 0.1.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

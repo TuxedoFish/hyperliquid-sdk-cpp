@@ -5,7 +5,31 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - Unreleased
+## [0.1.1] - 2026-09-14
+
+### Added
+
+- REST endpoints: `createVault`, `setReferrer`, `userPortfolioMargin`, `exchangeStatus`,
+  `createSubAccount`, `subAccountTransfer`, `userBorrowLendInterest`, `liquidatable`,
+  `twapHistory`, `userTwapSliceFillsByTime`, `activeAssetData`. Brings coverage to 59 of 78
+  documented info endpoints and 41 of 68 documented exchange actions.
+- Windows/MSVC support: the SDK now builds under MSVC, with CI covering `windows-latest` in
+  the build matrix alongside GCC/Clang/macOS.
+- `ApiConfig::validateJson` to opt out of `WebsocketMessageParser`'s upfront simdjson DOM
+  validation pass once a feed is known-trusted, avoiding a full DOM parse ahead of the
+  on-demand parse on every message.
+
+### Changed
+
+- Dropped the `secp256k1` overlay port now that vcpkg's registry port carries the `recovery`
+  feature this SDK needs, so consumers no longer need a custom overlay to build it.
+
+### Removed
+
+- `crackL2BookFast`, the specialized fast-path `l2Book` parser; the general simdjson path is
+  now the sole `l2Book` parser.
+
+## [0.1.0] - 2026-09-07
 
 Initial release.
 
